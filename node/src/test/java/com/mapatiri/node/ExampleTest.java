@@ -1,6 +1,6 @@
-package com.mapatiri.grammar;
+package com.mapatiri.node;
 
-import grammar.Example;
+import com.mapatiri.grammar.Example;
 import org.junit.jupiter.api.Test;
 
 public class ExampleTest {

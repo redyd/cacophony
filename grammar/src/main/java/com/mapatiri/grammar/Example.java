@@ -1,4 +1,4 @@
-package grammar;
+package com.mapatiri.grammar;
 
 public class Example {
 

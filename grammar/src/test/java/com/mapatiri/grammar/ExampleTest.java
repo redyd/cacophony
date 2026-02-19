@@ -1,6 +1,5 @@
 package com.mapatiri.grammar;
 
-import grammar.Example;
 import org.junit.jupiter.api.Test;
 
 public class ExampleTest {

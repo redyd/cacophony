@@ -1,4 +1,4 @@
-package com.mapatiri.grammar;
+package com.mapatiri.speaker;
 
 import org.junit.jupiter.api.Test;
 
