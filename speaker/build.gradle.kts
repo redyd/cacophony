@@ -8,4 +8,5 @@ application {
 
 dependencies {
     implementation(project(":grammar"))
+    implementation(libs.guice)
 }

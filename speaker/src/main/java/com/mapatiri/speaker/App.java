@@ -1,14 +1,16 @@
 package com.mapatiri.speaker;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.mapatiri.speaker.config.AppModule;
+import com.mapatiri.speaker.service.MyService;
 
 public class App {
 
-    private final static Logger logger = LoggerFactory.getLogger(App.class);
-
     public static void main(String[] args) {
-        logger.info("Hello World from speaker");
+        Injector injector = Guice.createInjector(new AppModule());
+        MyService myService = injector.getInstance(MyService.class);
+        myService.doSomething();
     }
 
 }
