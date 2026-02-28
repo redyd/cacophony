@@ -24,7 +24,7 @@ public class JsonServiceImpl implements  JsonService{
 
     }
 
-    @Override // ai
+    @Override
     public NodeConfig loadNodeConfig() throws NodeFileException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -116,8 +116,23 @@ public class JsonServiceImpl implements  JsonService{
     }
 
     @Override
-    public BcryptParams parseByCrypt(String byCryptString) {
-        return null;
+    public BcryptParams parseByCrypt(String byCryptString) {//ai
+        // Vérifie format Bcrypt "$2b$14$..."
+        if (byCryptString == null || !byCryptString.startsWith("$2b$")) {
+            throw new IllegalArgumentException("Format Bcrypt invalide: " + byCryptString);
+        }
+
+        // Split sur "$" → ["", "2b", "14", "salt+hash"]
+        String[] parts = byCryptString.split("\\$");
+
+        if (parts.length < 4) {
+            throw new IllegalArgumentException("Bcrypt malformé: " + byCryptString);
+        }
+        // parts[2] = counter (ex: "14"), parts[3] = salt+hash (22 chars salt)
+        int counter = Integer.parseInt(parts[2]);
+        String salt = parts[3].substring(0, 22);  // Premier 22 chars = salt
+
+        return new BcryptParams(counter, salt);
     }
 
     private Path getPath(String filename) {
