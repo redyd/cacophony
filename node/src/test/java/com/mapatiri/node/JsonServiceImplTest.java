@@ -36,6 +36,7 @@ public class JsonServiceImplTest {
 //              "subscriptions": {}
 //            }
 //            """);
+
         service = new JsonServiceImpl("node-config-test.json");
     }
 
