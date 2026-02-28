@@ -8,7 +8,6 @@ import com.google.gson.GsonBuilder;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,7 +31,7 @@ public class JsonServiceImpl implements JsonService {
                 .disableHtmlEscaping()
                 .create();
 
-        NodeConfig config = null;
+        NodeConfig config = new NodeConfig();
         try {
 
             config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8),

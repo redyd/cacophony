@@ -4,16 +4,12 @@ import config.JsonServiceImpl;
 import config.NodeConfigSaveException;
 import config.NodeFileException;
 import model.BcryptParams;
-import model.NodeConfig;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -53,7 +49,7 @@ public class JsonServiceImplTest {
     void testAddUser() throws NodeConfigSaveException {
         service.addUser("louis", 22, "$2b$14$test");
         assertTrue(service.getUser("louis").isPresent());
-        assertEquals(22, service.getUser("louis").get().getSaltLenght());
+        assertEquals(22, service.getUser("louis").get().saltLenght());
     }
 
 
