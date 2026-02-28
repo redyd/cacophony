@@ -3,8 +3,8 @@ package config;
 import model.BcryptParams;
 import model.NodeConfig;
 import model.User;
-import org.gradle.internal.impldep.com.google.gson.Gson;
-import org.gradle.internal.impldep.com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -38,6 +38,7 @@ public class JsonServiceImpl implements JsonService {
             config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8),
                     NodeConfig.class);
         } catch (IOException e) {
+            System.out.println("Erreur loading nodeConfig" +  e.getMessage());
             throw new NodeFileException(e.getMessage());
         }
 

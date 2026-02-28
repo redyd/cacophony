@@ -11,6 +11,7 @@ public class User {
         this.bycrypt = bycrypt;
     }
 
-
-
+    public int getSaltLenght() {
+        return saltLenght;
+    }
 }
