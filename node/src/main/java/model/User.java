@@ -14,4 +14,8 @@ public class User {
     public int getSaltLenght() {
         return saltLenght;
     }
+
+    public String getBycrypt() {
+        return bycrypt;
+    }
 }
