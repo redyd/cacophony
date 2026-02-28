@@ -1,8 +1,8 @@
-package config;
+package com.mapatiri.node.config;
 
-import model.BcryptParams;
-import model.NodeConfig;
-import model.User;
+import com.mapatiri.node.model.BcryptParams;
+import com.mapatiri.node.model.NodeConfig;
+import com.mapatiri.node.model.User;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,9 +1,9 @@
 package com.mapatiri.node;
 
-import config.JsonServiceImpl;
-import config.NodeConfigSaveException;
-import config.NodeFileException;
-import model.BcryptParams;
+import com.mapatiri.node.config.JsonServiceImpl;
+import com.mapatiri.node.config.NodeConfigSaveException;
+import com.mapatiri.node.config.NodeFileException;
+import com.mapatiri.node.model.BcryptParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

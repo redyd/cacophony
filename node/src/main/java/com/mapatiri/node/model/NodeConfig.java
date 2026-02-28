@@ -1,4 +1,4 @@
-package model;
+package com.mapatiri.node.model;
 
 import java.util.HashMap;
 import java.util.Map;
