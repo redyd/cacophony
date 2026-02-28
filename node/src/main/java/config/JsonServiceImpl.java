@@ -15,12 +15,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class JsonServiceImpl implements  JsonService{
+public class JsonServiceImpl implements JsonService {
     private NodeConfig nodeConfig;
     private final Path path;
+
     public JsonServiceImpl(String filename) throws NodeFileException {
         path = getPath(filename);
-       nodeConfig = loadNodeConfig();
+        nodeConfig = loadNodeConfig();
 
     }
 
@@ -51,36 +52,42 @@ public class JsonServiceImpl implements  JsonService{
     @Override
     public void addUser(String username, int saltLenght, String bycrypt) throws NodeConfigSaveException {
 
+
         if (nodeConfig == null) {
             throw new IllegalStateException("NodeConfig pas chargé");
         }
 
-        Map<String, User> users = this.nodeConfig.getUsers();
+        synchronized (this) {
+            Map<String, User> users = this.nodeConfig.getUsers();
             users.put(username, new User(saltLenght, bycrypt));
-            saveConfig(nodeConfig );
-
+            saveConfig(nodeConfig);
+        }
 
 
     }
 
     @Override
     public Optional<User> getUser(String username) {
-        if(nodeConfig == null) {
+        if (nodeConfig == null) {
             return Optional.empty();
         }
         Map<String, User> users = this.nodeConfig.getUsers();
-       return Optional.ofNullable(users.get(username));
+        return Optional.ofNullable(users.get(username));
     }
 
     @Override
     public void addSubscription(String username, String subscription) throws NodeConfigSaveException {
-        if(nodeConfig != null) {
+        if (nodeConfig == null) {
+            throw new IllegalStateException("NodeConfig pas chargé");
+        }
+        synchronized (this) {
             nodeConfig.getSubscriptions()//ai
                     .computeIfAbsent(username, k -> new HashSet<>())
                     .add(subscription);
             saveConfig(nodeConfig);
 
         }
+
 
     }
 
@@ -95,20 +102,23 @@ public class JsonServiceImpl implements  JsonService{
 
     @Override
     public void saveConfig(NodeConfig nodeConfig) throws NodeConfigSaveException {
-        try{
-            Gson gson = new GsonBuilder()
-                    .setPrettyPrinting()
-                    .disableHtmlEscaping()
-                    .create();
-            Path tempFile = Files.createTempFile("nodeConfig", ".json");
+        try {
+            //synchronized cest comme transaction car il se peut quon utilise les methode en meme temps
+            synchronized (this) {
+                Gson gson = new GsonBuilder()
+                        .setPrettyPrinting()
+                        .disableHtmlEscaping()
+                        .create();
+                Path tempFile = Files.createTempFile("nodeConfig", ".json");
 
-            try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8)) {
-                gson.toJson(nodeConfig, writer);
+                try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8)) {
+                    gson.toJson(nodeConfig, writer);
+                }
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
+
             }
-            Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
 
-
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new NodeConfigSaveException(e.getMessage());
 
         }
@@ -136,6 +146,6 @@ public class JsonServiceImpl implements  JsonService{
     }
 
     private Path getPath(String filename) {
-       return Path.of("src","main","resources",filename);
+        return Path.of("src", "main", "resources", filename);
     }
 }
