@@ -5,16 +5,17 @@ import model.NodeConfig;
 import model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface JsonService {
 
-    NodeConfig loadNodeConfig(String filename);
+    NodeConfig loadNodeConfig() throws NodeFileException;
 
-    void addUser(String username,int saltLenght, String bycrypt);
+    void addUser(String username,int saltLenght, String bycrypt) throws NodeConfigSaveException;
 
-    User getUser(String username);
+    Optional<User> getUser(String username);
 
-    void addSubscription(String username,String subscription);
+    void addSubscription(String username,String subscription) throws NodeConfigSaveException;
 
     /**
      * Retourne les abonné au tag/user
@@ -27,9 +28,9 @@ public interface JsonService {
     /**
      * Enregistrer les info dans le config file
      * @param nodeConfig
-     * @param filename
+     *
      */
-    void saveConfig(NodeConfig nodeConfig, String filename);
+    void saveConfig(NodeConfig nodeConfig) throws NodeConfigSaveException;
 
     /**
      * Permet d'extraire les param lors du challenge pour un user apres avoir utilisé getUser
