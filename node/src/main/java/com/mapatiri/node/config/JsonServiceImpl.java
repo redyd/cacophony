@@ -37,7 +37,6 @@ public class JsonServiceImpl implements JsonService {
             config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8),
                     NodeConfig.class);
         } catch (IOException e) {
-            System.out.println("Erreur loading nodeConfig" +  e.getMessage());
             throw new NodeFileException(e.getMessage());
         }
 
