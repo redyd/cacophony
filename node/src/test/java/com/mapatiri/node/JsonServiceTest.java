@@ -1,8 +1,8 @@
 package com.mapatiri.node;
 
-import com.mapatiri.node.config.JsonServiceImpl;
-import com.mapatiri.node.config.NodeConfigSaveException;
-import com.mapatiri.node.config.NodeFileException;
+import com.mapatiri.node.service.JsonService;
+import com.mapatiri.node.exception.NodeConfigSaveException;
+import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.model.BcryptParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,12 +13,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JsonServiceImplTest {
+public class JsonServiceTest {
 
 
     @TempDir
     Path tempDir;
-    JsonServiceImpl service;
+    JsonService service;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -37,7 +37,7 @@ public class JsonServiceImplTest {
 //            }
 //            """);
 
-        service = new JsonServiceImpl("node-config-test.json");
+        service = new JsonService("node-config-test.json");
     }
 
     @Test

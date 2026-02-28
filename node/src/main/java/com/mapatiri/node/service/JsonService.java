@@ -1,5 +1,7 @@
-package com.mapatiri.node.config;
+package com.mapatiri.node.service;
 
+import com.mapatiri.node.exception.NodeConfigSaveException;
+import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.model.BcryptParams;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.User;
@@ -14,11 +16,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class JsonServiceImpl implements JsonService {
-    private NodeConfig nodeConfig;
+public class JsonService implements ConfigService {
+
+    private final NodeConfig nodeConfig;
     private final Path path;
 
-    public JsonServiceImpl(String filename) throws NodeFileException {
+    public JsonService(String filename) throws NodeFileException {
         path = getPath(filename);
         nodeConfig = loadNodeConfig();
 
@@ -31,27 +34,21 @@ public class JsonServiceImpl implements JsonService {
                 .disableHtmlEscaping()
                 .create();
 
-        NodeConfig config = new NodeConfig();
         try {
+            NodeConfig config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), NodeConfig.class);
+            if (config == null) {
+                throw new NodeFileException("Config vide pour: " + path);
+            }
 
-            config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8),
-                    NodeConfig.class);
+            return config;
         } catch (IOException e) {
             throw new NodeFileException(e.getMessage());
         }
 
-        if (config == null) {
-            throw new NodeFileException("Config vide pour: " + path);
-        }
-
-
-        return config;
     }
 
     @Override
     public void addUser(String username, int saltLenght, String bycrypt) throws NodeConfigSaveException {
-
-
         if (nodeConfig == null) {
             throw new IllegalStateException("NodeConfig pas chargé");
         }
@@ -61,8 +58,6 @@ public class JsonServiceImpl implements JsonService {
             users.put(username, new User(saltLenght, bycrypt));
             saveConfig(nodeConfig);
         }
-
-
     }
 
     @Override
@@ -86,17 +81,14 @@ public class JsonServiceImpl implements JsonService {
             saveConfig(nodeConfig);
 
         }
-
-
     }
 
     @Override
     public List<String> getSubscribers(String username) {
         if (nodeConfig == null) return List.of(); //ai
         Set<String> subs = nodeConfig.getSubscriptions().get(username);
+
         return subs != null ? List.copyOf(subs) : List.of();//ai
-
-
     }
 
     @Override
