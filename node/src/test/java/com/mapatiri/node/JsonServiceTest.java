@@ -50,7 +50,7 @@ public class JsonServiceTest {
     void testAddUser() throws NodeConfigSaveException {
         service.addUser("louis", 22, "$2b$14$test");
         assertTrue(service.getUser("louis").isPresent());
-        assertEquals(22, service.getUser("louis").get().saltLenght());
+        assertEquals(22, service.getUser("louis").get().bcryptRound());
     }
 
 
