@@ -18,13 +18,12 @@ import java.util.*;
 
 public class JsonService implements ConfigService {
 
-    private final NodeConfig nodeConfig;
     private final Path path;
+    private NodeConfig nodeConfig;
 
     public JsonService(String filename) throws NodeFileException {
         path = getPath(filename);
         nodeConfig = loadNodeConfig();
-
     }
 
     @Override
@@ -44,7 +43,6 @@ public class JsonService implements ConfigService {
         } catch (IOException e) {
             throw new NodeFileException(e.getMessage());
         }
-
     }
 
     @Override
@@ -105,13 +103,12 @@ public class JsonService implements ConfigService {
                 try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8)) {
                     gson.toJson(nodeConfig, writer);
                 }
-                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
 
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
             }
 
         } catch (IOException e) {
             throw new NodeConfigSaveException(e.getMessage());
-
         }
 
     }
