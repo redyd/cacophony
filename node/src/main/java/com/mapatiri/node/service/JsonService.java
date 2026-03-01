@@ -53,7 +53,7 @@ public class JsonService implements ConfigService {
 
         synchronized (this) {
             Map<String, User> users = this.nodeConfig.getUsers();
-            users.put(username, new User(saltLenght, bycrypt));
+            users.put(username, new User(username, "this is hash", saltLenght, bycrypt));
             saveConfig(nodeConfig);
         }
     }
