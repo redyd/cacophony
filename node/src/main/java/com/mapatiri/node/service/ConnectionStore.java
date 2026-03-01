@@ -21,7 +21,7 @@ public class ConnectionStore implements Clockable {
     }
 
     public void put(ClientConnection client) {
-        if (!client.isConnected()) {
+        if (client.isDisconnected()) {
             logger.warn("Client connection has been closed");
             return;
         }
@@ -50,7 +50,7 @@ public class ConnectionStore implements Clockable {
         for (Map.Entry<String, ClientConnection> entry : connections.entrySet()) {
             ClientConnection client = entry.getValue();
             try {
-                if (!client.isConnected()) {
+                if (client.isDisconnected()) {
                     client.close();
                     toRemove.add(entry.getKey());
                 }

@@ -37,11 +37,11 @@ public class ClientConnection {
         return in.readLine();
     }
 
-    public boolean isConnected() {
-        return socket.isConnected()
-                && !socket.isClosed()
-                && !socket.isInputShutdown()
-                && !socket.isOutputShutdown();
+    public boolean isDisconnected() {
+        return !socket.isConnected()
+                || socket.isClosed()
+                || socket.isInputShutdown()
+                || socket.isOutputShutdown();
     }
 
     public void close() throws IOException {
