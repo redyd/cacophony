@@ -1,0 +1,11 @@
+{
+  "domain": "node1.swilabus.xyz",
+  "tcpClientPort": 8080,
+  "udpMulticastPort": 40001,
+  "multicastAddress": "224.224.200.200",
+  "aesSpeakerKey": "g5zX9kP2mQ8vL3nR7tY1uF4wB6eH0iJ9cD5fG2hK8lM4nP0qR6sT2uV8wX4yZ0==",
+  "tlsKeystore": "keystore.p12",
+  "tlsKeystorePassword": "changeit",
+  "users": {},
+  "subscriptions": {}
+}
