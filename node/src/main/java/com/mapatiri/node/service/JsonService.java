@@ -53,6 +53,11 @@ public class JsonService implements ConfigService {
 
         synchronized (this) {
             Map<String, User> users = this.nodeConfig.getUsers();
+
+            if (users.containsKey(username)) {
+                throw new IllegalArgumentException("Utilisateur deja existant");
+            }
+
             users.put(username, new User(saltLenght, bycrypt));
             saveConfig(nodeConfig);
         }
@@ -111,26 +116,6 @@ public class JsonService implements ConfigService {
             throw new NodeConfigSaveException(e.getMessage());
         }
 
-    }
-
-    @Override
-    public BcryptParams parseByCrypt(String byCryptString) {//ai
-        // Vérifie format Bcrypt "$2b$14$..."
-        if (byCryptString == null || !byCryptString.startsWith("$2b$")) {
-            throw new IllegalArgumentException("Format Bcrypt invalide: " + byCryptString);
-        }
-
-        // Split sur "$" → ["", "2b", "14", "salt+bcryptHash"]
-        String[] parts = byCryptString.split("\\$");
-
-        if (parts.length < 4) {
-            throw new IllegalArgumentException("Bcrypt malformé: " + byCryptString);
-        }
-        // parts[2] = counter (ex: "14"), parts[3] = salt+bcryptHash (22 chars salt)
-        int counter = Integer.parseInt(parts[2]);
-        String salt = parts[3].substring(0, 22);  // Premier 22 chars = salt
-
-        return new BcryptParams(counter, salt);
     }
 
     private Path getPath(String filename) {

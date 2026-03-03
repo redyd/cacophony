@@ -12,10 +12,12 @@ public class ClientConnection {
     private final BufferedReader in;
     private final PrintWriter out;
     private final User user;
+    private final String login;
 
-    public ClientConnection(SSLSocket socket, User user) throws IOException {
+    public ClientConnection(SSLSocket socket, String login, User user) throws IOException {
         this.socket = socket;
         this.user = user;
+        this.login = login;
 
         this.in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream())
@@ -45,6 +47,8 @@ public class ClientConnection {
     public void close() throws IOException {
         socket.close();
     }
+
+    public String getLogin() { return login; }
 
     public User getUser() {
         return user;

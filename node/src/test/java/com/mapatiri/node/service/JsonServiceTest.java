@@ -1,9 +1,7 @@
-package com.mapatiri.node;
+package com.mapatiri.node.service;
 
-import com.mapatiri.node.service.JsonService;
 import com.mapatiri.node.exception.NodeConfigSaveException;
 import com.mapatiri.node.exception.NodeFileException;
-import com.mapatiri.node.model.BcryptParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -50,19 +48,7 @@ public class JsonServiceTest {
     void testAddUser() throws NodeConfigSaveException {
         service.addUser("louis", 22, "$2b$14$test");
         assertTrue(service.getUser("louis").isPresent());
-        assertEquals(22, service.getUser("louis").get().bcryptRound());
-    }
-
-
-    @Test
-    void testParseBcrypt() {
-        // Énoncé TP : salt_length=22
-        String bcrypt = "$2b$14$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLmnopqrstuvwxyzABCDEF";
-        BcryptParams params = service.parseByCrypt(bcrypt);
-
-        assertEquals(14, params.rotationNbr());
-        assertEquals("abcdefghijklmnopqrstuv", params.saltLenght());
-        assertEquals(22, params.saltLenght().length());
+        assertEquals(22, service.getUser("louis").get().saltLength());
     }
 
     @Test

@@ -34,13 +34,4 @@ public interface ConfigService {
      *
      */
     void saveConfig(NodeConfig nodeConfig) throws NodeConfigSaveException;
-
-    /**
-     * Permet d'extraire les param lors du challenge pour un user apres avoir utilisé getUser
-     *
-     * @param byCryptString
-     * @return
-     */
-    BcryptParams parseByCrypt(String byCryptString);
-
 }
