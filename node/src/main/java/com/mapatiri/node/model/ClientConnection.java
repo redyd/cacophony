@@ -2,6 +2,7 @@ package com.mapatiri.node.model;
 
 import javax.net.ssl.SSLSocket;
 import java.io.*;
+import java.net.Socket;
 
 /**
  * Représente une connexion client ouverte et permet d'interagir facilement avec.
@@ -9,11 +10,11 @@ import java.io.*;
 public class ClientConnection {
 
     private final User user;
-    private final SSLSocket socket;
+    private final Socket socket;
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public ClientConnection(SSLSocket socket, User user) throws IOException {
+    public ClientConnection(Socket socket, User user) throws IOException {
         this.socket = socket;
         this.user = user;
 

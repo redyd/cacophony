@@ -9,13 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
+import java.net.Socket;
 
 public class FakeDispatcher implements Dispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(FakeDispatcher.class);
 
     @Override
-    public ClientConnection startAuth(SSLSocket socket) throws AuthentificationFailed {
+    public ClientConnection startAuth(Socket socket) throws AuthentificationFailed {
         try {
             return new ClientConnection(socket, new User("", "", 0));
         } catch (IOException e) {

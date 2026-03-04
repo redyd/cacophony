@@ -1,6 +1,11 @@
 package com.mapatiri.node.model;
 
+import java.nio.file.Path;
+
 public class NodeConfig {
+
+    public static final Path KEYSTORE_PATH = Path.of("node", "src", "main", "resources", "data", "keystore.p12");
+
     //le nom du domaine du node
     private String currentDomain;
     private int saltSizeInBytes;
@@ -11,6 +16,7 @@ public class NodeConfig {
     private String networkInterface;
     private String base64AES;
     private boolean tls;
+    private String keystorePassword;
 
     public NodeConfig() {
     }
@@ -49,5 +55,9 @@ public class NodeConfig {
 
     public boolean isTls() {
         return tls;
+    }
+
+    public String getKeystorePassword() {
+        return keystorePassword;
     }
 }
