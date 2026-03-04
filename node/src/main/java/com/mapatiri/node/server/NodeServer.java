@@ -7,24 +7,25 @@ import com.mapatiri.node.exception.ServerSocketInitializer;
 import com.mapatiri.node.factory.SocketFactory;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
-import com.mapatiri.node.service.Dispatcher;
+import com.mapatiri.node.controller.Dispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TLSServer implements Runnable {
+public class NodeServer implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(TLSServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(NodeServer.class);
 
     private final SocketFactory tlsFactory;
     private final Dispatcher dispatcher;
     private final ConfigRepository config;
 
     @Inject
-    public TLSServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
+    public NodeServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
         this.tlsFactory = tlsFactory;
         this.dispatcher = dispatcher;
         this.config = config;
@@ -37,7 +38,12 @@ public class TLSServer implements Runnable {
 
             while (!socket.isClosed()) {
                 Socket client = socket.accept();
-                new Thread(() -> handleClient(client)).start();
+
+                if (client instanceof SSLSocket sslSocket) {
+                    sslSocket.startHandshake();
+                }
+
+                new Thread(() -> handleClient(client), "Running client").start();
             }
         } catch (IOException | ServerSocketInitializer e) {
             logger.error("Could not create server socket: {}", e.getMessage());
