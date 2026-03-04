@@ -26,6 +26,7 @@ public class JsonConfigRepositoryTest {
             assertNotEquals(0, conf.getRelayPort());
             assertNotNull(conf.getNetworkInterface());
             assertNotNull(conf.getBase64AES());
+            assertNotNull(conf.getKeystorePassword());
         } catch (NodeFileException e) {
             fail();
         }

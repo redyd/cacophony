@@ -3,55 +3,48 @@ package com.mapatiri.node.server;
 import com.google.inject.Inject;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
-import com.mapatiri.node.exception.TLSException;
-import com.mapatiri.node.factory.TLSContextFactory;
+import com.mapatiri.node.exception.ServerSocketInitializer;
+import com.mapatiri.node.factory.SocketFactory;
 import com.mapatiri.node.model.ClientConnection;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.service.Dispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class TLSServer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(TLSServer.class);
 
-    private final TLSContextFactory tlsFactory;
+    private final SocketFactory tlsFactory;
     private final Dispatcher dispatcher;
+    private final ConfigRepository config;
 
     @Inject
-    public TLSServer(TLSContextFactory tlsFactory, Dispatcher dispatcher) {
+    public TLSServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
         this.tlsFactory = tlsFactory;
         this.dispatcher = dispatcher;
+        this.config = config;
     }
 
     @Override
     public void run() {
-        try {
-            SSLContext context = tlsFactory.createContext();
-            SSLServerSocketFactory factory = context.getServerSocketFactory();
+        try (ServerSocket socket = tlsFactory.createSocket()) {
+            logger.info("[TLS is {}] Server Started on port {}", config.getConfig().isTls() ? "on" : "off", socket.getLocalPort());
 
-            try (SSLServerSocket socket = (SSLServerSocket) factory.createServerSocket()) {
-                logger.info("TLS Server Started on port {}", socket.getLocalPort());
-
-                while (!socket.isClosed()) {
-                    SSLSocket sslSocket = (SSLSocket) socket.accept();
-                    new Thread(() -> handleClient(sslSocket)).start();
-                }
-            } catch (IOException e) {
-                logger.error("Could not create server socket: {}", e.getMessage());
+            while (!socket.isClosed()) {
+                Socket client = socket.accept();
+                new Thread(() -> handleClient(client)).start();
             }
-
-        } catch (TLSException e) {
-            logger.error("Error creating TLS context: {}", e.getMessage(), e);
+        } catch (IOException | ServerSocketInitializer e) {
+            logger.error("Could not create server socket: {}", e.getMessage());
         }
     }
 
-    private void handleClient(SSLSocket sslSocket) {
+    private void handleClient(Socket sslSocket) {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
 
@@ -63,7 +56,7 @@ public class TLSServer implements Runnable {
                     logger.warn("Error while waiting for message: {}", e.getMessage());
                 } catch (BadRequestException e) {
                     logger.info("User made a bad request: {}", e.getMessage());
-                    client.send("ERROR"); // TODO utiliser la grammaire
+                    client.send("ERROR");
                 }
             }
         } catch (AuthentificationFailed e) {
