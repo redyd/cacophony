@@ -2,22 +2,21 @@ package com.mapatiri.node.model;
 
 import javax.net.ssl.SSLSocket;
 import java.io.*;
+import java.net.Socket;
 
 /**
  * Représente une connexion client ouverte et permet d'interagir facilement avec.
  */
 public class ClientConnection {
 
-    private final SSLSocket socket;
+    private final User user;
+    private final Socket socket;
     private final BufferedReader in;
     private final PrintWriter out;
-    private final User user;
-    private final String login;
 
-    public ClientConnection(SSLSocket socket, String login, User user) throws IOException {
+    public ClientConnection(Socket socket, User user) throws IOException {
         this.socket = socket;
         this.user = user;
-        this.login = login;
 
         this.in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream())
@@ -37,18 +36,16 @@ public class ClientConnection {
         return in.readLine();
     }
 
-    public boolean isConnected() {
-        return socket.isConnected()
-                && !socket.isClosed()
-                && !socket.isInputShutdown()
-                && !socket.isOutputShutdown();
+    public boolean isDisconnected() {
+        return !socket.isConnected()
+                || socket.isClosed()
+                || socket.isInputShutdown()
+                || socket.isOutputShutdown();
     }
 
     public void close() throws IOException {
         socket.close();
     }
-
-    public String getLogin() { return login; }
 
     public User getUser() {
         return user;

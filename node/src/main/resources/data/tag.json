@@ -1,0 +1,12 @@
+{
+  "tags": [
+    {
+      "tag": "#monTag1",
+      "subscribers": [
+        "louis@node1.swilabus.xyz",
+        "godswila@node1.swilabus.xyz",
+        "lswinnen@node2.swilabus.xyz"
+      ]
+    }
+  ]
+}

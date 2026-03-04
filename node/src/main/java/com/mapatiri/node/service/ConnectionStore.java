@@ -21,12 +21,12 @@ public class ConnectionStore implements Clockable {
     }
 
     public void put(ClientConnection client) {
-        if (!client.isConnected()) {
+        if (client.isDisconnected()) {
             logger.warn("Client connection has been closed");
             return;
         }
 
-        String login = client.getLogin();
+        String login = client.getUser().getLogin();
 
         try {
             if (connections.containsKey(login)) {
@@ -50,12 +50,12 @@ public class ConnectionStore implements Clockable {
         for (Map.Entry<String, ClientConnection> entry : connections.entrySet()) {
             ClientConnection client = entry.getValue();
             try {
-                if (!client.isConnected()) {
+                if (client.isDisconnected()) {
                     client.close();
                     toRemove.add(entry.getKey());
                 }
             } catch (IOException e) {
-                logger.warn("An error occurred while closing the connection for '{}'", client.getLogin(), e);
+                logger.warn("An error occurred while closing the connection for '{}'", client.getUser().getLogin(), e);
                 toRemove.add(entry.getKey());
             }
         }
