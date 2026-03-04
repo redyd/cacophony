@@ -8,14 +8,25 @@ public class User {
     private final String login;
     private final String bcryptHash;
     private final int bcryptRound;
-    private final Set<String> subscribers;
-    private final Set<String> userTags;
+    private final String bcryptSalt;
+    private Set<String> subscribers;
+    private Set<String> userTags;
 
-    public User(String login, String bcryptHash, int bcryptRound) {
+    public User(String login, String bcryptHash, int bcryptRound, String bcryptSalt) {
         this.login = login;
         this.bcryptHash = bcryptHash;
         this.bcryptRound = bcryptRound;
+        this.bcryptSalt = bcryptSalt;
 
+        this.subscribers = new HashSet<>();
+        this.userTags = new HashSet<>();
+    }
+
+    public User() {
+        this.login = "";
+        this.bcryptHash = "";
+        this.bcryptRound = 0;
+        this.bcryptSalt = "";
         this.subscribers = new HashSet<>();
         this.userTags = new HashSet<>();
     }
@@ -30,6 +41,10 @@ public class User {
 
     public int getBcryptRound() {
         return bcryptRound;
+    }
+
+    public String getBcryptSalt() {
+        return bcryptSalt;
     }
 
     public Set<String> getSubscribers() {

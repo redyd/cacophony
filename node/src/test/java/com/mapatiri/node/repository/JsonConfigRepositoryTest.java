@@ -1,7 +1,7 @@
-package com.mapatiri.node.service;
+package com.mapatiri.node.repository;
 
 import com.mapatiri.node.exception.NodeFileException;
-import com.mapatiri.node.repository.JsonConfigRepository;
+import com.mapatiri.node.model.NodeConfig;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
