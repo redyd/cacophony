@@ -1,9 +1,7 @@
-package com.mapatiri.node;
+package com.mapatiri.node.service;
 
-import com.mapatiri.node.config.JsonServiceImpl;
-import com.mapatiri.node.config.NodeConfigSaveException;
-import com.mapatiri.node.config.NodeFileException;
-import com.mapatiri.node.model.BcryptParams;
+import com.mapatiri.node.exception.NodeConfigSaveException;
+import com.mapatiri.node.exception.NodeFileException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -13,12 +11,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JsonServiceImplTest {
+public class JsonServiceTest {
 
 
     @TempDir
     Path tempDir;
-    JsonServiceImpl service;
+    JsonService service;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -37,7 +35,7 @@ public class JsonServiceImplTest {
 //            }
 //            """);
 
-        service = new JsonServiceImpl("node-config-test.json");
+        service = new JsonService("node-config-test.json");
     }
 
     @Test
@@ -50,19 +48,7 @@ public class JsonServiceImplTest {
     void testAddUser() throws NodeConfigSaveException {
         service.addUser("louis", 22, "$2b$14$test");
         assertTrue(service.getUser("louis").isPresent());
-        assertEquals(22, service.getUser("louis").get().saltLenght());
-    }
-
-
-    @Test
-    void testParseBcrypt() {
-        // Énoncé TP : salt_length=22
-        String bcrypt = "$2b$14$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLmnopqrstuvwxyzABCDEF";
-        BcryptParams params = service.parseByCrypt(bcrypt);
-
-        assertEquals(14, params.rotationNbr());
-        assertEquals("abcdefghijklmnopqrstuv", params.saltLenght());
-        assertEquals(22, params.saltLenght().length());
+        assertEquals(22, service.getUser("louis").get().saltLength());
     }
 
     @Test

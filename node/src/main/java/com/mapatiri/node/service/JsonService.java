@@ -1,5 +1,7 @@
-package com.mapatiri.node.config;
+package com.mapatiri.node.service;
 
+import com.mapatiri.node.exception.NodeConfigSaveException;
+import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.model.BcryptParams;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.User;
@@ -14,14 +16,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class JsonServiceImpl implements JsonService {
-    private NodeConfig nodeConfig;
-    private final Path path;
+public class JsonService implements ConfigService {
 
-    public JsonServiceImpl(String filename) throws NodeFileException {
+    private final Path path;
+    private NodeConfig nodeConfig;
+
+    public JsonService(String filename) throws NodeFileException {
         path = getPath(filename);
         nodeConfig = loadNodeConfig();
-
     }
 
     @Override
@@ -31,38 +33,34 @@ public class JsonServiceImpl implements JsonService {
                 .disableHtmlEscaping()
                 .create();
 
-        NodeConfig config = new NodeConfig();
         try {
+            NodeConfig config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), NodeConfig.class);
+            if (config == null) {
+                throw new NodeFileException("Config vide pour: " + path);
+            }
 
-            config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8),
-                    NodeConfig.class);
+            return config;
         } catch (IOException e) {
             throw new NodeFileException(e.getMessage());
         }
-
-        if (config == null) {
-            throw new NodeFileException("Config vide pour: " + path);
-        }
-
-
-        return config;
     }
 
     @Override
     public void addUser(String username, int saltLenght, String bycrypt) throws NodeConfigSaveException {
-
-
         if (nodeConfig == null) {
             throw new IllegalStateException("NodeConfig pas chargé");
         }
 
         synchronized (this) {
             Map<String, User> users = this.nodeConfig.getUsers();
+
+            if (users.containsKey(username)) {
+                throw new IllegalArgumentException("Utilisateur deja existant");
+            }
+
             users.put(username, new User(saltLenght, bycrypt));
             saveConfig(nodeConfig);
         }
-
-
     }
 
     @Override
@@ -86,17 +84,14 @@ public class JsonServiceImpl implements JsonService {
             saveConfig(nodeConfig);
 
         }
-
-
     }
 
     @Override
     public List<String> getSubscribers(String username) {
         if (nodeConfig == null) return List.of(); //ai
         Set<String> subs = nodeConfig.getSubscriptions().get(username);
+
         return subs != null ? List.copyOf(subs) : List.of();//ai
-
-
     }
 
     @Override
@@ -113,35 +108,14 @@ public class JsonServiceImpl implements JsonService {
                 try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8)) {
                     gson.toJson(nodeConfig, writer);
                 }
-                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
 
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
             }
 
         } catch (IOException e) {
             throw new NodeConfigSaveException(e.getMessage());
-
         }
 
-    }
-
-    @Override
-    public BcryptParams parseByCrypt(String byCryptString) {//ai
-        // Vérifie format Bcrypt "$2b$14$..."
-        if (byCryptString == null || !byCryptString.startsWith("$2b$")) {
-            throw new IllegalArgumentException("Format Bcrypt invalide: " + byCryptString);
-        }
-
-        // Split sur "$" → ["", "2b", "14", "salt+hash"]
-        String[] parts = byCryptString.split("\\$");
-
-        if (parts.length < 4) {
-            throw new IllegalArgumentException("Bcrypt malformé: " + byCryptString);
-        }
-        // parts[2] = counter (ex: "14"), parts[3] = salt+hash (22 chars salt)
-        int counter = Integer.parseInt(parts[2]);
-        String salt = parts[3].substring(0, 22);  // Premier 22 chars = salt
-
-        return new BcryptParams(counter, salt);
     }
 
     private Path getPath(String filename) {
