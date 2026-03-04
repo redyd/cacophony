@@ -26,7 +26,7 @@ public class ConnectionStore implements Clockable {
             return;
         }
 
-        String login = client.getUser().login();
+        String login = client.getUser().getLogin();
 
         try {
             if (connections.containsKey(login)) {
@@ -55,7 +55,7 @@ public class ConnectionStore implements Clockable {
                     toRemove.add(entry.getKey());
                 }
             } catch (IOException e) {
-                logger.warn("An error occurred while closing the connection for '{}'", client.getUser().login(), e);
+                logger.warn("An error occurred while closing the connection for '{}'", client.getUser().getLogin(), e);
                 toRemove.add(entry.getKey());
             }
         }

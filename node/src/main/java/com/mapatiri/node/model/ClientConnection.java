@@ -8,10 +8,10 @@ import java.io.*;
  */
 public class ClientConnection {
 
+    private final User user;
     private final SSLSocket socket;
     private final BufferedReader in;
     private final PrintWriter out;
-    private final User user;
 
     public ClientConnection(SSLSocket socket, User user) throws IOException {
         this.socket = socket;
