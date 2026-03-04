@@ -2,7 +2,6 @@ package com.mapatiri.node.service;
 
 import com.mapatiri.node.exception.NodeConfigSaveException;
 import com.mapatiri.node.exception.NodeFileException;
-import com.mapatiri.node.model.BcryptParams;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.User;
 import com.google.gson.Gson;
@@ -15,19 +14,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class JsonService implements ConfigService {
 
-    private final Path path;
-    private NodeConfig nodeConfig;
-
-    public JsonService(String filename) throws NodeFileException {
-        path = getPath(filename);
-        nodeConfig = loadNodeConfig();
-    }
+    private NodeConfig currentConfig;
 
     @Override
-    public NodeConfig loadNodeConfig() throws NodeFileException {
+    public NodeConfig loadConfig(Path path) throws NodeFileException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -39,6 +34,7 @@ public class JsonService implements ConfigService {
                 throw new NodeFileException("Config vide pour: " + path);
             }
 
+            this.currentConfig = config;
             return config;
         } catch (IOException e) {
             throw new NodeFileException(e.getMessage());
@@ -46,50 +42,64 @@ public class JsonService implements ConfigService {
     }
 
     @Override
-    public void addUser(String username, int saltLenght, String bycrypt) throws NodeConfigSaveException {
-        if (nodeConfig == null) {
+    public User addUser(String login, String bcrypt, int saltLength) throws NodeConfigSaveException {
+        if (currentConfig == null) {
             throw new IllegalStateException("NodeConfig pas chargé");
         }
 
         synchronized (this) {
-            Map<String, User> users = this.nodeConfig.getUsers();
+            Map<String, User> users = this.currentConfig
+                    .getUsers()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            User::getLogin,
+                            Function.identity()));
 
-            if (users.containsKey(username)) {
+            if (users.containsKey(login)) {
                 throw new IllegalArgumentException("Utilisateur deja existant");
             }
 
-            users.put(username, new User(saltLenght, bycrypt));
-            saveConfig(nodeConfig);
+            User user = new User(login, bcrypt, saltLength);
+
+            users.put(login, user);
+            saveConfig(currentConfig);
+
+            return user;
         }
     }
 
     @Override
-    public Optional<User> getUser(String username) {
-        if (nodeConfig == null) {
+    public Optional<User> getUser(String login) {
+        if (currentConfig == null) {
             return Optional.empty();
         }
-        Map<String, User> users = this.nodeConfig.getUsers();
-        return Optional.ofNullable(users.get(username));
+
+        return this.currentConfig
+                .getUsers()
+                .stream()
+                .filter(user -> user.getLogin().equals(login))
+                .findFirst();
     }
 
     @Override
-    public void addSubscription(String username, String subscription) throws NodeConfigSaveException {
-        if (nodeConfig == null) {
+    public void addSubscription(User to, String subscriber) throws NodeConfigSaveException {
+        if (currentConfig == null) {
             throw new IllegalStateException("NodeConfig pas chargé");
         }
+
         synchronized (this) {
-            nodeConfig.getSubscriptions()//ai
+            currentConfig.getSubscriptions()//ai
                     .computeIfAbsent(username, k -> new HashSet<>())
                     .add(subscription);
-            saveConfig(nodeConfig);
+            saveConfig(currentConfig);
 
         }
     }
 
     @Override
     public List<String> getSubscribers(String username) {
-        if (nodeConfig == null) return List.of(); //ai
-        Set<String> subs = nodeConfig.getSubscriptions().get(username);
+        if (currentConfig == null) return List.of(); //ai
+        Set<String> subs = currentConfig.getSubscriptions().get(username);
 
         return subs != null ? List.copyOf(subs) : List.of();//ai
     }

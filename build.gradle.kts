@@ -18,6 +18,8 @@ subprojects {
         }
 
         dependencies {
+            "implementation"(libs.lombok)
+
             "implementation"(libs.slf4j.api)
             "runtimeOnly"(libs.slf4j.simple)
 

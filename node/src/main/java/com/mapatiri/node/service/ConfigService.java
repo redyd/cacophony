@@ -2,22 +2,22 @@ package com.mapatiri.node.service;
 
 import com.mapatiri.node.exception.NodeConfigSaveException;
 import com.mapatiri.node.exception.NodeFileException;
-import com.mapatiri.node.model.BcryptParams;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.User;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
 public interface ConfigService {
 
-    NodeConfig loadNodeConfig() throws NodeFileException;
+    NodeConfig loadConfig(Path path) throws NodeFileException;
 
-    void addUser(String username, int saltLenght, String bycrypt) throws NodeConfigSaveException;
+    User addUser(String username, String bcrypt, int saltLength) throws NodeConfigSaveException;
 
     Optional<User> getUser(String username);
 
-    void addSubscription(String username, String subscription) throws NodeConfigSaveException;
+    void addSubscription(User to, String subscriber) throws NodeConfigSaveException;
 
     /**
      * Retourne les abonné au tag/user
