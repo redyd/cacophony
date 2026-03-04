@@ -1,36 +1,53 @@
 package com.mapatiri.node.model;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-@Setter
-@Getter
 public class NodeConfig {
-    // Getters et Setters
     //le nom du domaine du node
-    private String domain;
-    //port tcp client phython
-    private int tcpClientPort;
-    private int udpMulticastPort;
-    //adresse ip multicast que utilise les nodes pour etre decouvert par le speaker
+    private String currentDomain;
+    private int saltSizeInBytes;
     private String multicastAddress;
-    //cle AES-256 partage entre le speaker et un node pour securise les post des nodes
-    private String aesSpeakerKey;
-    //certificat serveur tls , Fichier keystore PKCS12 pour TLS 1.3
-    private String tlsKeystore;
-    //Mot de passe du keystore TLS (ex: "changeit"). Nécessaire pour charger le certificat.
-    private String tlsKeystorePassword;
-    //utilisateur du node le string est le nom de lutilisaeur
-    private Set<User> users;
-    //les abonnement de chaque utilisateur du node
-    private Set<Tag> subscriptions;
+    private int multicastPort;
+    private int unicastPort;
+    private int relayPort;
+    private String networkInterface;
+    private String base64AES;
+    private boolean tls;
 
-    // Constructeur vide (pour Gson)
-    //pour fonctionner gson a besoin dun constructeur vide
     public NodeConfig() {
+    }
+
+    public String getCurrentDomain() {
+        return currentDomain;
+    }
+
+    public int getSaltSizeInBytes() {
+        return saltSizeInBytes;
+    }
+
+    public String getMulticastAddress() {
+        return multicastAddress;
+    }
+
+    public int getMulticastPort() {
+        return multicastPort;
+    }
+
+    public int getUnicastPort() {
+        return unicastPort;
+    }
+
+    public int getRelayPort() {
+        return relayPort;
+    }
+
+    public String getNetworkInterface() {
+        return networkInterface;
+    }
+
+    public String getBase64AES() {
+        return base64AES;
+    }
+
+    public boolean isTls() {
+        return tls;
     }
 }

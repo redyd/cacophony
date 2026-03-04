@@ -1,11 +1,8 @@
 package com.mapatiri.node.model;
 
-import lombok.Getter;
-
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
 public class User {
 
     private final String login;
@@ -21,5 +18,25 @@ public class User {
 
         this.subscribers = new HashSet<>();
         this.userTags = new HashSet<>();
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getBcryptHash() {
+        return bcryptHash;
+    }
+
+    public int getBcryptRound() {
+        return bcryptRound;
+    }
+
+    public Set<String> getSubscribers() {
+        return subscribers;
+    }
+
+    public Set<String> getUserTags() {
+        return userTags;
     }
 }

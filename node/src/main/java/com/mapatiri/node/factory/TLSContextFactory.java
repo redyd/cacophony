@@ -1,9 +1,8 @@
 package com.mapatiri.node.factory;
 
-
 import com.google.inject.Inject;
 import com.mapatiri.node.exception.TLSException;
-import com.mapatiri.node.service.ConfigService;
+import com.mapatiri.node.repository.ConfigRepository;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -14,16 +13,16 @@ import java.security.cert.CertificateException;
 
 public class TLSContextFactory {
 
-    private final ConfigService config;
+    private final ConfigRepository config;
 
     @Inject
-    public TLSContextFactory(ConfigService config) {
+    public TLSContextFactory(ConfigRepository config) {
         this.config = config;
     }
 
     public SSLContext createContext() throws TLSException {
         try {
-            String path = "keystore.p12"; // TODO récupérer depuis la config
+            String path = "data/keystore.p12"; // TODO récupérer depuis la config
             char[] password = "PASSWORD".toCharArray(); // TODO récupérer depuis la config
 
             KeyStore ks = KeyStore.getInstance("PKCS12");

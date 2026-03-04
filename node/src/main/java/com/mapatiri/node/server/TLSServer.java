@@ -58,7 +58,7 @@ public class TLSServer implements Runnable {
             while (!client.isDisconnected()) {
                 try {
                     String message = client.waitForMessage();
-                    dispatcher.submit(message, client.getUser().login());
+                    dispatcher.submit(message, client.getUser().getLogin());
                 } catch (IOException e) {
                     logger.warn("Error while waiting for message: {}", e.getMessage());
                 } catch (BadRequestException e) {

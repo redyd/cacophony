@@ -1,7 +1,5 @@
 package com.mapatiri.node.model;
 
-import lombok.Getter;
-
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 
@@ -10,9 +8,7 @@ import java.io.*;
  */
 public class ClientConnection {
 
-    @Getter
     private final User user;
-
     private final SSLSocket socket;
     private final BufferedReader in;
     private final PrintWriter out;
@@ -48,6 +44,10 @@ public class ClientConnection {
 
     public void close() throws IOException {
         socket.close();
+    }
+
+    public User getUser() {
+        return user;
     }
 
 }
