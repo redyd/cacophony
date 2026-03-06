@@ -7,7 +7,7 @@ import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.factory.SocketFactory;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.JsonConfigRepository;
-import com.mapatiri.node.server.NodeServer;
+import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
@@ -23,7 +23,7 @@ public class AppModule extends AbstractModule {
         // Define singleton services
         bind(ConnectionStore.class).in(Singleton.class);
         bind(SocketFactory.class).in(Singleton.class);
-        bind(NodeServer.class).in(Singleton.class);
+        bind(ClientNodeServer.class).in(Singleton.class);
         bind(AuthTaskManager.class).in(Singleton.class);
 
         // auth task

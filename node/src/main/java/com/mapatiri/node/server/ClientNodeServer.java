@@ -16,16 +16,16 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class NodeServer implements Runnable {
+public class ClientNodeServer implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientNodeServer.class);
 
     private final SocketFactory tlsFactory;
     private final Dispatcher dispatcher;
     private final ConfigRepository config;
 
     @Inject
-    public NodeServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
+    public ClientNodeServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
         this.tlsFactory = tlsFactory;
         this.dispatcher = dispatcher;
         this.config = config;
@@ -34,7 +34,7 @@ public class NodeServer implements Runnable {
     @Override
     public void run() {
         try (ServerSocket socket = tlsFactory.createSocket()) {
-            logger.info("[TLS is {}] Server Started on port {}", config.getConfig().isTls() ? "on" : "off", socket.getLocalPort());
+            logger.info("> Server client started on port {} (tls {})", socket.getLocalPort(), config.getConfig().isTls() ? "on" : "off");
 
             while (!socket.isClosed()) {
                 Socket client = socket.accept();
