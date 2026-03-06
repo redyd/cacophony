@@ -42,11 +42,11 @@ public interface UserRepo {
      * @param login
      * @param subscriberId
      */
-    void addSubscriberToUser(String login, String subscriberId);
+    void addSubscriberToUser(String login, String subscriberId) throws IOException;
 
-    void addUserTag(String login, String tag);
+    void addUserTag(String login, String tag) throws IOException;
 
-    void saveUsers(Path path) throws IOException;
+    void saveUsers() throws IOException;
 
     Users getAllUsers();
 }

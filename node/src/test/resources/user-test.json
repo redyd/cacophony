@@ -19,6 +19,18 @@
       "userTags": [
         "#monTag1@node1.swilabus.xyz"
       ]
+    },
+    {
+      "login": "testUser",
+      "bcryptHash": "hashTest",
+      "bcryptRound": 14,
+      "bcryptSalt": "saltTest",
+      "subscribers": [
+        "louis"
+      ],
+      "userTags": [
+        "#tagTest"
+      ]
     }
   ]
 }

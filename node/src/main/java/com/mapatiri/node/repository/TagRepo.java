@@ -11,11 +11,11 @@ public interface TagRepo {
 
     void loadTags(Path path) throws TagConfigException;
 
-    void saveTags(Path path) throws IOException;
+    void saveTags() throws IOException;
 
-    void addTag(Tag tag);
+    void addTag(Tag tag) throws IOException;
 
-    void addSubscriberToTag(String tagName, String subscriber);
+    void addSubscriberToTag(String tagName, String subscriber) throws IOException;
 
     Tags getAllTags();
 }

@@ -1,13 +1,12 @@
 package com.mapatiri.node.repository;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mapatiri.node.model.User;
-import com.mapatiri.node.model.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +18,6 @@ class UserRepositoryTest {
     @BeforeEach
     void setUp() {
         repo = new UserRepository();
-        repo.usersConfig = new Users(new java.util.ArrayList<>());
     }
 
     @Test
@@ -37,7 +35,11 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddSubscriber() {
+    void testAddSubscriber(@TempDir Path tempDir) throws IOException {
+        Path path = tempDir.resolve("users.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
         repo.addUser("godswila", "hash456", 14, "saltABC");
         repo.addSubscriberToUser("godswila", "louis");
 
@@ -46,7 +48,11 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddUserTag() {
+    void testAddUserTag(@TempDir Path tempDir) throws IOException {
+        Path path = tempDir.resolve("users.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
         repo.addUser("louis", "hash123", 14, "saltXYZ");
         repo.addUserTag("louis", "#tagDeTest");
 
@@ -56,11 +62,13 @@ class UserRepositoryTest {
 
     @Test
     void testSaveAndLoadUsers(@TempDir Path tempDir) throws Exception {
+        Path path = tempDir.resolve("users-test.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
         repo.addUser("louis", "hash123", 14, "saltXYZ");
         repo.addUserTag("louis", "#tag1");
-
-        Path path = tempDir.resolve("users-test.json");
-        repo.saveUsers(path);
+        repo.saveUsers();
 
         UserRepository newRepo = new UserRepository();
         newRepo.loadUsers(path);
@@ -75,19 +83,15 @@ class UserRepositoryTest {
 
     @Test
     void testLoadModifySaveUserJson() throws Exception {
-        // Chemin vers ton fichier dans resources
         Path path = Path.of("src/test/resources/user-test.json");
 
         UserRepository repo = new UserRepository();
         repo.loadUsers(path);
 
-        // Ajout d'un utilisateur pour test
         repo.addUser("testUser", "hashTest", 14, "saltTest");
         repo.addUserTag("testUser", "#tagTest");
         repo.addSubscriberToUser("testUser", "louis");
 
-        // Sauvegarde physique pour vérifier le fichier
-        Path output = Path.of("src/test/resources/user-test-filled.json");
-        repo.saveUsers(output);
+        repo.saveUsers();
     }
 }

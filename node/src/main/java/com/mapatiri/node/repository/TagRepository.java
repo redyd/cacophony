@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.mapatiri.node.exception.TagConfigException;
 import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.model.Tags;
-import com.mapatiri.node.model.Users;
+
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,9 +16,11 @@ import java.util.ArrayList;
 public class TagRepository implements TagRepo {
 
     private Tags tagsConfig;
+    private Path path;
 
     @Override
     public void loadTags(Path path) throws TagConfigException {
+        this.path = path;
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -37,8 +39,8 @@ public class TagRepository implements TagRepo {
     }
 
     @Override
-    public void saveTags(Path path) throws IOException {
-        if (tagsConfig == null) return;
+    public void saveTags() throws IOException {
+        if (path == null) return;
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
@@ -47,21 +49,23 @@ public class TagRepository implements TagRepo {
     }
 
     @Override
-    public void addTag(Tag tag) {
+    public void addTag(Tag tag) throws IOException {
         if (tagsConfig == null) {
             tagsConfig = new Tags(new ArrayList<>());
         }
         tagsConfig.tags().add(tag);
+        saveTags();
     }
 
     @Override
-    public void addSubscriberToTag(String tagName, String subscriber) {
+    public void addSubscriberToTag(String tagName, String subscriber) throws IOException {
         if (tagsConfig == null) return;
         for (Tag t : tagsConfig.tags()) {
             if (t.getTag().equals(tagName)) {
                 t.addSubscriber(subscriber);
                 return;
             }
+            saveTags();
         }
     }
 

@@ -10,13 +10,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 public class UserRepository implements UserRepo {
 
-    Users usersConfig;
+    private Users usersConfig = new Users(new ArrayList<>());
+    private Path path;
+
 
     @Override
     public void loadUsers(Path path) throws UserConfigException {
+        this.path = path;
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -51,23 +55,25 @@ public class UserRepository implements UserRepo {
     }
 
     @Override
-    public void addSubscriberToUser(String login, String subscriberId) {
+    public void addSubscriberToUser(String login, String subscriberId) throws IOException {
         User user = getUserFromLogin(login);
         if (user != null) {
             user.getSubscribers().add(subscriberId);
         }
+        saveUsers();
     }
 
     @Override
-    public void addUserTag(String login, String tag) {
+    public void addUserTag(String login, String tag) throws IOException {
         User user = getUserFromLogin(login);
         if (user != null) {
             user.getUserTags().add(tag);
         }
+        saveUsers();
     }
 
     @Override
-    public void saveUsers(Path path) throws IOException {
+    public void saveUsers() throws IOException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();

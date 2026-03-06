@@ -1,13 +1,13 @@
 package com.mapatiri.node.repository;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.model.Tags;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +22,7 @@ class TagRepositoryTest {
     }
 
     @Test
-    void testAddTagAndRetrieve() {
+    void AddTagAndRetrieve() throws IOException {
         repo.addTag(new Tag("#monTag1"));
         Tags all = repo.getAllTags();
         assertNotNull(all);
@@ -31,7 +31,11 @@ class TagRepositoryTest {
     }
 
     @Test
-    void testAddSubscriber() {
+    void AddSubscriber(@TempDir Path tempDir) throws IOException {
+        Path path = tempDir.resolve("tags.json");
+        Files.writeString(path, "{\"tags\":[]}");
+        repo.loadTags(path);
+
         Tag tag = new Tag("#monTag1");
         repo.addTag(tag);
 
@@ -44,38 +48,34 @@ class TagRepositoryTest {
     }
 
     @Test
-    void testSaveAndLoadTags(@TempDir Path tempDir) throws Exception {
+    void SaveAndLoadTags(@TempDir Path tempDir) throws Exception {
+        Path path = tempDir.resolve("tags-filled.json");
+        Files.writeString(path, "{\"tags\":[]}");
+        repo.loadTags(path);
+
         Tag tag = new Tag("#monTag1");
         tag.addSubscriber("louis@node1.swilabus.xyz");
         repo.addTag(tag);
+        repo.saveTags();
 
-        Path output = tempDir.resolve("tags-filled.json");
-        repo.saveTags(output);
-
-        // Charger depuis le fichier
         TagRepository newRepo = new TagRepository();
-        newRepo.loadTags(output);
+        newRepo.loadTags(path);
 
         Tag loaded = newRepo.getAllTags().tags().get(0);
         assertEquals("#monTag1", loaded.getTag());
         assertTrue(loaded.getSubscribers().contains("louis@node1.swilabus.xyz"));
-
-        System.out.println("Fichier JSON tags créé ici : " + output.toAbsolutePath());
     }
 
     @Test
-    void testLoadModifySaveTagJson() throws Exception {
+    void LoadModifySaveTagJson() throws Exception {
         Path path = Path.of("src/test/resources/tag-test.json");
 
         TagRepository repo = new TagRepository();
         repo.loadTags(path);
 
-        // Ajout d'un tag et d'abonnés pour test
         repo.addTag(new Tag("#tagTest"));
         repo.addSubscriberToTag("#tagTest", "testUser@node1.swilabus.xyz");
 
-        // Sauvegarde physique pour vérifier le fichier
-        Path output = Path.of("src/test/resources/tag-test-filled.json");
-        repo.saveTags(output);
+        repo.saveTags();
     }
 }
