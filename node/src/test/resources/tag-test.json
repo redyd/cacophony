@@ -1,0 +1,14 @@
+{
+  "tags": [
+    {
+      "tag": "",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagTest",
+      "subscribers": [
+        "testUser@node1.swilabus.xyz"
+      ]
+    }
+  ]
+}

@@ -18,7 +18,7 @@ public class FakeDispatcher implements Dispatcher {
     @Override
     public ClientConnection startAuth(Socket socket) throws AuthentificationFailed {
         try {
-            return new ClientConnection(socket, new User("", "", 0));
+            return new ClientConnection(socket, new User("twin", "", 10, ""));
         } catch (IOException e) {
             throw new AuthentificationFailed("Authentification failed");
         }
