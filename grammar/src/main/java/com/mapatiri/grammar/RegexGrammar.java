@@ -1,5 +1,9 @@
 package com.mapatiri.grammar;
 
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class RegexGrammar {
     private final String SP = " ";
     private final String NEWLINE = "\r\n";
@@ -7,21 +11,21 @@ public class RegexGrammar {
     private final String LETTER = "[A-Za-z]";
     private final String PORT = "^" + DIGIT + "{1,5}$";
     private final String COUNTER = "^" + DIGIT + "{2}$";
-    private final String SALT_LENGTH = "^" + DIGIT + "{2}$";
-    private final String DIGIT_LETTER = DIGIT + "|" + LETTER;
-    private final String CHARACTER = ".";
-    private final String SPECIAL_CHAR = "[!-/]|[:-@]|[\\[-`]";
-    private final String MESSAGE = "^" + CHARACTER + "{1-200}$";
-    private final String INNER_MESSAGE = "^" + CHARACTER + "{1-500}";
-    private final String USER = "^"+DIGIT_LETTER+"{5-20}";
-    private final String TAG= "#"+DIGIT_LETTER+"{5-20}";
-    private final String DOMAIN= "("+DIGIT_LETTER+"|\\.){5-200}";
-    private final String USER_AT_DOMAIN= USER+"@"+DOMAIN;
-    private final String TAG_AT_DOMAIN= TAG+"@"+DOMAIN;
-    private final String ID_AT_DOMAIN=DIGIT+"{1,5}@"+DOMAIN;
-    private final String BCRYPT= "$2b$"+COUNTER+"$("+DIGIT_LETTER+"|"+SPECIAL_CHAR+"{1-70}";
-    private final String SHA3_HEXSTRING= DIGIT_LETTER+"{30-200}";
-    private final String RANDOM_STRING= "("+DIGIT_LETTER+"|"+SPECIAL_CHAR+"{22})";
+    private final String SALT_LENGTH = "(" + DIGIT + "{2})";
+    private final String DIGIT_LETTER = "(" + DIGIT + "|" + LETTER + ")";
+    private final String CHARACTER = "[\\\\x20-\\\\xFF]";
+    private final String SPECIAL_CHAR = "([!-/]|[:-@]|[\\[-`])";
+    private final String MESSAGE = "^" + CHARACTER + "{1,200}$";
+    private final String INNER_MESSAGE = "^" + CHARACTER + "{1,500}$";
+    private final String USER = "(" + DIGIT_LETTER + "{5,20})";
+    private final String TAG = "(#" + DIGIT_LETTER + "{5,20})";
+    private final String DOMAIN = "((" + DIGIT_LETTER + "|\\.){5,200})";
+    private final String USER_AT_DOMAIN = "(" + USER + "@" + DOMAIN +")";
+    private final String TAG_AT_DOMAIN = "(" + TAG + "@" + DOMAIN + ")";
+    private final String ID_AT_DOMAIN = "(" + DIGIT + "{1,5}@" + DOMAIN + ")";
+    private final String BCRYPT = "(\\$2b\\$" + COUNTER + "\\$(" + DIGIT_LETTER + "|" + SPECIAL_CHAR + "){1,70})";
+    private final String SHA3_HEXSTRING = DIGIT_LETTER + "{30,200}";
+    private final String RANDOM_STRING = "((" + DIGIT_LETTER + "|" + SPECIAL_CHAR + "){22})";
     private final String WELCOME = "WELCOME" + SP + DOMAIN + SP + RANDOM_STRING + NEWLINE;
     private final String USER_ACTION = "USER" + SP + USER + NEWLINE;
     private final String CHALLENGE = "CHALLENGE" + SP + COUNTER + SP + RANDOM_STRING + NEWLINE;
@@ -35,4 +39,65 @@ public class RegexGrammar {
     private final String LEAVE = "LEAVE" + NEWLINE;
     private final String ADVERT = "ADVERT" + SP + PORT + SP + DOMAIN + NEWLINE;
     private final String POST = "POST" + SP + ID_AT_DOMAIN + SP + USER_AT_DOMAIN + SP + "(" + USER_AT_DOMAIN + "|" + TAG_AT_DOMAIN + ")" + SP + INNER_MESSAGE + NEWLINE;
+
+    private final String command;
+    private final Map<String, Pattern> regex = new HashMap<>();
+
+    public RegexGrammar(String command) {
+        if (command == null || command.isBlank()) {
+            throw new IllegalArgumentException("Argument is null or empty");
+        }
+        this.command = command.trim();
+        regex.put("WELCOME", Pattern.compile(WELCOME));
+        regex.put("USER_ACTION", Pattern.compile(USER_ACTION));
+        regex.put("CHALLENGE", Pattern.compile(CHALLENGE));
+        regex.put("RESPONSE", Pattern.compile(RESPONSE));
+        regex.put("ONBOARDING", Pattern.compile(ONBOARDING));
+        regex.put("SUBSCRIBE", Pattern.compile(SUBSCRIBE));
+        regex.put("SEND", Pattern.compile(SEND));
+        regex.put("MSG", Pattern.compile(MSG));
+        regex.put("OK", Pattern.compile(OK));
+        regex.put("ERROR", Pattern.compile(ERROR));
+        regex.put("LEAVE", Pattern.compile(LEAVE));
+        regex.put("ADVERT", Pattern.compile(ADVERT));
+        regex.put("POST", Pattern.compile(POST));
+    }
+
+    public List<String> parseCommand() {
+        String type = getTypeOfCommand();
+        if(type.isBlank()){
+            throw new IllegalArgumentException("The command doesn't match any regex");
+        }
+        Matcher matcher = regex.get(type).matcher(command);
+        int groupCount = matcher.groupCount();
+        List<String> elements = new ArrayList<>();
+        for (int i=1; i<=groupCount; i++){
+            elements.add(matcher.group(i));
+        }
+        return elements;
+    }
+
+    public String getTypeOfCommand() {
+        Set<String> keys = regex.keySet();
+        for (String key : keys) {
+            Pattern pattern = regex.get(key);
+            Matcher matcher = pattern.matcher(command);
+            if (matcher.matches()) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    public String buildCommand(String typeOfCommand, String... parts){
+        Pattern pattern = regex.get(typeOfCommand);
+        String message = String.join(typeOfCommand, parts);
+        message += "/r/n";
+        Matcher matcher = pattern.matcher(message);
+        if(!matcher.matches()){
+            throw new IllegalArgumentException("Arguments don't match the command pattern");
+        }
+        return message;
+    }
+
 }
