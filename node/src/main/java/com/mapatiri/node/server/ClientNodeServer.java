@@ -53,6 +53,7 @@ public class ClientNodeServer implements Runnable {
     private void handleClient(Socket sslSocket) {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
+            logger.info("Client {} is log in", client.getUser().getLogin());
 
             while (!client.isDisconnected()) {
                 try {
@@ -66,7 +67,7 @@ public class ClientNodeServer implements Runnable {
                 }
             }
         } catch (AuthentificationFailed e) {
-            logger.info("An user could not be authenticated: {}", e.getMessage());
+            logger.info("Someone could not be authenticated: {}", e.getMessage());
         }
     }
 

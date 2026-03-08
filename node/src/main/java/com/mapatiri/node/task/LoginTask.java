@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.User;
+import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
 
 import java.io.BufferedReader;
@@ -11,44 +12,52 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/**
+ * Permet d'authentifier un utilisateur déjà enregistré.
+ */
 public class LoginTask implements AuthTask {
 
     private final ConnectionStore store;
+    private final UserRepo userRepository;
 
     @Inject
-    public LoginTask(ConnectionStore store) {
+    public LoginTask(ConnectionStore store, UserRepo userRepository) {
         this.store = store;
+        this.userRepository = userRepository;
     }
 
     @Override
     public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out) throws AuthentificationFailed {
         try {
             // TODO wait for USER
-            String firstResponse = in.readLine();
+            String userLogin = in.readLine();
 
-            // TODO récupérer le nombre de rotation et le sel
-            int rotation = 12;
-            String sel = "hi twin je suis le sel";
+            User target = this.userRepository.getUserFromLogin(userLogin);
+
+            if (target == null) {
+                out.println("Invalid credentials");
+                throw new AuthentificationFailed("Invalid user login");
+            }
 
             // TODO challenge (nombre de rotation et sel à utiliser)
-            out.println("CHALLENGE %s %s".formatted(rotation, sel));
+            out.println("CHALLENGE %s %s".formatted(target.getBcryptRound(), target.getBcryptSalt()));
 
             // TODO récupérer RESPONSE
             String response = in.readLine();
 
             // TODO vérifier la réponse
+            if (!response.equals("RESPONSE " + "not good credentials")) {
+                out.println("Invalid credentials");
+                throw new AuthentificationFailed("Login failed");
+            }
 
-            // TODO récupérer le user
-            User user = null;
-
-            ClientConnection connection = new ClientConnection(client, user);
+            ClientConnection connection = new ClientConnection(client, target);
             store.put(connection);
 
             return connection;
         } catch (IOException e) {
-            // TODO gérer les erreurs
-            out.println("ERROR");
-            throw new AuthentificationFailed("Invalid response");
+            out.println("Something went wrong");
+            throw new AuthentificationFailed("Something went wrong");
         }
     }
 
