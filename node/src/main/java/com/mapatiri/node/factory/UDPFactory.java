@@ -16,13 +16,9 @@ public class UDPFactory {
             var config = configRepository.getConfig();
 
             NetworkInterface networkInterface = NetworkInterface.getByName(config.getNetworkInterface());
-            logger.debug("network interface {}", networkInterface);
 
-            MulticastSocket socket = new MulticastSocket(config.getMulticastPort());
-            logger.debug("socket {}", socket);
-
+            MulticastSocket socket = new MulticastSocket(11003);
             if (networkInterface != null) {
-                logger.debug("network interface {}", networkInterface);
                 socket.setNetworkInterface(networkInterface);
             } else {
                 logger.warn("Interface reseau '{}' non trouvee", config.getNetworkInterface());
