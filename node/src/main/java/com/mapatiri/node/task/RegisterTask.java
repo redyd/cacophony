@@ -1,9 +1,9 @@
 package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
+import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
-import com.mapatiri.node.model.User;
 import com.mapatiri.node.repository.UserRepo;
 
 import java.io.BufferedReader;
@@ -21,7 +21,7 @@ public class RegisterTask implements AuthTask {
     }
 
     @Override
-    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out) throws AuthentificationFailed {
+    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, RegexGrammar response, String randomChars) throws AuthentificationFailed {
         try {
             // TODO récupérer les informations du onboarding
             String onboarding = in.readLine();

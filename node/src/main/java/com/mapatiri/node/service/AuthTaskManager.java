@@ -1,6 +1,7 @@
 package com.mapatiri.node.service;
 
 import com.google.inject.Inject;
+import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.NodeConfig;
@@ -23,6 +24,8 @@ import java.util.Random;
  * @author Timëo
  */
 public class AuthTaskManager {
+
+    private static final int RANDOM_STRING_LENGTH = 22;
 
     private final LoginTask loginTask;
     private final RegisterTask registerTask;
@@ -48,39 +51,43 @@ public class AuthTaskManager {
                     ), true
             );
 
-            // TODO send WELCOME
-            out.println("WELCOME " + config.getCurrentDomain() + randomString(22));
+            // send welcome with rand char
+            String randomString = randomString();
+            String welcome = new RegexGrammar().buildCommand("WELCOME", config.getCurrentDomain(), randomString);
+            out.println(welcome);
 
-            String response = in.readLine();
+            // wait for response
+            String rawResponse = in.readLine();
+            RegexGrammar response = new RegexGrammar(rawResponse);
+            String type = response.getTypeOfCommand();
 
-            // TODO check message validity
+            // get correct task
             AuthTask task;
-
-            if (response.startsWith("LOGIN")) {
+            if ("USER_ACTION".equals(type)) {
                 task = loginTask;
-            } else if (response.startsWith("ONBOARDING")) {
+            } else if ("ONBOARDING".equals(type)) {
                 task = registerTask;
             } else {
-                // TODO send error message
-                out.println("ERROR");
+                String error = new RegexGrammar().buildCommand("ERROR", "Invalid authentication command");
+                out.println(error);
                 throw new AuthentificationFailed("Invalid response");
             }
 
-            return task.authenticate(client, in, out);
+            return task.authenticate(client, in, out, response, randomString);
         } catch (IOException e) {
             throw new AuthentificationFailed("Error getting connection to client");
         }
     }
 
-    private String randomString(int length) {
+    private String randomString() {
         String digits = "0123456789";
         String letters = "abcdefghijklmnopqrstuvwxyz";
         String specials = "!@#$%^&*()-_=+[]{}|;:,.<>?";
         String all = digits + letters + letters.toUpperCase() + specials;
 
         Random r = new Random();
-        char[] chars = new char[length];
-        for (int i = 0; i < length; i++) {
+        char[] chars = new char[RANDOM_STRING_LENGTH];
+        for (int i = 0; i < RANDOM_STRING_LENGTH; i++) {
             chars[i] = all.charAt(r.nextInt(all.length()));
         }
         return new String(chars);

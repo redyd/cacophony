@@ -5,8 +5,7 @@ import com.google.inject.Singleton;
 import com.mapatiri.node.controller.Dispatcher;
 import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.factory.SocketFactory;
-import com.mapatiri.node.repository.ConfigRepository;
-import com.mapatiri.node.repository.JsonConfigRepository;
+import com.mapatiri.node.repository.*;
 import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
@@ -17,8 +16,12 @@ public class AppModule extends AbstractModule {
     @Override
     protected void configure() {
         // Bind interface to implementation
-        bind(ConfigRepository.class).to(JsonConfigRepository.class).in(Singleton.class);
         bind(Dispatcher.class).to(TaskDispatcher.class).in(Singleton.class);
+
+        // Json repo
+        bind(ConfigRepository.class).to(JsonConfigRepository.class).in(Singleton.class);
+        bind(UserRepo.class).to(UserRepository.class).in(Singleton.class);
+        bind(TagRepo.class).to(TagRepository.class).in(Singleton.class);
 
         // Define singleton services
         bind(ConnectionStore.class).in(Singleton.class);
