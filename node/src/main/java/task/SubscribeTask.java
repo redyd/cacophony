@@ -1,21 +1,26 @@
 package task;
 
 import com.mapatiri.node.exception.NodeConfigSaveException;
-import com.mapatiri.node.service.ConfigService;
-import com.mapatiri.node.service.JsonService;
+import com.mapatiri.node.model.Tag;
+import com.mapatiri.node.repository.TagRepo;
+import com.mapatiri.node.repository.UserRepo;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 public class SubscribeTask implements ActionTask {
-    private ConfigService jsonService;
+
+    private UserRepo userRepo;
+    private TagRepo tagRepo;
     private String sender;
     private String toSubscribe;
     private boolean shouldForward;
     private final static Logger LOGGER =  Logger.getLogger(SubscribeTask.class.getName());
 
-    public SubscribeTask(JsonService jsonService, String sender, String toSubscribe,  boolean shouldForward) {
+    public SubscribeTask(UserRepo repo,TagRepo tagRepo, String sender, String toSubscribe,  boolean shouldForward) {
         //faire des verifications de si cest nul ou non
-        this.jsonService = jsonService;
+        this.userRepo = repo;
+        this.tagRepo = tagRepo;
         this.sender = sender;
         this.toSubscribe = toSubscribe;
         this.shouldForward = shouldForward;
@@ -24,11 +29,17 @@ public class SubscribeTask implements ActionTask {
     @Override
     public void executeTask() {
         try {
-            jsonService.addSubscription(sender, toSubscribe);
+            if(toSubscribe.startsWith("#")){
+                tagRepo.addTag(new Tag(toSubscribe));
+                tagRepo.addSubscriberToTag(toSubscribe, sender);
+                userRepo.addUserTag(sender, toSubscribe);
+            }
+            else{
+                userRepo.addSubscriberToUser(sender, toSubscribe);
+            }
 
-        } catch (NodeConfigSaveException e) {
-            LOGGER.severe(e.getMessage());
-
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
