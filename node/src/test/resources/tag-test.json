@@ -9,6 +9,10 @@
       "subscribers": [
         "testUser@node1.swilabus.xyz"
       ]
+    },
+    {
+      "tag": "#tagTest",
+      "subscribers": []
     }
   ]
 }

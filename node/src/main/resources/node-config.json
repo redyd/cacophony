@@ -7,6 +7,6 @@
   "relayPort": 5003,
   "networkInterface": "ethernet_32769",
   "base64AES": "1f2682Wgj/OGwmbUCBAH8fuCeKsBYz8E4o+HM4+50is\u003d",
-  "tls": false,
+  "tls": true,
   "keystorePassword": "labo2026"
 }

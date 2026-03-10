@@ -14,18 +14,11 @@ public class ClientConnection {
     private final BufferedReader in;
     private final PrintWriter out;
 
-    public ClientConnection(Socket socket, User user) throws IOException {
+    public ClientConnection(Socket socket, User user, BufferedReader in, PrintWriter out) throws IOException {
         this.socket = socket;
         this.user = user;
-
-        this.in = new BufferedReader(
-                new InputStreamReader(socket.getInputStream())
-        );
-        this.out = new PrintWriter(
-                new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream())
-                ), true
-        );
+        this.in = in;
+        this.out = out;
     }
 
     public synchronized void send(String message) {
@@ -37,10 +30,7 @@ public class ClientConnection {
     }
 
     public boolean isDisconnected() {
-        return !socket.isConnected()
-                || socket.isClosed()
-                || socket.isInputShutdown()
-                || socket.isOutputShutdown();
+        return socket.isClosed();
     }
 
     public void close() throws IOException {

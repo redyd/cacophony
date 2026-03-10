@@ -3,6 +3,7 @@ package com.mapatiri.node.repository;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapatiri.node.exception.UserConfigException;
+import com.mapatiri.node.exception.UserConflictException;
 import com.mapatiri.node.model.User;
 import com.mapatiri.node.model.Users;
 
@@ -39,9 +40,15 @@ public class UserRepository implements UserRepo {
     }
 
     @Override
-    public void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt) {
-        User user = new User(login, bcryptHash, bcryptRound, bcryptSalt);
-        usersConfig.users().add(user);
+    public void addUser(User toAdd) throws IOException, UserConflictException {
+        for (User curr : usersConfig.users()) {
+            if (curr.getLogin().equals(toAdd.getLogin())) {
+                throw new UserConflictException("This login already exists");
+            }
+        }
+
+        usersConfig.users().add(toAdd);
+        saveUsers();
     }
 
     @Override
@@ -78,7 +85,9 @@ public class UserRepository implements UserRepo {
                 .setPrettyPrinting()
                 .create();
 
-        Files.writeString(path, gson.toJson(usersConfig), StandardCharsets.UTF_8);
+        synchronized (this) {
+            Files.writeString(path, gson.toJson(usersConfig), StandardCharsets.UTF_8);
+        }
     }
 
     @Override

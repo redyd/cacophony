@@ -22,6 +22,9 @@ subprojects {
             "runtimeOnly"(libs.slf4j.simple)
 
             "testImplementation"(libs.junit.api)
+            "testImplementation"(libs.mockito)
+            "testImplementation"(libs.mockito.jupiter)
+
             "testRuntimeOnly"(libs.junit.engine)
             "testRuntimeOnly"(libs.junit.launcher)
         }

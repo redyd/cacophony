@@ -22,17 +22,12 @@ public class User {
         this.userTags = new HashSet<>();
     }
 
-    public User() {
-        this.login = "";
-        this.bcryptHash = "";
-        this.bcryptRound = 0;
-        this.bcryptSalt = "";
-        this.subscribers = new HashSet<>();
-        this.userTags = new HashSet<>();
-    }
-
     public String getLogin() {
         return login;
+    }
+
+    public String getHashedPassword() {
+        return "$2b$%d$%s%s".formatted(bcryptRound, bcryptSalt, bcryptHash);
     }
 
     public String getBcryptHash() {

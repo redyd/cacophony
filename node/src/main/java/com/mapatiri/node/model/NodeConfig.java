@@ -4,7 +4,7 @@ import java.nio.file.Path;
 
 public class NodeConfig {
 
-    public static final Path KEYSTORE_PATH = Path.of("node", "src", "main", "resources", "data", "keystore.p12");
+    public static final Path KEYSTORE_PATH = Path.of("src", "main", "resources", "data", "keystore.p12");
 
     //le nom du domaine du node
     private String currentDomain;
