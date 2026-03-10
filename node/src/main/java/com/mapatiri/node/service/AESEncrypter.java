@@ -1,7 +1,5 @@
 package com.mapatiri.node.service;
 
-import com.google.inject.Inject;
-import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.JsonConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +19,10 @@ import java.util.Base64;
  */
 public class AESEncrypter {
 
-    private final ConfigRepository jsonConfigRepository;
+    private final JsonConfigRepository jsonConfigRepository;
     private final Logger logger = LoggerFactory.getLogger(AESEncrypter.class);
 
-    @Inject
-    public AESEncrypter(ConfigRepository jsonConfigRepository) {
+    public AESEncrypter(JsonConfigRepository jsonConfigRepository) {
         this.jsonConfigRepository = jsonConfigRepository;
     }
 
@@ -62,27 +59,7 @@ public class AESEncrypter {
     }
 
     public String decrypt(String content) {
-        try {
-            // Séparer l'IV et le ciphertext
-            String[] parts = content.split(":");
-            byte[] iv = Base64.getDecoder().decode(parts[0]);
-            byte[] cipherText = Base64.getDecoder().decode(parts[1]);
 
-            // Recréer l'IvParameterSpec depuis l'IV récupéré
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-
-            // Créer le cipher en mode déchiffrement
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), ivSpec);
-
-            // Déchiffrer et retourner le message en clair
-            byte[] plainText = cipher.doFinal(cipherText);
-            return new String(plainText, StandardCharsets.UTF_8);
-
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
-                 InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            logger.error(e.getMessage());
-        }
         return "";
     }
 }
