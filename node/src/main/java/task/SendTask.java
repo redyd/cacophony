@@ -34,12 +34,7 @@ public class SendTask implements ActionTask {
         Set<String> followers = getFollowers(sender);
         for (String followerLogin : followers) {
             Optional<ClientConnection> connection = connectionStore.get(followerLogin);
-            if (connection.isPresent()) {
-                var con = connection.get();
-                if (shouldForward) {
-                    con.send(content);
-                }
-            }
+            connection.ifPresent(con -> con.send(content));
         }
     }
 
