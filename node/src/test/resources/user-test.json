@@ -31,6 +31,14 @@
       "userTags": [
         "#tagTest"
       ]
+    },
+    {
+      "login": "testUser",
+      "bcryptHash": "hashTest",
+      "bcryptRound": 14,
+      "bcryptSalt": "saltTest",
+      "subscribers": [],
+      "userTags": []
     }
   ]
 }

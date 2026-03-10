@@ -5,13 +5,14 @@ import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.service.AuthTaskManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.Socket;
-import java.util.logging.Logger;
 
 public class TaskDispatcher implements Dispatcher {
 
-    private static final Logger logger = Logger.getLogger(TaskDispatcher.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TaskDispatcher.class);
 
     private final AuthTaskManager auth;
 
@@ -27,6 +28,6 @@ public class TaskDispatcher implements Dispatcher {
 
     @Override
     public void submit(String request, String sender) throws BadRequestException {
-        // TODO submit task
+        logger.info("Received message from {}: {}", sender, request);
     }
 }

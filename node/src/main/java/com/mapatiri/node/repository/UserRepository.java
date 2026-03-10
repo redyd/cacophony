@@ -39,9 +39,10 @@ public class UserRepository implements UserRepo {
     }
 
     @Override
-    public void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt) {
+    public void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt) throws IOException {
         User user = new User(login, bcryptHash, bcryptRound, bcryptSalt);
         usersConfig.users().add(user);
+        saveUsers();
     }
 
     @Override
@@ -78,7 +79,9 @@ public class UserRepository implements UserRepo {
                 .setPrettyPrinting()
                 .create();
 
-        Files.writeString(path, gson.toJson(usersConfig), StandardCharsets.UTF_8);
+        synchronized (this) {
+            Files.writeString(path, gson.toJson(usersConfig), StandardCharsets.UTF_8);
+        }
     }
 
     @Override

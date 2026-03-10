@@ -26,6 +26,10 @@ public class User {
         return login;
     }
 
+    public String getHashedPassword() {
+        return "$2b$%d$%s%s".formatted(bcryptRound, bcryptSalt, bcryptHash);
+    }
+
     public String getBcryptHash() {
         return bcryptHash;
     }

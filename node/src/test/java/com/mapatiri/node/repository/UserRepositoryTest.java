@@ -21,7 +21,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddUserAndRetrieve() {
+    void testAddUserAndRetrieve() throws IOException {
         repo.addUser("louis", "hash123", 14, "saltXYZ");
         User user = repo.getUserFromLogin("louis");
 

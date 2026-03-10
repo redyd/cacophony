@@ -8,18 +8,25 @@ import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.User;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.logging.LogManager;
 
 /**
  * Permet d'authentifier un utilisateur déjà enregistré.
  */
 public class LoginTask implements AuthTask {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginTask.class);
 
     private final ConnectionStore store;
     private final UserRepo userRepository;
@@ -36,12 +43,12 @@ public class LoginTask implements AuthTask {
             User target = tryGettingUser(out, response);
 
             if (target == null) {
-                out.println("Invalid credentials");
-                throw new AuthentificationFailed("Invalid credentials");
+                out.println("Invalid credentials (user not found)");
+                throw new AuthentificationFailed("Invalid credentials (user not found)");
             }
 
             String hashResponse = tryGettingHashResponse(in, out, target);
-            String expectedHash = hash(randomString + target.getBcryptSalt());
+            String expectedHash = hash(randomString + target.getHashedPassword());
 
             if (!expectedHash.equals(hashResponse)) {
                 String invalidCredentials = new RegexGrammar().buildCommand("ERROR", "Invalid credentials");
@@ -49,11 +56,14 @@ public class LoginTask implements AuthTask {
                 throw new AuthentificationFailed("Invalid credentials");
             }
 
-            ClientConnection connection = new ClientConnection(client, target);
+            ClientConnection connection = new ClientConnection(client, target, in, out);
             store.put(connection);
 
+            String ok = new RegexGrammar().buildCommand("OK", "Welcome to Cacophony %s".formatted(connection.getUser().getLogin()));
+            connection.send(ok);
+
             return connection;
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             String unexpectedError = new RegexGrammar().buildCommand("ERROR", "Unexpected error");
             out.println(unexpectedError);
             throw new AuthentificationFailed("Something went wrong");
@@ -62,7 +72,8 @@ public class LoginTask implements AuthTask {
 
     private String tryGettingHashResponse(BufferedReader in, PrintWriter out, User target) throws IOException, AuthentificationFailed {
         // send challenge
-        String challenge = new RegexGrammar().buildCommand("CHALLENGE", String.valueOf(target.getBcryptRound()), target.getBcryptSalt());
+        String challenge = new RegexGrammar()
+                .buildCommand("CHALLENGE", String.valueOf(target.getBcryptRound()), target.getBcryptSalt());
         out.println(challenge);
 
         // wait for challenge response
@@ -95,8 +106,18 @@ public class LoginTask implements AuthTask {
         return this.userRepository.getUserFromLogin(login);
     }
 
-    private String hash(String toHash) {
-        return Hashing.sha256().hashString(toHash, StandardCharsets.UTF_8).toString();
+    private String hash(String toHash) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+        byte[] val = digest.digest(toHash.getBytes());
+        return bytesToHex(val);
+    }
+
+    public String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
 }

@@ -26,7 +26,7 @@ public interface UserRepo {
      * @param bcryptRound
      * @param bcryptSalt
      */
-    void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt);
+    void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt) throws IOException;
 
     /**
      * Permet d'obtenir un user depuis son login

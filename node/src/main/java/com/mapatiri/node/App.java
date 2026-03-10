@@ -5,6 +5,8 @@ import com.google.inject.Injector;
 import com.mapatiri.node.config.AppModule;
 import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.repository.ConfigRepository;
+import com.mapatiri.node.repository.TagRepo;
+import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.server.ClientNodeServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +21,16 @@ public class App {
         Injector injector = Guice.createInjector(new AppModule());
 
         // == CONFIG FILE ==
-        var config = injector.getInstance(ConfigRepository.class);
-        config.loadConfig(Path.of("node", "src", "main", "resources", "node-config.json"));
+        var configRepo = injector.getInstance(ConfigRepository.class);
+        var userRepo = injector.getInstance(UserRepo.class);
+        var tagRepo = injector.getInstance(TagRepo.class);
+
+        configRepo.loadConfig(Path.of("src", "main", "resources", "node-config.json"));
+        userRepo.loadUsers(Path.of("src", "main", "resources", "data", "user.json"));
+        tagRepo.loadTags(Path.of("src", "main", "resources", "data", "tag.json"));
 
         // == INIT OBJECTS ==
-        var clientServer = new Thread(injector.getInstance(ClientNodeServer.class));
+        var clientServer = new Thread(injector.getInstance(ClientNodeServer.class), "Node server");
 
         // == START ==
         clientServer.start();

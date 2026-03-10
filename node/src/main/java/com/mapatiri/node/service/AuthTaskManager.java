@@ -9,6 +9,8 @@ import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.task.AuthTask;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,6 +27,7 @@ import java.util.Random;
  */
 public class AuthTaskManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthTaskManager.class);
     private static final int RANDOM_STRING_LENGTH = 22;
 
     private final LoginTask loginTask;
@@ -62,16 +65,15 @@ public class AuthTaskManager {
             String type = response.getTypeOfCommand();
 
             // get correct task
-            AuthTask task;
-            if ("USER_ACTION".equals(type)) {
-                task = loginTask;
-            } else if ("ONBOARDING".equals(type)) {
-                task = registerTask;
-            } else {
-                String error = new RegexGrammar().buildCommand("ERROR", "Invalid authentication command");
-                out.println(error);
-                throw new AuthentificationFailed("Invalid response");
-            }
+            AuthTask task = switch (type) {
+                case "USER_ACTION" -> loginTask;
+                case "ONBOARDING" -> registerTask;
+                default -> {
+                    String error = new RegexGrammar().buildCommand("ERROR", "Invalid authentication command");
+                    out.println(error);
+                    throw new AuthentificationFailed("Invalid response");
+                }
+            };
 
             return task.authenticate(client, in, out, response, randomString);
         } catch (IOException e) {
@@ -82,7 +84,7 @@ public class AuthTaskManager {
     private String randomString() {
         String digits = "0123456789";
         String letters = "abcdefghijklmnopqrstuvwxyz";
-        String specials = "!@#$%^&*()-_=+[]{}|;:,.<>?";
+        String specials = "!@#$%^";
         String all = digits + letters + letters.toUpperCase() + specials;
 
         Random r = new Random();

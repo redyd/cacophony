@@ -53,19 +53,30 @@ public class ClientNodeServer implements Runnable {
     private void handleClient(Socket sslSocket) {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
-            logger.info("Client {} is log in", client.getUser().getLogin());
+            logger.info("Client {} is logged in", client.getUser().getLogin());
 
             while (!client.isDisconnected()) {
                 try {
                     String message = client.waitForMessage();
+
+                    if (message == null) {
+                        break;
+                    }
+                    if (message.isBlank()) {
+                        continue;
+                    }
+
                     dispatcher.submit(message, client.getUser().getLogin());
                 } catch (IOException e) {
                     logger.warn("Error while waiting for message: {}", e.getMessage());
+                    break;
                 } catch (BadRequestException e) {
                     logger.info("User made a bad request: {}", e.getMessage());
                     client.send("ERROR");
                 }
             }
+
+            logger.info("Client {} log off", client.getUser().getLogin());
         } catch (AuthentificationFailed e) {
             logger.info("Someone could not be authenticated: {}", e.getMessage());
         }
