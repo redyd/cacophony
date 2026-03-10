@@ -1,0 +1,36 @@
+sp = %d32
+newline = %d13 %d10
+digit = %d48-57
+port = 1*5digit
+counter = 2digit
+salt_length = 2digit
+letter = %d65-90 /%d97-122
+digit_letter = digit / letter
+character = %d32-255
+specialchar = %d33-47 /%d58-64 / %d91-96
+message = 1*200character
+inner_message = 1*500character
+user = 5*20digit_letter
+tag = "#" 5*20digit_letter
+domain = 5*200(digit_letter / ".")
+user_at_domain = user "@" domain
+tag_at_domain = tag "@" domain
+id_at_domain = 1*5digit "@" domain
+bcrypt = "$2b$" counter "$" 1*70(digit_letter / specialchar)
+sha3_hexstring = 30*200digit_letter
+random_string = 22(digit_letter / specialchar)
+welcome = "WELCOME" sp domain sp random_string newline
+user = "USER" sp user newline
+challenge = "CHALLENGE" sp counter sp random_string newline
+response = "RESPONSE" sp sha3_hexstring newline
+onboarding = "ONBOARDING" sp user sp salt_length sp bcrypt newline
+subscribe = "SUBSCRIBE" sp (user_at_domain / tag_at_domain) newline
+send = "SEND" sp message newline
+msg = "MSG" sp user_at_domain sp message newline
+ok = "OK" [sp message] newline
+error = "ERROR" [sp message] newline
+leave = "LEAVE" newline
+advert = "ADVERT" sp port sp domain newline
+post = "POST" sp id_at_domain sp user_at_domain sp (user_at_domain / tag_at_domain) sp
+ inner_message newline
+
