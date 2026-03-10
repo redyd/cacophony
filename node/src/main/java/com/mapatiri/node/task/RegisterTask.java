@@ -3,8 +3,13 @@ package com.mapatiri.node.task;
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.exception.AuthentificationFailed;
+import com.mapatiri.node.exception.UserConflictException;
+import com.mapatiri.node.model.BcryptParams;
 import com.mapatiri.node.model.ClientConnection;
+import com.mapatiri.node.model.User;
 import com.mapatiri.node.repository.UserRepo;
+import com.mapatiri.node.service.BcryptService;
+import com.mapatiri.node.service.SimpleBcryptService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,27 +20,48 @@ import java.util.List;
 public class RegisterTask implements AuthTask {
 
     private final UserRepo userRepo;
+    private final BcryptService bcryptService;
 
     @Inject
-    public RegisterTask(UserRepo userRepo) {
+    public RegisterTask(UserRepo userRepo, SimpleBcryptService simpleBcryptService) {
         this.userRepo = userRepo;
+        this.bcryptService = simpleBcryptService;
     }
 
     @Override
     public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, RegexGrammar response, String randomChars) throws AuthentificationFailed {
-        List<String> onboardingValues = response.parseCommand();
+        try {
+            List<String> onboardingValues = response.parseCommand();
 
-        if (onboardingValues.size() != 3) {
-            String err = new RegexGrammar().buildCommand("ERROR", "Invalid response to welcome");
+            if (onboardingValues.size() != 3 || !"ONBOARDING".equals(response.getTypeOfCommand())) {
+                String err = new RegexGrammar().buildCommand("ERROR", "Invalid response to welcome");
+                out.println(err);
+                throw new AuthentificationFailed("Invalid response to welcome");
+            }
+
+            String login = onboardingValues.getFirst();
+            int saltLength = Integer.parseInt(onboardingValues.get(1));
+            BcryptParams bcrypt = bcryptService.parseByCrypt(onboardingValues.get(2), saltLength);
+
+            User user = new User(login, bcrypt.hash(), bcrypt.round(), bcrypt.salt());
+            try {
+                userRepo.addUser(user);
+            } catch (UserConflictException e) {
+                String err = new RegexGrammar().buildCommand("ERROR", "This login already exists");
+                out.println(err);
+                throw new AuthentificationFailed("Could not create user with same login as another");
+            }
+
+            ClientConnection connection = new ClientConnection(client, user, in, out);
+
+            String ok = new RegexGrammar()
+                    .buildCommand("OK", "Welcome to Cacophony %s".formatted(connection.getUser().getLogin()));
+            connection.send(ok);
+
+            return connection;
+        } catch (IOException | NumberFormatException e) {
+            throw new AuthentificationFailed("Unexpected error: " + e.getMessage());
         }
-
-        String login = onboardingValues.getFirst();
-        int saltLength = Integer.parseInt(onboardingValues.get(1));
-        String bcryptHash = onboardingValues.get(2);
-
-        // TODO créer user
-
-        return null;
     }
 
 }

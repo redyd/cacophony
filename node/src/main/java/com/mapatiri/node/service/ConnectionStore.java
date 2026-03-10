@@ -1,5 +1,8 @@
 package com.mapatiri.node.service;
 
+import com.google.inject.Inject;
+import com.mapatiri.node.controller.ClientSessionEventNotifier;
+import com.mapatiri.node.controller.ClientSessionReacter;
 import com.mapatiri.node.model.ClientConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +13,16 @@ import java.util.*;
 /**
  * Enregistre toutes les connexions actives et authentifiées dans le node
  */
-public class ConnectionStore implements Clockable {
+public class ConnectionStore implements Clockable, ClientSessionReacter {
 
     private final static Logger logger = LoggerFactory.getLogger(ConnectionStore.class);
 
     private final Map<String, ClientConnection> connections;
 
-    public ConnectionStore() {
+    @Inject
+    public ConnectionStore(ClientSessionEventNotifier notifier) {
         connections = new HashMap<>();
+        notifier.subscribe(this);
     }
 
     public void put(ClientConnection client) {
@@ -61,5 +66,17 @@ public class ConnectionStore implements Clockable {
         }
 
         toRemove.forEach(connections::remove);
+    }
+
+    @Override
+    public void onUserLogout(ClientConnection client) {
+        connections.remove(client.getUser().getLogin());
+        logger.info("Client {} removed from store", client.getUser().getLogin());
+    }
+
+    @Override
+    public void onUserLogin(ClientConnection client) {
+        put(client);
+        logger.info("Client {} added to store", client.getUser().getLogin());
     }
 }

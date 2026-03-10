@@ -9,8 +9,6 @@ import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.task.AuthTask;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,7 +25,6 @@ import java.util.Random;
  */
 public class AuthTaskManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthTaskManager.class);
     private static final int RANDOM_STRING_LENGTH = 22;
 
     private final LoginTask loginTask;

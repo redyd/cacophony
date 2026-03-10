@@ -1,39 +1,29 @@
 package com.mapatiri.node.task;
 
-import com.google.common.hash.Hashing;
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.User;
 import com.mapatiri.node.repository.UserRepo;
-import com.mapatiri.node.service.ConnectionStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.logging.LogManager;
 
 /**
  * Permet d'authentifier un utilisateur déjà enregistré.
  */
 public class LoginTask implements AuthTask {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoginTask.class);
-
-    private final ConnectionStore store;
     private final UserRepo userRepository;
 
     @Inject
-    public LoginTask(ConnectionStore store, UserRepo userRepository) {
-        this.store = store;
+    public LoginTask(UserRepo userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -57,9 +47,9 @@ public class LoginTask implements AuthTask {
             }
 
             ClientConnection connection = new ClientConnection(client, target, in, out);
-            store.put(connection);
 
-            String ok = new RegexGrammar().buildCommand("OK", "Welcome to Cacophony %s".formatted(connection.getUser().getLogin()));
+            String ok = new RegexGrammar()
+                    .buildCommand("OK", "Welcome back to Cacophony %s".formatted(connection.getUser().getLogin()));
             connection.send(ok);
 
             return connection;
@@ -70,6 +60,10 @@ public class LoginTask implements AuthTask {
         }
     }
 
+    /**
+     * Effectue le challenge avec le client, et récupère le hash du client.
+     * En cas d'erreur, lance un {@link AuthentificationFailed}.
+     */
     private String tryGettingHashResponse(BufferedReader in, PrintWriter out, User target) throws IOException, AuthentificationFailed {
         // send challenge
         String challenge = new RegexGrammar()
@@ -92,6 +86,9 @@ public class LoginTask implements AuthTask {
         return challengeResponseValues.getFirst();
     }
 
+    /**
+     * Tente de récupérer depuis le JSON l'utilisateur mentionné dans la réponse Regex
+     */
     private User tryGettingUser(PrintWriter out, RegexGrammar response) throws AuthentificationFailed {
         List<String> userLoginResponse = response.parseCommand();
 

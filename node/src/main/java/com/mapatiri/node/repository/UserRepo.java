@@ -1,7 +1,7 @@
 package com.mapatiri.node.repository;
 
-import com.mapatiri.node.exception.NodeConfigSaveException;
 import com.mapatiri.node.exception.UserConfigException;
+import com.mapatiri.node.exception.UserConflictException;
 import com.mapatiri.node.model.User;
 import com.mapatiri.node.model.Users;
 
@@ -21,12 +21,9 @@ public interface UserRepo {
     /**
      * Permet d'ajouter un utilisateur a partir de son login et de ses informations bcrypt
      *
-     * @param login
-     * @param bcryptHash
-     * @param bcryptRound
-     * @param bcryptSalt
+     * @param toAdd
      */
-    void addUser(String login, String bcryptHash, int bcryptRound, String bcryptSalt) throws IOException;
+    void addUser(User toAdd) throws IOException, UserConflictException;
 
     /**
      * Permet d'obtenir un user depuis son login

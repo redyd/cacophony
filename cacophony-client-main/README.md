@@ -4,7 +4,7 @@
 * Il supporte la connexion TLS et embarque l'autorité attendue pour ce laboratoire
 * Il permet l'utilisation d'arguments, sur la ligne de commande, remplissant automatiquement les champs `Host`, `Port`, `Login`, `Password` et la case à cocher `with SSL/TLS` (cf. figure 2 de l'énoncé):
 ```
-python main.py node1.swilabus.xyz 5002 louisswinnen rootroot tls
+python main.py node1.swilabus.xyz 5002 louis labo2026 tls
 ```
 
 ## B. Démarrage du client

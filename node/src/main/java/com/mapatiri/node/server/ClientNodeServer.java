@@ -1,6 +1,8 @@
 package com.mapatiri.node.server;
 
 import com.google.inject.Inject;
+import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.exception.ServerSocketInitializer;
@@ -23,29 +25,35 @@ public class ClientNodeServer implements Runnable {
     private final SocketFactory tlsFactory;
     private final Dispatcher dispatcher;
     private final ConfigRepository config;
+    private final ClientSessionEventNotifier notifier;
 
     @Inject
-    public ClientNodeServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config) {
+    public ClientNodeServer(SocketFactory tlsFactory, Dispatcher dispatcher, ConfigRepository config, ClientSessionEventNotifier notifier) {
         this.tlsFactory = tlsFactory;
         this.dispatcher = dispatcher;
         this.config = config;
+        this.notifier = notifier;
     }
 
     @Override
     public void run() {
         try (ServerSocket socket = tlsFactory.createSocket()) {
-            logger.info("> Server client started on port {} (tls {})", socket.getLocalPort(), config.getConfig().isTls() ? "on" : "off");
+            logger.info(" ** Server client started on port {} (tls {}) ** ", socket.getLocalPort(), config.getConfig().isTls() ? "on" : "off");
 
             while (!socket.isClosed()) {
-                Socket client = socket.accept();
+                try {
+                    Socket client = socket.accept();
 
-                if (client instanceof SSLSocket sslSocket) {
-                    sslSocket.startHandshake();
+                    if (client instanceof SSLSocket sslSocket) {
+                        sslSocket.startHandshake();
+                    }
+
+                    new Thread(() -> handleClient(client), "Active client").start();
+                } catch (IOException e) {
+                    logger.info("A user socket has encountered an error: {}", e.getMessage());
                 }
-
-                new Thread(() -> handleClient(client), "Running client").start();
             }
-        } catch (IOException | ServerSocketInitializer e) {
+        } catch (ServerSocketInitializer | IOException e) {
             logger.error("Could not create server socket: {}", e.getMessage());
         }
     }
@@ -53,7 +61,8 @@ public class ClientNodeServer implements Runnable {
     private void handleClient(Socket sslSocket) {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
-            logger.info("Client {} is logged in", client.getUser().getLogin());
+            logger.info("Client {} is log in", client.getUser().getLogin());
+            this.notifier.onUserLogin(client);
 
             while (!client.isDisconnected()) {
                 try {
@@ -72,11 +81,13 @@ public class ClientNodeServer implements Runnable {
                     break;
                 } catch (BadRequestException e) {
                     logger.info("User made a bad request: {}", e.getMessage());
-                    client.send("ERROR");
+                    String badRequest = new RegexGrammar().buildCommand("ERROR", "Bad Request");
+                    client.send(badRequest);
                 }
             }
 
             logger.info("Client {} log off", client.getUser().getLogin());
+            this.notifier.onUserLogout(client);
         } catch (AuthentificationFailed e) {
             logger.info("Someone could not be authenticated: {}", e.getMessage());
         }

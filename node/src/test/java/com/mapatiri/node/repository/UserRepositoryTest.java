@@ -1,5 +1,6 @@
 package com.mapatiri.node.repository;
 
+import com.mapatiri.node.exception.UserConflictException;
 import com.mapatiri.node.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +22,12 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddUserAndRetrieve() throws IOException {
-        repo.addUser("louis", "hash123", 14, "saltXYZ");
+    void testAddUserAndRetrieve(@TempDir Path tempDir) throws IOException, UserConflictException {
+        Path path = tempDir.resolve("users.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
+        repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
         User user = repo.getUserFromLogin("louis");
 
         assertNotNull(user);
@@ -35,12 +40,12 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddSubscriber(@TempDir Path tempDir) throws IOException {
+    void testAddSubscriber(@TempDir Path tempDir) throws IOException, UserConflictException {
         Path path = tempDir.resolve("users.json");
         Files.writeString(path, "{\"users\":[]}");
         repo.loadUsers(path);
 
-        repo.addUser("godswila", "hash456", 14, "saltABC");
+        repo.addUser(new User("godswila", "hash123", 14, "saltXYZ"));
         repo.addSubscriberToUser("godswila", "louis");
 
         User user = repo.getUserFromLogin("godswila");
@@ -48,12 +53,12 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testAddUserTag(@TempDir Path tempDir) throws IOException {
+    void testAddUserTag(@TempDir Path tempDir) throws IOException, UserConflictException {
         Path path = tempDir.resolve("users.json");
         Files.writeString(path, "{\"users\":[]}");
         repo.loadUsers(path);
 
-        repo.addUser("louis", "hash123", 14, "saltXYZ");
+        repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
         repo.addUserTag("louis", "#tagDeTest");
 
         User user = repo.getUserFromLogin("louis");
@@ -66,7 +71,7 @@ class UserRepositoryTest {
         Files.writeString(path, "{\"users\":[]}");
         repo.loadUsers(path);
 
-        repo.addUser("louis", "hash123", 14, "saltXYZ");
+        repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
         repo.addUserTag("louis", "#tag1");
         repo.saveUsers();
 
@@ -82,13 +87,15 @@ class UserRepositoryTest {
     }
 
     @Test
-    void testLoadModifySaveUserJson() throws Exception {
+    void testLoadModifySaveUserJson(@TempDir Path temp) throws Exception {
+        Path tempTarget = temp.resolve("users-test.json");
         Path path = Path.of("src/test/resources/user-test.json");
+        Files.copy(path, tempTarget);
 
         UserRepository repo = new UserRepository();
-        repo.loadUsers(path);
+        repo.loadUsers(tempTarget);
 
-        repo.addUser("testUser", "hashTest", 14, "saltTest");
+        repo.addUser(new User("testUser", "hash123", 14, "saltXYZ"));
         repo.addUserTag("testUser", "#tagTest");
         repo.addSubscriberToUser("testUser", "louis");
 

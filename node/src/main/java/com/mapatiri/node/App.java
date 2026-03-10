@@ -35,7 +35,7 @@ public class App {
         // == START ==
         clientServer.start();
 
-        logger.info("<== Node started ==>");
+        logger.info("========== Node started ==========");
     }
 
 }
