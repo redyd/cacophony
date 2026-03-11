@@ -48,7 +48,7 @@ public class ClientNodeServer implements Runnable {
                         sslSocket.startHandshake();
                     }
 
-                    new Thread(() -> handleClient(client), "Active client").start();
+                    new Thread(() -> handleClient(client)).start();
                 } catch (IOException e) {
                     logger.info("A user socket has encountered an error: {}", e.getMessage());
                 }
@@ -61,6 +61,7 @@ public class ClientNodeServer implements Runnable {
     private void handleClient(Socket sslSocket) {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
+            Thread.currentThread().setName("Client-" + client.getUser().getLogin());
             logger.info("Client {} is log in", client.getUser().getLogin());
             this.notifier.onUserLogin(client);
 
