@@ -17,7 +17,7 @@ public class UDPFactory {
 
             NetworkInterface networkInterface = NetworkInterface.getByName(config.getNetworkInterface());
 
-            MulticastSocket socket = new MulticastSocket(11003);
+            MulticastSocket socket = new MulticastSocket(config.getMulticastPort());
             if (networkInterface != null) {
                 socket.setNetworkInterface(networkInterface);
             } else {
