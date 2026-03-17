@@ -2,7 +2,7 @@
   "currentDomain": "node1.swilabus.xyz",
   "saltSizeInBytes": 16,
   "multicastAddress": "224.224.200.200",
-  "multicastPort": 5001,
+  "multicastPort": 11003,
   "unicastPort": 5002,
   "relayPort": 5003,
   "networkInterface": "ethernet_32769",

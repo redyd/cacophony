@@ -20,7 +20,7 @@ public class HeartbeatClock implements Runnable {
 
     @Override
     public void run() {
-        logger.info("L'horloge démarre — envoi d'un tick toutes les {}s", TICK_INTERVAL_MS / 1000);
+        logger.info("L'horloge démarre — envoi d'un tick toutes les 30s");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 Thread.sleep(TICK_INTERVAL_MS);
