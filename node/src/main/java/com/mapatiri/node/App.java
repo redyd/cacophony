@@ -11,6 +11,7 @@ import com.mapatiri.node.server.ClientNodeServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 
 public class App {
@@ -25,9 +26,9 @@ public class App {
         var userRepo = injector.getInstance(UserRepo.class);
         var tagRepo = injector.getInstance(TagRepo.class);
 
-        configRepo.loadConfig(Path.of("src", "main", "resources", "node-config.json"));
-        userRepo.loadUsers(Path.of("src", "main", "resources", "data", "user.json"));
-        tagRepo.loadTags(Path.of("src", "main", "resources", "data", "tag.json"));
+        configRepo.loadConfig(resolveResource("node-config.json"));
+        userRepo.loadUsers(resolveResource("data/user.json"));
+        tagRepo.loadTags(resolveResource("data/tag.json"));
 
         // == INIT OBJECTS ==
         var clientServer = new Thread(injector.getInstance(ClientNodeServer.class), "Node server");
@@ -36,6 +37,20 @@ public class App {
         clientServer.start();
 
         logger.info("========== Node started ==========");
+    }
+
+    private static Path resolveResource(String name) {
+        var url = App.class.getClassLoader().getResource(name);
+        if (url == null) {
+            logger.error("Resource not found: {}", name);
+            throw new IllegalStateException("Resource not found: " + name);
+        }
+        try {
+            return Path.of(url.toURI());
+        } catch (URISyntaxException e) {
+            logger.error("Invalid URI for: {}", name);
+            throw new IllegalStateException("Invalid URI for: " + name, e);
+        }
     }
 
 }
