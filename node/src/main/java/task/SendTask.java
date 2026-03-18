@@ -33,13 +33,10 @@ public class SendTask implements ActionTask {
 
     @Override
     public void executeTask() {
-        Set<String> followers = getFollowers(sender);
-        for (String followerLogin : followers) {
-            Optional<ClientConnection> connection = connectionStore.get(followerLogin);
-            connection.ifPresent(con -> con.send(content));
+        Set<ClientConnection> followers = connectionStore.getConnectionsFromLogin( getFollowers(sender));
+        for (ClientConnection followerCon : followers) {
+            followerCon.send(content);
         }
-
-
 
         if (shouldForward) {
             // TODO
