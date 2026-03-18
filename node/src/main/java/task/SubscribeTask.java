@@ -6,6 +6,7 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SubscribeTask implements ActionTask {
@@ -37,9 +38,12 @@ public class SubscribeTask implements ActionTask {
             else{
                 userRepo.addSubscriberToUser(sender, toSubscribe);
             }
+            if(shouldForward){
+                //TODO
+            }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.log(Level.WARNING, "Failed to add subscriber to tag", e);
         }
     }
 

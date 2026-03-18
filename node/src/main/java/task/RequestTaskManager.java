@@ -19,12 +19,8 @@ public class RequestTaskManager {
      * @param task
      */
     public void submit (ActionTask task ) {
-
-
         executor.submit(task::executeTask);
-        if(task.shouldForward()){
 
-        }
     }
 
 //    private ActionTask process() throws BadRequestException {
