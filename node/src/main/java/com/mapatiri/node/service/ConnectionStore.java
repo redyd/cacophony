@@ -79,4 +79,11 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
         put(client);
         logger.info("Client {} added to store", client.getUser().getLogin());
     }
+    public Set<ClientConnection> getConnectionsFromLogin(Set<String> logins) {
+        Set<ClientConnection> connectionsResult = new HashSet<>();
+        for (String login : logins) {
+            connectionsResult.add( connections.get(login));
+        }
+        return connectionsResult;
+    }
 }
