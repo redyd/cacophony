@@ -8,6 +8,7 @@ import com.mapatiri.node.service.ConnectionStore;
 import java.util.*;
 
 public class SendTask implements ActionTask {
+
     private UserRepo userRepo;
     private TagRepo tagRepo;
     private ConnectionStore connectionStore;
