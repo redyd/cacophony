@@ -9,7 +9,6 @@ import java.util.*;
 
 public class SendTask implements ActionTask {
 
-    private final UUID id = UUID.randomUUID();
     private UserRepo userRepo;
     private TagRepo tagRepo;
     private ConnectionStore connectionStore;
@@ -67,8 +66,6 @@ public class SendTask implements ActionTask {
 
     }
 
-    public UUID getId() {
-        return id;
-    }
+
 }
 
