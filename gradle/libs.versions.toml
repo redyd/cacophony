@@ -1,5 +1,6 @@
 [versions]
 slf4j = "2.0.17"
+logback = "1.5.6"
 junit = "5.10.0"
 junit-platform = "1.10.0"
 gson = "2.10.1"
@@ -9,11 +10,13 @@ mockito = "5.22.0"
 
 [libraries]
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback"}
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
 
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 

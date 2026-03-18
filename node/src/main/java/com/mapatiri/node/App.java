@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 
 public class App {
 
@@ -24,6 +25,8 @@ public class App {
         var configRepo = injector.getInstance(ConfigRepository.class);
         var userRepo = injector.getInstance(UserRepo.class);
         var tagRepo = injector.getInstance(TagRepo.class);
+
+        logger.debug("args are {}", Arrays.toString(args));
 
         configRepo.loadConfig(Path.of("src", "main", "resources", "node-config.json"));
         userRepo.loadUsers(Path.of("src", "main", "resources", "data", "user.json"));

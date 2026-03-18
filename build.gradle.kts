@@ -19,7 +19,8 @@ subprojects {
 
         dependencies {
             "implementation"(libs.slf4j.api)
-            "runtimeOnly"(libs.slf4j.simple)
+            "implementation"(libs.logback.core)
+            "implementation"(libs.logback.classic)
 
             "testImplementation"(libs.junit.api)
             "testImplementation"(libs.mockito)
