@@ -16,9 +16,9 @@ public class SendTask implements ActionTask {
     private List<String> tags;
     private String content;
     private boolean shouldForward;
-    private NodeConfig nodeConfig;
 
-    public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd, NodeConfig nodeConfig, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo) {
+
+    public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo) {
 
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
@@ -26,7 +26,6 @@ public class SendTask implements ActionTask {
         this.tags = tags;
         this.content = content;
         this.shouldForward = shouldForwrd;
-        this.nodeConfig = nodeConfig;
         this.connectionStore = connectionStore;
     }
 
