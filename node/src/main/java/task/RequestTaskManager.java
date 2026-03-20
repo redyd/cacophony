@@ -8,8 +8,12 @@ import java.util.concurrent.Executors;
 
 public class RequestTaskManager {
 
+    private TaskRepeater taskRepeater ;
 
-    ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    public RequestTaskManager(TaskRepeater taskRepeater) {
+        this.taskRepeater = taskRepeater;
+    }
 
 
     /**
@@ -20,6 +24,9 @@ public class RequestTaskManager {
      */
     public void submit (ActionTask task ) {
         executor.submit(task::executeTask);
+       if(task.shouldForward()){
+           taskRepeater.convertAndSend(task);
+       }
 
     }
 
