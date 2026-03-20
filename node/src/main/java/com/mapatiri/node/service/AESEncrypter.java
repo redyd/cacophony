@@ -1,5 +1,7 @@
 package com.mapatiri.node.service;
 
+import com.google.inject.Inject;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.JsonConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +21,11 @@ import java.util.Base64;
  */
 public class AESEncrypter {
 
-    private final JsonConfigRepository jsonConfigRepository;
+    private final ConfigRepository jsonConfigRepository;
     private final Logger logger = LoggerFactory.getLogger(AESEncrypter.class);
 
-    public AESEncrypter(JsonConfigRepository jsonConfigRepository) {
+    @Inject
+    public AESEncrypter(ConfigRepository jsonConfigRepository) {
         this.jsonConfigRepository = jsonConfigRepository;
     }
 
