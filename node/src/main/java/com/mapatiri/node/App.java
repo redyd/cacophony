@@ -4,10 +4,12 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.mapatiri.node.config.AppModule;
 import com.mapatiri.node.exception.NodeFileException;
+import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.server.ClientNodeServer;
+import com.mapatiri.node.service.SpeakerAnnouncer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,16 @@ public class App {
         userRepo.loadUsers(resolveResource("data/user.json"));
         tagRepo.loadTags(resolveResource("data/tag.json"));
 
+        var clock = injector.getInstance(HeartbeatClock.class);
+        clock.add(injector.getInstance(SpeakerAnnouncer.class));
+
         // == INIT OBJECTS ==
-        var clientServer = new Thread(injector.getInstance(ClientNodeServer.class), "Node server");
+        var clientServer = new Thread(clock, "Node server");
+        var clockThread = new Thread(injector.getInstance(HeartbeatClock.class), "Node clock thread");
 
         // == START ==
         clientServer.start();
+        clockThread.start();
 
         logger.info("========== Node started ==========");
     }

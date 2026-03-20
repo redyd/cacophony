@@ -30,7 +30,7 @@ public class HeartbeatClock implements Runnable {
                 return;
             }
 
-            logger.debug("Tick d'horloge");
+            logger.info("Tick d'horloge");
             for (Clockable clockable : clockables) {
                 try {
                     clockable.onClockSignal();

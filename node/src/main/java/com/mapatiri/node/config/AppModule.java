@@ -6,13 +6,13 @@ import com.mapatiri.node.controller.Dispatcher;
 import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.factory.SocketFactory;
+import com.mapatiri.node.factory.UDPFactory;
+import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.repository.*;
 import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
-import com.mapatiri.node.task.RequestTaskManager;
-import com.mapatiri.node.task.TaskRepeater;
 
 public class AppModule extends AbstractModule {
 
@@ -38,11 +38,12 @@ public class AppModule extends AbstractModule {
         bind(LoginTask.class).in(Singleton.class);
         bind(RegisterTask.class).in(Singleton.class);
 
-        //Task thread
-        bind(TaskRepeater.class).in(Singleton.class);
-        bind(RequestTaskManager.class).in(Singleton.class);
-        bind(TaskDispatcher.class).in(Singleton.class);
-
+        // Clock
+        bind(HeartbeatClock.class).in(Singleton.class);
+        bind(SpeakerAnnouncer.class).in(Singleton.class);
+        bind(SpeakerBridge.class).in(Singleton.class);
+        bind(UDPFactory.class).in(Singleton.class);
+        bind(AESEncrypter.class).in(Singleton.class);
     }
 
 }
