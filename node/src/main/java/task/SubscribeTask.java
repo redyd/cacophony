@@ -6,6 +6,7 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,4 +52,14 @@ public class SubscribeTask implements ActionTask {
     public boolean shouldForward() {
         return shouldForward;
     }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public String getToSubscribe() {
+        return toSubscribe;
+    }
+
+
 }
