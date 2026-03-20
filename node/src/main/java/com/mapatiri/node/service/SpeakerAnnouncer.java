@@ -1,7 +1,9 @@
 package com.mapatiri.node.service;
 
+import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.factory.UDPFactory;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.JsonConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +16,12 @@ import java.nio.charset.StandardCharsets;
 public class SpeakerAnnouncer implements Clockable, Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(SpeakerAnnouncer.class);
-    private final JsonConfigRepository configRepository;
+    private final ConfigRepository configRepository;
     private final SpeakerBridge speakerBridge;
     private final MulticastSocket multicastSocket;
 
-    private PrintWriter out;
-
-    public SpeakerAnnouncer(JsonConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge, UDPFactory udpFactory) {
+    @Inject
+    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge, UDPFactory udpFactory) {
         this.configRepository = jsonConfigRepository;
         this.speakerBridge = speakerBridge;
         this.multicastSocket = udpFactory.create(configRepository);
@@ -34,7 +35,7 @@ public class SpeakerAnnouncer implements Clockable, Runnable {
             // Construire le message ADVERT
             String advert = new RegexGrammar()
                     .buildCommand("ADVERT", String.valueOf(config.getRelayPort()), config.getCurrentDomain());
-            out.println(advert);
+
             byte[] data = advert.getBytes(StandardCharsets.UTF_8);
 
             // Envoyer en UDP multicast

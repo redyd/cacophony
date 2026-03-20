@@ -2,6 +2,7 @@ package com.mapatiri.node.service;
 
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.repository.JsonConfigRepository;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +23,10 @@ public class SpeakerBridge {
 
     private PrintWriter out;
 
-    public SpeakerBridge(AESEncrypter aes, RegexGrammar regexGrammar) {
+    @Inject
+    public SpeakerBridge(AESEncrypter aes) {
         this.aes = aes;
-        this.regexGrammar = regexGrammar;
+        this.regexGrammar = new RegexGrammar();
     }
 
     public void forward(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
