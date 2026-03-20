@@ -23,10 +23,11 @@ public class RequestTaskManager {
      * @param task
      */
     public void submit (ActionTask task ) {
+        boolean forward = task.shouldForward();
         executor.submit(task::executeTask);
-       if(task.shouldForward()){
-           taskRepeater.convertAndSend(task);
-       }
+        if (forward) {
+            taskRepeater.convertAndSend(task);
+        }
 
     }
 
