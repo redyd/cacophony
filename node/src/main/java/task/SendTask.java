@@ -1,5 +1,6 @@
 package task;
 
+import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.model.*;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
@@ -64,7 +65,31 @@ public class SendTask implements ActionTask {
         return followers;
 
     }
+    public Set<String> getFollowersFromOtherDomain() {
+        Set<String> followers = getFollowers(sender);
+        Set<String> followersFromOtherDomain = new HashSet<>();
+        for (String follower : followers) {
+            if(!compareDomain(follower,sender)){
+                followersFromOtherDomain.add(follower);
+            }
+        }
+        return followersFromOtherDomain;
+    }
 
+    public String getSender() {
+        return sender;
+    }
 
+    public String getContent() {
+        return content;
+    }
+    private String getDomain ( String userDomain){
+        RegexGrammar regexGrammar = new RegexGrammar(userDomain);
+        List<String> components = regexGrammar.parseCommand();
+        return components.getFirst();
+    }
+    private boolean compareDomain( String userDomain1 , String userDomain2){
+        return getDomain(userDomain1).equals(getDomain(userDomain2));
+    }
 }
 
