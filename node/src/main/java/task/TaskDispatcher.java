@@ -9,6 +9,7 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
+import util.DomainUtils;
 
 import javax.net.ssl.SSLSocket;
 import java.util.List;
@@ -43,16 +44,24 @@ public class TaskDispatcher {
         String type = regexGrammar.getTypeOfCommand();
         if (type.equalsIgnoreCase("SUBSCRIBE")) {
             List<String> composents = regexGrammar.parseCommand();
-            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, composents.getFirst(), true);
+            boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
+            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, composents.getFirst(), request, shouldForward);
             requestTaskManager.submit(subscribeTask);
         } else if (type.equalsIgnoreCase("MSG")) {
             List<String> composents = regexGrammar.parseCommand();
             List<String> tags = regexGrammar.extractTagsFromMessage();
-            SendTask sendTask = new SendTask(senderDomain, tags, composents.get(1), true, connectionStore, userRepo, tagRepo);
+            SendTask sendTask = new SendTask(senderDomain, tags, composents.get(2), false, connectionStore, userRepo, tagRepo);
             requestTaskManager.submit(sendTask);
-        } else {
+        }else if (type.equalsIgnoreCase("SEND")) {
+            List<String> composents = regexGrammar.parseCommand();
+            List<String> tags = regexGrammar.extractTagsFromMessage();
+            boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
+            SendTask sendTask = new SendTask(senderDomain, tags, composents.get(1), shouldForward, connectionStore, userRepo, tagRepo);
+            requestTaskManager.submit(sendTask);
+
+        }else {
             throw new BadRequestException("The request should only be MSG or SUBSCRIBE");
         }
-
     }
+
 }
