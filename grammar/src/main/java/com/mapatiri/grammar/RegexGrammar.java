@@ -135,4 +135,26 @@ public class RegexGrammar {
         return tags;
     }
 
+    public String generateIdAtDomain(String userAtDomain) {
+        String domain = userAtDomain.substring(userAtDomain.indexOf('@') + 1);
+
+        // je peux pas utiliser UUUID car il faut que je precise le mas de nbr que je souhaite
+        String id = String.valueOf((int)(Math.random() * 99999) + 1);
+
+        String result = id + "@" + domain;
+
+        Matcher matcher = regex.get("ID_AT_DOMAIN").matcher(result);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Generated ID does not match ID_AT_DOMAIN pattern");
+        }
+
+        return result;
+    }
+    private boolean isDistantDomain(String target, String localDomain) {
+        String domain = target.contains("@")
+                ? target.substring(target.indexOf('@') + 1)
+                : localDomain;
+        return !domain.equals(localDomain);
+    }
+
 }
