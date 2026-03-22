@@ -17,6 +17,8 @@ public class SendTask implements ActionTask {
     private List<String> tags;
     private String content;
     private boolean shouldForward;
+    private Set<ClientConnection> followers ;
+    private TaskRepeater taskRepeater = new TaskRepeater();
 
 
     public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo) {
@@ -32,14 +34,25 @@ public class SendTask implements ActionTask {
 
     @Override
     public void executeTask() {
-        Set<ClientConnection> followers = connectionStore.getConnectionsFromLogin( getFollowers(sender));
+
+        if (shouldForward) {
+            taskRepeater.convertAndSend(this);
+        }
+        followers = connectionStore.getConnectionsFromLogin( getFollowers(sender));
         for (ClientConnection followerCon : followers) {
             followerCon.send(content);
         }
 
-        if (shouldForward) {
-            // TODO
+
+    }
+
+    public Optional<ClientConnection> getFollowerCon(String login) {
+        for (var follower : followers){
+            if(follower.getUser().getLogin().equals(login)){
+                return Optional.of(follower);
+            }
         }
+        return Optional.empty();
     }
 
     @Override
