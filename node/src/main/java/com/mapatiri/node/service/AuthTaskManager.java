@@ -58,6 +58,11 @@ public class AuthTaskManager {
 
             // wait for response
             String rawResponse = in.readLine();
+
+            if (rawResponse == null) {
+                throw new AuthentificationFailed("Response is empty");
+            }
+
             RegexGrammar response = new RegexGrammar(rawResponse);
             String type = response.getTypeOfCommand();
 
