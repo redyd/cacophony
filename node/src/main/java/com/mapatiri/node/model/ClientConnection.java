@@ -3,6 +3,8 @@ package com.mapatiri.node.model;
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Représente une connexion client ouverte et permet d'interagir facilement avec.
@@ -13,6 +15,7 @@ public class ClientConnection {
     private final Socket socket;
     private final BufferedReader in;
     private final PrintWriter out;
+    private final Set<String> processedMessageIds = new HashSet<>();
 
     public ClientConnection(Socket socket, User user, BufferedReader in, PrintWriter out) throws IOException {
         this.socket = socket;
@@ -35,6 +38,13 @@ public class ClientConnection {
 
     public void close() throws IOException {
         socket.close();
+    }
+    public boolean hasAlreadyReceived(String idAtDomain) {
+        return processedMessageIds.contains(idAtDomain);
+    }
+
+    public void markAsReceived(String idAtDomain) {
+        processedMessageIds.add(idAtDomain);
     }
 
     public User getUser() {
