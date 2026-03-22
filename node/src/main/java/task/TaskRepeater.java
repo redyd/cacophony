@@ -1,28 +1,39 @@
 package task;
 
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.node.model.ClientConnection;
+import com.mapatiri.node.service.ConnectionStore;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TaskRepeater {
-    RegexGrammar regexGrammar;
+   private RegexGrammar regexGrammar;
 
-    public TaskRepeater(RegexGrammar regexGrammar) {
-        this.regexGrammar = regexGrammar;
-    }
+
 
     public void convertAndSend(ActionTask task){
 
         //build id at domain
 
         if (task instanceof SendTask sendTask) {
-            String id = createIdDomain(sendTask.getSender());
-            String mssg = regexGrammar.buildCommand("SEND", sendTask.getContent());
+            String id = regexGrammar.generateIdAtDomain(sendTask.getSender());
+
+            String mssg = regexGrammar.buildCommand("MSG", sendTask.getSender(), sendTask.getContent());
             String aesMssg =  mssg;
             for (String follower : sendTask.getFollowersFromOtherDomain()){
-                String post = regexGrammar.buildCommand("POST", id, sendTask.getSender(),follower, aesMssg );
-                //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
+
+                Optional<ClientConnection> OptionalCon = sendTask.getFollowerCon(follower);
+                ClientConnection con = null;
+                if(OptionalCon.isPresent()){
+                     con = OptionalCon.get();
+                    if (con.hasAlreadyReceived(id)) {
+                        continue;
+                    }
+                    String post = regexGrammar.buildCommand("POST", id, sendTask.getSender(), follower, aesMssg);
+                }
+                    //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
             }
 
 
@@ -30,16 +41,13 @@ public class TaskRepeater {
             //TODO ajouter encryptage aes
             String mssg = regexGrammar.buildCommand("SUBSCRIBE", subscribeTask.getToSubscribe());
             String aesMssg =  mssg;
-            String id = createIdDomain(subscribeTask.getSender());
+            String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
             String post = regexGrammar.buildCommand("POST", id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), aesMssg);
             //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
-
         }
 
     }
-    private String createIdDomain(String userDomain){
-        regexGrammar = new RegexGrammar(userDomain);
-        List<String> components = regexGrammar.parseCommand();
-       return regexGrammar.buildCommand("ID_AT_DOMAIN",  UUID.randomUUID().toString(), components.get(1) );
-    }
+    //todo a mettre dans le la grammaire
+
+
 }
