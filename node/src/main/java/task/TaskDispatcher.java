@@ -55,7 +55,6 @@ public class TaskDispatcher {
         }else if (type.equalsIgnoreCase("SEND")) {
             List<String> composents = regexGrammar.parseCommand();
             List<String> tags = regexGrammar.extractTagsFromMessage();
-           // boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
             //should forward est toujour true car ici on peut pas comparer les domain mais on doit aller chercher dans le json si il ya des abbone externe
             // dans dautre node a ce mssg ou ce user pour definir le shouldforward a true ou false (cette verification ce fait dans le taskreapeter)
             SendTask sendTask = new SendTask(senderDomain, tags, composents.getFirst(), true, connectionStore, userRepo, tagRepo);
