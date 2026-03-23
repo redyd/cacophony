@@ -4,12 +4,10 @@ import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.repository.ConfigRepository;
-import com.mapatiri.node.repository.JsonConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
@@ -48,7 +46,7 @@ public class SpeakerAnnouncer implements Clockable {
 
             // Attendre la connexion TCP du speaker
             if (!isRunning) {
-                new Thread(this::waitForResponse);
+                new Thread(this::waitForResponse).start();
                 isRunning = true;
             }
 
@@ -63,11 +61,12 @@ public class SpeakerAnnouncer implements Clockable {
         try (ServerSocket serverSocket = new ServerSocket(config.getRelayPort())) {
             logger.info("En attente de connexion du speaker sur le port {}", config.getRelayPort());
 
-            Socket speakerSocket = serverSocket.accept();
-            SocketAddress speakerAddress = speakerSocket.getRemoteSocketAddress();
-            logger.info("Speaker connecté depuis {}", speakerAddress);
-
-            speakerBridge.startListening(speakerSocket);
+            while(!Thread.currentThread().isInterrupted()) {
+                Socket speakerSocket = serverSocket.accept();
+                logger.info("Speaker connecté depuis {}", speakerSocket.getRemoteSocketAddress());
+                speakerBridge.startListening(speakerSocket);
+                logger.info("Speaker déconnecté, attente d'une nouvelle connexion");
+            }
         } catch (IOException e) {
             logger.error("Erreur dans waitForResponse : {}", e.getMessage());
         }
