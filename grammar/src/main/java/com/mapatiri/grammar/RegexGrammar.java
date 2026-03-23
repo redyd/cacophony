@@ -111,26 +111,28 @@ public class RegexGrammar {
 
     public List<String> extractTagsFromMessage() {
         String type = getTypeOfCommand();
-        if (!"MSG".equals(type) && !"POST".equals(type) ) {
-            throw new IllegalArgumentException("Only the MSG and the POST type is accepted");
+        if (!"MSG".equals(type) && !"POST".equals(type) && !"SEND".equals(type) ) {
+            throw new IllegalArgumentException("Only the MSG, SEND and the POST type is accepted");
         }
         List<String> parts = parseCommand();
 
         String text;
-        // on prend seulement la partie MESSAGE
+
         if ("MSG".equals(type)) {
             text = parts.get(1);
-        } else { // POST
+        } else if ("POST".equals(type)){ // POST
             text = parts.get(3);
+        }else{
+             text = parts.getFirst();
+
         }
 
-        // on utilise le regex TAG
         Pattern tagPattern = Pattern.compile(TAG);
         Matcher m = tagPattern.matcher(text);
 
         List<String> tags = new ArrayList<>();
         while (m.find()) {
-            tags.add(m.group()); // le group retourne la valeur apres que le regex a été appliqué
+            tags.add(m.group());
         }
         return tags;
     }
