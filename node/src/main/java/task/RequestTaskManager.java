@@ -8,9 +8,10 @@ import java.util.concurrent.Executors;
 
 public class RequestTaskManager {
 
-    private TaskRepeater taskRepeater ;
+    private TaskRepeater taskRepeater;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
+
     public RequestTaskManager(TaskRepeater taskRepeater) {
         this.taskRepeater = taskRepeater;
     }
@@ -20,10 +21,11 @@ public class RequestTaskManager {
      * Le TaskDispenser vas appeler cette methode qui vas ajouter la tache dans la pile executor (qui est un thread)
      * si la file est vide alors la tache sera executer par rapport
      * a son type SEND/SUBSCRIBE grace au polymorfisme "task::executeTask" vas executer une methode de un des type
+     *
      * @param task
      */
-    public void submit (ActionTask task ) {
-       //les deux en meme temps vu que cest le mem thread
+    public void submit(ActionTask task) {
+        //les deux en meme temps vu que cest le mem thread
         executor.submit(() -> {
             task.executeTask();
             if (task.shouldForward()) {
@@ -32,11 +34,5 @@ public class RequestTaskManager {
         });
     }
 
-//    private ActionTask process() throws BadRequestException {
-//
-//        executor.submit(()->
-//                while(!executor.isShutdown()){
-//                    ActionTask task =
-//        }
-//
+
 }

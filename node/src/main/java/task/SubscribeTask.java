@@ -19,10 +19,9 @@ public class SubscribeTask implements ActionTask {
     private String toSubscribe;
 
     private boolean shouldForward;
-    private final static Logger LOGGER =  Logger.getLogger(SubscribeTask.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(SubscribeTask.class.getName());
 
-    public SubscribeTask(UserRepo repo,TagRepo tagRepo, String sender, String toSubscribe,  boolean shouldForward) {
-        //faire des verifications de si cest nul ou non
+    public SubscribeTask(UserRepo repo, TagRepo tagRepo, String sender, String toSubscribe, boolean shouldForward) {
         this.userRepo = repo;
         this.tagRepo = tagRepo;
         this.sender = sender;
@@ -34,16 +33,12 @@ public class SubscribeTask implements ActionTask {
     @Override
     public void executeTask() {
         try {
-//            if(shouldForward){
-//               taskRepeater.convertAndSend(this);
-//            }
 
-            if(toSubscribe.startsWith("#")){
+            if (toSubscribe.startsWith("#")) {
                 tagRepo.addTag(new Tag(toSubscribe));
                 tagRepo.addSubscriberToTag(toSubscribe, sender);
                 userRepo.addUserTag(sender, toSubscribe);
-            }
-            else{
+            } else {
                 userRepo.addSubscriberToUser(sender, toSubscribe);
             }
 

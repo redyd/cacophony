@@ -34,11 +34,12 @@ public class TaskDispatcher {
         this.authTaskManager = authTaskManager;
     }
 
-    public ClientConnection startAuth(SSLSocket sslSocket) throws AuthentificationFailed{
+    public ClientConnection startAuth(SSLSocket sslSocket) throws AuthentificationFailed {
         //TODO à implementer
 
         return null;
     }
+
     public void submit(String request, String senderDomain) throws BadRequestException {
         regexGrammar = new RegexGrammar(request);
         String type = regexGrammar.getTypeOfCommand();
@@ -52,7 +53,7 @@ public class TaskDispatcher {
             List<String> tags = regexGrammar.extractTagsFromMessage();
             SendTask sendTask = new SendTask(composents.get(0), tags, composents.get(1), false, connectionStore, userRepo, tagRepo);
             requestTaskManager.submit(sendTask);
-        }else if (type.equalsIgnoreCase("SEND")) {
+        } else if (type.equalsIgnoreCase("SEND")) {
             List<String> composents = regexGrammar.parseCommand();
             List<String> tags = regexGrammar.extractTagsFromMessage();
             //should forward est toujour true car ici on peut pas comparer les domain mais on doit aller chercher dans le json si il ya des abbone externe
@@ -60,7 +61,7 @@ public class TaskDispatcher {
             SendTask sendTask = new SendTask(senderDomain, tags, composents.getFirst(), true, connectionStore, userRepo, tagRepo);
             requestTaskManager.submit(sendTask);
 
-        }else {
+        } else {
             throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
         }
     }

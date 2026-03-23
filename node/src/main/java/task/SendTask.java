@@ -19,7 +19,7 @@ public class SendTask implements ActionTask {
     private List<String> tags;
     private String content;
     private boolean shouldForward;
-    private Set<ClientConnection> followers ;
+    private Set<ClientConnection> followers;
     RegexGrammar regexGrammar = new RegexGrammar();
 
     public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo) {
@@ -36,10 +36,6 @@ public class SendTask implements ActionTask {
     @Override
     public void executeTask() {
 
-//        if (shouldForward) {
-//            taskRepeater.convertAndSend(this);
-//        }
-
         String mssg = regexGrammar.buildCommand("MSG", getSender(), getContent());
         Set<String> allFollowers = getFollowers(sender);
         Set<String> localFollowers = allFollowers.stream()
@@ -54,14 +50,6 @@ public class SendTask implements ActionTask {
 
     }
 
-//    public Optional<ClientConnection> getFollowerCon(String login) {
-//        for (var follower : followers){
-//            if(follower.getUser().getLogin().equals(login)){
-//                return Optional.of(follower);
-//            }
-//        }
-//        return Optional.empty();
-//    }
 
     @Override
     public boolean shouldForward() {
@@ -78,19 +66,20 @@ public class SendTask implements ActionTask {
         }
         List<Tag> tags = tagRepo.getAllTags().tags();
         for (var tag : tags) {
-           if(this.tags.contains(tag.getTag())){
-               followers.addAll(tag.getSubscribers());
-           }
+            if (this.tags.contains(tag.getTag())) {
+                followers.addAll(tag.getSubscribers());
+            }
         }
 
         return followers;
 
     }
+
     public Set<String> getFollowersFromOtherDomain() {
         Set<String> followers = getFollowers(sender);
         Set<String> followersFromOtherDomain = new HashSet<>();
         for (String follower : followers) {
-            if(DomainUtils.isDistantDomain(follower, sender)){
+            if (DomainUtils.isDistantDomain(follower, sender)) {
                 followersFromOtherDomain.add(follower);
             }
         }
