@@ -5,8 +5,10 @@ import com.mapatiri.node.model.*;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
+import util.DomainUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SendTask implements ActionTask {
 
@@ -18,8 +20,7 @@ public class SendTask implements ActionTask {
     private String content;
     private boolean shouldForward;
     private Set<ClientConnection> followers ;
-    private TaskRepeater taskRepeater = new TaskRepeater();
-
+    RegexGrammar regexGrammar = new RegexGrammar();
 
     public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo) {
 
@@ -35,25 +36,32 @@ public class SendTask implements ActionTask {
     @Override
     public void executeTask() {
 
-        if (shouldForward) {
-            taskRepeater.convertAndSend(this);
-        }
-        followers = connectionStore.getConnectionsFromLogin( getFollowers(sender));
+//        if (shouldForward) {
+//            taskRepeater.convertAndSend(this);
+//        }
+
+        String mssg = regexGrammar.buildCommand("MSG", getSender(), getContent());
+        Set<String> allFollowers = getFollowers(sender);
+        Set<String> localFollowers = allFollowers.stream()
+                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
+                .collect(Collectors.toSet());
+
+        followers = connectionStore.getConnectionsFromLogin(localFollowers);
         for (ClientConnection followerCon : followers) {
-            followerCon.send(content);
+            followerCon.send(mssg);
         }
 
 
     }
 
-    public Optional<ClientConnection> getFollowerCon(String login) {
-        for (var follower : followers){
-            if(follower.getUser().getLogin().equals(login)){
-                return Optional.of(follower);
-            }
-        }
-        return Optional.empty();
-    }
+//    public Optional<ClientConnection> getFollowerCon(String login) {
+//        for (var follower : followers){
+//            if(follower.getUser().getLogin().equals(login)){
+//                return Optional.of(follower);
+//            }
+//        }
+//        return Optional.empty();
+//    }
 
     @Override
     public boolean shouldForward() {
@@ -65,7 +73,7 @@ public class SendTask implements ActionTask {
         List<User> users = userRepo.getAllUsers().users();
         for (User user : users) {
             if (user.getSubscribers().contains(sender)) {
-                followers.add(user.getLogin());
+                followers.add(user.getLogin() + "@" + DomainUtils.extractDomain(sender));
             }
         }
         List<Tag> tags = tagRepo.getAllTags().tags();
@@ -82,7 +90,7 @@ public class SendTask implements ActionTask {
         Set<String> followers = getFollowers(sender);
         Set<String> followersFromOtherDomain = new HashSet<>();
         for (String follower : followers) {
-            if(!compareDomain(follower,sender)){
+            if(DomainUtils.isDistantDomain(follower, sender)){
                 followersFromOtherDomain.add(follower);
             }
         }
@@ -96,13 +104,6 @@ public class SendTask implements ActionTask {
     public String getContent() {
         return content;
     }
-    private String getDomain ( String userDomain){
-        RegexGrammar regexGrammar = new RegexGrammar(userDomain);
-        List<String> components = regexGrammar.parseCommand();
-        return components.getFirst();
-    }
-    private boolean compareDomain( String userDomain1 , String userDomain2){
-        return getDomain(userDomain1).equals(getDomain(userDomain2));
-    }
+
 }
 
