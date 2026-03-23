@@ -23,12 +23,13 @@ public class RequestTaskManager {
      * @param task
      */
     public void submit (ActionTask task ) {
-        boolean forward = task.shouldForward();
-        executor.submit(task::executeTask);
-        if (forward) {
-            taskRepeater.convertAndSend(task);
-        }
-
+       //les deux en meme temps vu que cest le mem thread
+        executor.submit(() -> {
+            task.executeTask();
+            if (task.shouldForward()) {
+                taskRepeater.convertAndSend(task);
+            }
+        });
     }
 
 //    private ActionTask process() throws BadRequestException {
