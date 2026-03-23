@@ -45,22 +45,24 @@ public class TaskDispatcher {
         if (type.equalsIgnoreCase("SUBSCRIBE")) {
             List<String> composents = regexGrammar.parseCommand();
             boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
-            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, composents.getFirst(), request, shouldForward);
+            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, composents.getFirst(), shouldForward);
             requestTaskManager.submit(subscribeTask);
         } else if (type.equalsIgnoreCase("MSG")) {
             List<String> composents = regexGrammar.parseCommand();
             List<String> tags = regexGrammar.extractTagsFromMessage();
-            SendTask sendTask = new SendTask(senderDomain, tags, composents.get(2), false, connectionStore, userRepo, tagRepo);
+            SendTask sendTask = new SendTask(composents.get(0), tags, composents.get(1), false, connectionStore, userRepo, tagRepo);
             requestTaskManager.submit(sendTask);
         }else if (type.equalsIgnoreCase("SEND")) {
             List<String> composents = regexGrammar.parseCommand();
             List<String> tags = regexGrammar.extractTagsFromMessage();
-            boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
-            SendTask sendTask = new SendTask(senderDomain, tags, composents.get(1), shouldForward, connectionStore, userRepo, tagRepo);
+           // boolean shouldForward = DomainUtils.isDistantDomain(composents.getFirst(), senderDomain);
+            //should forward est toujour true car ici on peut pas comparer les domain mais on doit aller chercher dans le json si il ya des abbone externe
+            // dans dautre node a ce mssg ou ce user pour definir le shouldforward a true ou false (cette verification ce fait dans le taskreapeter)
+            SendTask sendTask = new SendTask(senderDomain, tags, composents.getFirst(), true, connectionStore, userRepo, tagRepo);
             requestTaskManager.submit(sendTask);
 
         }else {
-            throw new BadRequestException("The request should only be MSG or SUBSCRIBE");
+            throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
         }
     }
 
