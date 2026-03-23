@@ -1,5 +1,6 @@
 package task;
 
+import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.service.ConnectionStore;
@@ -11,6 +12,8 @@ import java.util.UUID;
 public class TaskRepeater {
     private RegexGrammar regexGrammar = new RegexGrammar();
 
+    @Inject
+    public TaskRepeater() {}
 
     public void convertAndSend(ActionTask task) {
 

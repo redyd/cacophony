@@ -14,7 +14,7 @@ import util.DomainUtils;
 import javax.net.ssl.SSLSocket;
 import java.util.List;
 
-public class TaskDispatcher {
+public class TaskDispatchers {
 
 
     private RegexGrammar regexGrammar;
@@ -25,7 +25,7 @@ public class TaskDispatcher {
     private AuthTaskManager authTaskManager;
 
 
-    public TaskDispatcher(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, AuthTaskManager authTaskManager) {
+    public TaskDispatchers(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, AuthTaskManager authTaskManager) {
         this.requestTaskManager = requestTaskManager;
         regexGrammar = new RegexGrammar();
         this.userRepo = userRepo;

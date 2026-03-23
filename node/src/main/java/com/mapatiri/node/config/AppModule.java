@@ -11,6 +11,8 @@ import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
+import task.RequestTaskManager;
+import task.TaskRepeater;
 
 public class AppModule extends AbstractModule {
 
@@ -35,6 +37,12 @@ public class AppModule extends AbstractModule {
         bind(ClientSessionEventNotifier.class).in(Singleton.class);
         bind(LoginTask.class).in(Singleton.class);
         bind(RegisterTask.class).in(Singleton.class);
+
+        //Task thread
+        bind(TaskRepeater.class).in(Singleton.class);
+        bind(RequestTaskManager.class).in(Singleton.class);
+        bind(TaskDispatcher.class).in(Singleton.class);
+
     }
 
 }

@@ -1,6 +1,8 @@
 package task;
 
+import com.google.inject.Inject;
 import com.mapatiri.node.exception.BadRequestException;
+
 
 import javax.swing.*;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +14,7 @@ public class RequestTaskManager {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    @Inject
     public RequestTaskManager(TaskRepeater taskRepeater) {
         this.taskRepeater = taskRepeater;
     }
