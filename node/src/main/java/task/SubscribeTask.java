@@ -1,5 +1,6 @@
 package task;
 
+import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.exception.NodeConfigSaveException;
 import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.repository.TagRepo;
@@ -16,27 +17,27 @@ public class SubscribeTask implements ActionTask {
     private TagRepo tagRepo;
     private String sender;
     private String toSubscribe;
-    private String content;
+
     private boolean shouldForward;
-    private TaskRepeater taskRepeater = new TaskRepeater();
     private final static Logger LOGGER =  Logger.getLogger(SubscribeTask.class.getName());
 
-    public SubscribeTask(UserRepo repo,TagRepo tagRepo, String sender, String toSubscribe, String content,  boolean shouldForward) {
+    public SubscribeTask(UserRepo repo,TagRepo tagRepo, String sender, String toSubscribe,  boolean shouldForward) {
         //faire des verifications de si cest nul ou non
         this.userRepo = repo;
         this.tagRepo = tagRepo;
         this.sender = sender;
         this.toSubscribe = toSubscribe;
         this.shouldForward = shouldForward;
-        this.content = content;
+
     }
 
     @Override
     public void executeTask() {
         try {
-            if(shouldForward){
-               taskRepeater.convertAndSend(this);
-            }
+//            if(shouldForward){
+//               taskRepeater.convertAndSend(this);
+//            }
+
             if(toSubscribe.startsWith("#")){
                 tagRepo.addTag(new Tag(toSubscribe));
                 tagRepo.addSubscriberToTag(toSubscribe, sender);
