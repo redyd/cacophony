@@ -40,17 +40,7 @@ public class App {
     }
 
     private static Path resolveResource(String name) {
-        var url = App.class.getClassLoader().getResource(name);
-        if (url == null) {
-            logger.error("Resource not found: {}", name);
-            throw new IllegalStateException("Resource not found: " + name);
-        }
-        try {
-            return Path.of(url.toURI());
-        } catch (URISyntaxException e) {
-            logger.error("Invalid URI for: {}", name);
-            throw new IllegalStateException("Invalid URI for: " + name, e);
-        }
+        return Path.of("src", "main", "resources", name);
     }
 
 }
