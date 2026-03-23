@@ -58,12 +58,19 @@ public class SendTask implements ActionTask {
 
     private Set<String> getFollowers(String sender) {
         Set<String> followers = new HashSet<>();
+        String localDomain = DomainUtils.extractDomain(sender);
+
         List<User> users = userRepo.getAllUsers().users();
         for (User user : users) {
             if (user.getSubscribers().contains(sender)) {
-                followers.add(user.getLogin() + "@" + DomainUtils.extractDomain(sender));
+                String login = user.getLogin();
+                String fullLogin = login.contains("@")
+                        ? login
+                        : login + "@" + localDomain;
+                followers.add(fullLogin);
             }
         }
+
         List<Tag> tags = tagRepo.getAllTags().tags();
         for (var tag : tags) {
             if (this.tags.contains(tag.getTag())) {
@@ -72,7 +79,6 @@ public class SendTask implements ActionTask {
         }
 
         return followers;
-
     }
 
     public Set<String> getFollowersFromOtherDomain() {
