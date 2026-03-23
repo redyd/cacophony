@@ -6,9 +6,12 @@ public class DomainUtils {
     }
 
     public static boolean isDistantDomain(String target, String localDomain) {
-        String domain = target.contains("@")
+        String targetDomain = target.contains("@")
                 ? extractDomain(target)
+                : target;
+        String senderDomain = localDomain.contains("@")
+                ? extractDomain(localDomain)
                 : localDomain;
-        return !domain.equals(localDomain);
+        return !targetDomain.equals(senderDomain);
     }
 }
