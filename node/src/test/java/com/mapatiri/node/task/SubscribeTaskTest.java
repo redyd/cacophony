@@ -3,18 +3,14 @@ package com.mapatiri.node.task;
 
 
 import com.mapatiri.node.model.Tag;
-import com.mapatiri.node.model.Tags;
-import com.mapatiri.node.model.Users;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import task.SubscribeTask;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

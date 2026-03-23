@@ -1,4 +1,4 @@
-package task;
+package com.mapatiri.node.task;
 
 public interface ActionTask extends Runnable {
     default void run() {

@@ -1,13 +1,7 @@
-package task;
+package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
-import com.mapatiri.node.model.ClientConnection;
-import com.mapatiri.node.service.ConnectionStore;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class TaskRepeater {
     private RegexGrammar regexGrammar = new RegexGrammar();

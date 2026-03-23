@@ -11,8 +11,8 @@ import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
-import task.RequestTaskManager;
-import task.TaskRepeater;
+import com.mapatiri.node.task.RequestTaskManager;
+import com.mapatiri.node.task.TaskRepeater;
 
 public class AppModule extends AbstractModule {
 

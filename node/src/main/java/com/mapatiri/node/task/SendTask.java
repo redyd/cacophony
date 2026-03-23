@@ -1,4 +1,4 @@
-package task;
+package com.mapatiri.node.task;
 
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.model.*;

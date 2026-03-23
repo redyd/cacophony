@@ -11,9 +11,9 @@ import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import task.RequestTaskManager;
-import task.SendTask;
-import task.SubscribeTask;
+import com.mapatiri.node.task.RequestTaskManager;
+import com.mapatiri.node.task.SendTask;
+import com.mapatiri.node.task.SubscribeTask;
 import util.DomainUtils;
 
 import java.net.Socket;

@@ -1,10 +1,8 @@
-package task;
+package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
-import com.mapatiri.node.exception.BadRequestException;
 
 
-import javax.swing.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
