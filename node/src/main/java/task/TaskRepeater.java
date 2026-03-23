@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class TaskRepeater {
-   private RegexGrammar regexGrammar;
+   private RegexGrammar regexGrammar = new RegexGrammar();
 
 
 
@@ -24,18 +24,18 @@ public class TaskRepeater {
             String aesMssg =  mssg;
             for (String follower : sendTask.getFollowersFromOtherDomain()){
 
-                Optional<ClientConnection> OptionalCon = sendTask.getFollowerCon(follower);
-                ClientConnection con = null;
-                if(OptionalCon.isPresent()){
-                     con = OptionalCon.get();
-                    if (con.hasAlreadyReceived(id)) {
-                        continue;
-                    }
+//                Optional<ClientConnection> OptionalCon = sendTask.getFollowerCon(follower);
+//                ClientConnection con = null;
+//                if(OptionalCon.isPresent()){
+//                     con = OptionalCon.get();
+//                    if (con.hasAlreadyReceived(id)) {
+//                        continue;
+//                    }
+//                    con.markAsReceived(id);
                     String post = regexGrammar.buildCommand("POST", id, sendTask.getSender(), follower, aesMssg);
-                }
+
                     //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
             }
-
 
         }else if (task instanceof SubscribeTask subscribeTask) {
             //TODO ajouter encryptage aes
