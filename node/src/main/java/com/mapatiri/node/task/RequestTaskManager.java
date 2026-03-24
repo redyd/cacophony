@@ -1,6 +1,8 @@
 package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.util.concurrent.ExecutorService;
@@ -9,6 +11,7 @@ import java.util.concurrent.Executors;
 public class RequestTaskManager {
 
     private TaskRepeater taskRepeater;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestTaskManager.class);
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -26,11 +29,22 @@ public class RequestTaskManager {
      * @param task
      */
     public void submit(ActionTask task) {
-        //les deux en meme temps vu que cest le mem thread
+        LOGGER.debug("Submitting task: {}", task);
         executor.submit(() -> {
-            task.executeTask();
-            if (task.shouldForward()) {
-                taskRepeater.convertAndSend(task);
+            try {
+                LOGGER.debug(">>> BEFORE executeTask: {}", task);
+                task.executeTask();
+                LOGGER.debug(">>> AFTER executeTask: {}", task);
+
+                if (task.shouldForward()) {
+                    LOGGER.debug(">>> BEFORE forward: {}", task);
+                    taskRepeater.convertAndSend(task);
+                    LOGGER.debug(">>> AFTER forward: {}", task);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error executing task: {}", task, e);
+            } catch (Throwable t) {
+                LOGGER.error("FATAL error in task: {}", task, t);
             }
         });
     }

@@ -1,5 +1,9 @@
 package com.mapatiri.node.model;
 
+import com.mapatiri.node.task.SubscribeTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.Socket;
@@ -16,6 +20,7 @@ public class ClientConnection {
     private final BufferedReader in;
     private final PrintWriter out;
     private final Set<String> processedMessageIds = new HashSet<>();
+    private final static Logger LOGGER = LoggerFactory.getLogger(ClientConnection.class);
 
     public ClientConnection(Socket socket, User user, BufferedReader in, PrintWriter out) throws IOException {
         this.socket = socket;
@@ -25,6 +30,7 @@ public class ClientConnection {
     }
 
     public synchronized void send(String message) {
+        LOGGER.info("Printing the mssg" +message);
         out.println(message);
     }
 

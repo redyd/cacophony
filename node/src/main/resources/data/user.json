@@ -19,6 +19,16 @@
       "userTags": [
         "#monTag1@node1.swilabus.xyz"
       ]
+    },
+    {
+      "login": "swawa",
+      "bcryptHash": "uzndiiVF.wcyg0w2FPfbEQ5n5WTxK8i",
+      "bcryptRound": 14,
+      "bcryptSalt": "28JcaULITGzmyLbtIsnEW.",
+      "subscribers": [
+        "louis@node1.swilabus.xyz"
+      ],
+      "userTags": []
     }
   ]
 }
