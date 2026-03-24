@@ -78,15 +78,15 @@ public class SendTask implements ActionTask {
         followers = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
                 followers.size(), sender);
-        if(followers.size() ==1) {
-            LOGGER.info("Envoie a swawa");
-            Optional<ClientConnection> fol = connectionStore.get(folo.getFirst());
-            LOGGER.info(folo.getFirst());
-            if (fol.isPresent()) {
-                var lo = fol.get();
-                lo.send(mssg);
-            }
-        }
+//        if(followers.size() ==1) {
+//            LOGGER.info("Envoie a swawa");
+//            Optional<ClientConnection> fol = connectionStore.get(folo.getFirst());
+//            LOGGER.info(folo.getFirst());
+//            if (fol.isPresent()) {
+//                var lo = fol.get();
+//                lo.send(mssg);
+//            }
+//        }
 
 
         for (ClientConnection followerCon : followers) {
@@ -115,25 +115,24 @@ public class SendTask implements ActionTask {
         String localDomain = DomainUtils.extractDomain(sender);
         LOGGER.trace("Extracted localDomain={} from sender={}", localDomain, sender);
 
-        List<User> users = userRepo.getAllUsers().users();
-        LOGGER.debug("Loaded {} users from repository", users.size());
-        for (User user : users) {
-            LOGGER.debug("Checking user={}, subscribers={}, contains sender={}? {}",
-                    user.getLogin(),
-                    user.getSubscribers(),
-                    sender,
-                    user.getSubscribers().contains(sender));
-            if (user.getSubscribers().contains(sender)) {
-                String login = user.getLogin();
-                String fullLogin = login.contains("@")
-                        ? login
-                        : login + "@" + localDomain;
+
+        User senderUser = userRepo.getUserFromLogin(login);
+        LOGGER.debug("Resolved senderUser={} from login={}", senderUser != null ? senderUser.getLogin() : "null", login);
+
+        if (senderUser != null) {
+            LOGGER.debug("senderUser.subscribers={}", senderUser.getSubscribers());
+            for (String subscriber : senderUser.getSubscribers()) {
+                String fullLogin = subscriber.contains("@")
+                        ? subscriber
+                        : subscriber + "@" + localDomain;
                 followers.add(fullLogin);
-                LOGGER.trace("Added user follower login={} (fullLogin={}) for sender={}",
-                        login, fullLogin, sender);
+                LOGGER.trace("Added subscriber={} (fullLogin={}) for sender={}", subscriber, fullLogin, sender);
             }
+        } else {
+            LOGGER.warn("Could not resolve senderUser for login={}, no user-based followers will be added", login);
         }
 
+        // Tags — inchangé
         List<Tag> tags = tagRepo.getAllTags().tags();
         LOGGER.debug("Loaded {} tags from repository", tags.size());
         for (var tag : tags) {
