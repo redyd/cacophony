@@ -5,7 +5,9 @@
       "bcryptHash": "WQRGW9GuAk0.Dil3.plVKh3WekVRD1u",
       "bcryptRound": 14,
       "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
-      "subscribers": [],
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ],
       "userTags": [
         "#monTag1@node1.swilabus.xyz"
       ]

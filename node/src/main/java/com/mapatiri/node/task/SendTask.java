@@ -47,13 +47,13 @@ public class SendTask implements ActionTask {
         LOGGER.debug("SendTask created: sender={}, tags={}, shouldForward={}",
                 sender, tags, shouldForwrd);
     }
-    private String senderWithDomain() {
-        if (sender.contains("@")) {
-            return sender;
-        }
-        String domain = configRepository.getConfig().getCurrentDomain();
-        return sender + "@" + domain;
-    }
+//    private String senderWithDomain() {
+//        if (sender.contains("@")) {
+//            return sender;
+//        }
+//        String domain = configRepository.getConfig().getCurrentDomain();
+//        return sender + "@" + domain;
+//    }
 
     @Override
     public void executeTask() {
@@ -63,21 +63,23 @@ public class SendTask implements ActionTask {
         String mssg = regexGrammar.buildCommand("MSG", sender, getContent());
         LOGGER.debug("Built message for sender={}: {}", sender, mssg);
 
-        Set<String> allFollowers = getFollowers(sender);
-        LOGGER.info("Found {} total followers for sender={}", allFollowers.size(), sender);
+//        Set<String> allFollowers = getFollowers(sender);
+//        LOGGER.info("Found {} total followers for sender={}", allFollowers.size(), sender);
 
-        Set<String> localFollowers = allFollowers.stream()
-                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-                .collect(Collectors.toSet());
-        List<String> folo = allFollowers.stream()
-                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-                .collect(Collectors.toList());
-        LOGGER.info("Filtered {} local followers ({} distant) for sender={}",
-                localFollowers.size(), allFollowers.size() - localFollowers.size(), sender);
+//        Set<String> localFollowers = allFollowers.stream()
+//                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
+//                .collect(Collectors.toSet());
+//        List<String> folo = allFollowers.stream()
+//                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
+//                .collect(Collectors.toList());
+//        LOGGER.info("Filtered {} local followers ({} distant) for sender={}",
+//                localFollowers.size(), allFollowers.size() - localFollowers.size(), sender);
 
-        followers = connectionStore.getConnectionsFromLogin(localFollowers);
+        Set<String> localFollowers = getLocalFollowers();
+        localFollowers.addAll(getLocalTagsFollowers());
+        var follow  = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
-                followers.size(), sender);
+                follow.size(), sender);
 //        if(followers.size() ==1) {
 //            LOGGER.info("Envoie a swawa");
 //            Optional<ClientConnection> fol = connectionStore.get(folo.getFirst());
@@ -89,7 +91,7 @@ public class SendTask implements ActionTask {
 //        }
 
 
-        for (ClientConnection followerCon : followers) {
+        for (ClientConnection followerCon : follow) {
             try {
                 LOGGER.debug("Sending message to connection={}", followerCon);
                 followerCon.send(mssg);
@@ -108,40 +110,61 @@ public class SendTask implements ActionTask {
         return shouldForward;
     }
 
-    private Set<String> getFollowers(String sender) {
-        LOGGER.debug("Resolving followers for sender={}", sender);
-
+    private Set<String> getLocalFollowers() {
+        Set<String> subscribers = userRepo.getUserFromLogin(login).getSubscribers();
+        LOGGER.debug("getLocalFollowers Resolving followers for sender={}", sender);
+        return subscribers.stream()
+                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
+                .map(f -> f.contains("@") ? f.substring(0, f.indexOf('@')) : f)
+                .collect(Collectors.toSet());
+    }
+    private Set<String> getLocalTagsFollowers() {
         Set<String> followers = new HashSet<>();
-        String localDomain = DomainUtils.extractDomain(sender);
-        LOGGER.trace("Extracted localDomain={} from sender={}", localDomain, sender);
-
-
-        User senderUser = userRepo.getUserFromLogin(login);
-        LOGGER.debug("Resolved senderUser={} from login={}", senderUser != null ? senderUser.getLogin() : "null", login);
-
-        if (senderUser != null) {
-            LOGGER.debug("senderUser.subscribers={}", senderUser.getSubscribers());
-            for (String subscriber : senderUser.getSubscribers()) {
-                String fullLogin = subscriber.contains("@")
-                        ? subscriber
-                        : subscriber + "@" + localDomain;
-                followers.add(fullLogin);
-                LOGGER.trace("Added subscriber={} (fullLogin={}) for sender={}", subscriber, fullLogin, sender);
-            }
-        } else {
-            LOGGER.warn("Could not resolve senderUser for login={}, no user-based followers will be added", login);
-        }
-
-        // Tags — inchangé
         List<Tag> tags = tagRepo.getAllTags().tags();
         LOGGER.debug("Loaded {} tags from repository", tags.size());
         for (var tag : tags) {
             if (this.tags.contains(tag.getTag())) {
                 LOGGER.trace("Tag {} matched sender tags {}, adding its {} subscribers",
                         tag.getTag(), this.tags, tag.getSubscribers().size());
-                followers.addAll(tag.getSubscribers());
+                followers.addAll(tag.getSubscribers().stream()
+                        .filter(f -> !DomainUtils.isDistantDomain(f, sender))
+                        .map(f -> f.contains("@") ? f.substring(0, f.indexOf('@')) : f)
+                        .collect(Collectors.toSet()));
             }
         }
+        return followers;
+    }
+
+    private Set<String> getFollowers(String sender) {
+        LOGGER.debug("Resolving followers for sender={}", sender);
+
+        Set<String> followers = new HashSet<>();
+        String localDomain = DomainUtils.extractDomain(sender);
+        LOGGER.debug("Extracted localDomain={} from sender={}", localDomain, sender);
+
+        List<User> users = userRepo.getAllUsers().users();
+        LOGGER.debug("Loaded {} users from repository", users.size());
+        for (User user : users) {
+            if (userRepo.getUserFromLogin(login).getSubscribers().contains(user.getLogin())) {
+                String login = user.getLogin();
+//                String fullLogin = login.contains("@")
+//                        ? login
+//                        : login + "@" + localDomain;
+                followers.add(login);
+                LOGGER.trace("Added user follower login={} (fullLogin={}) for sender={}",
+                        login, login, sender);
+            }
+        }
+
+//        List<Tag> tags = tagRepo.getAllTags().tags();
+//        LOGGER.debug("Loaded {} tags from repository", tags.size());
+//        for (var tag : tags) {
+//            if (this.tags.contains(tag.getTag())) {
+//                LOGGER.trace("Tag {} matched sender tags {}, adding its {} subscribers",
+//                        tag.getTag(), this.tags, tag.getSubscribers().size());
+//                followers.addAll(tag.getSubscribers());
+//            }
+//        }
 
         LOGGER.info("Resolved {} unique followers for sender={}", followers.size(), sender);
         return followers;

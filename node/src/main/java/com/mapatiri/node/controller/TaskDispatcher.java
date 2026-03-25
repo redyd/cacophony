@@ -58,8 +58,12 @@ public class TaskDispatcher implements Dispatcher {
         }
     }
 
+
     @Override
     public void submit(String request, String senderDomain) throws BadRequestException {
+
+        String domain = configRepository.getConfig().getCurrentDomain();
+        var  senders = senderDomain + "@" + domain;
         logger.info("Processing submitted request from senderDomain={}, requestType={}",
                 senderDomain, getRequestPreview(request));
 
@@ -70,9 +74,9 @@ public class TaskDispatcher implements Dispatcher {
         if (type.equalsIgnoreCase("SUBSCRIBE")) {
             List<String> components = regexGrammar.parseCommand();
             String target = components.getFirst();
-            boolean shouldForward = DomainUtils.isDistantDomain(target, senderDomain);
+            boolean shouldForward = DomainUtils.isDistantDomain(target, senders);
             logger.info("SUBSCRIBE: senderDomain={} -> target={}, shouldForward={}",
-                    senderDomain, target, shouldForward);
+                    senders, target, shouldForward);
 
             SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, target, shouldForward);
             requestTaskManager.submit(subscribeTask);

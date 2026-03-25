@@ -1,4 +1,3 @@
-# Cacophony Client
 ## A. Introduction
 * Ce client implémente le protocole Cacophony 1.0 pour dialoguer avec le Cacophony Node
 * Il supporte la connexion TLS et embarque l'autorité attendue pour ce laboratoire
