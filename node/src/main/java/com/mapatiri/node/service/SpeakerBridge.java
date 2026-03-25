@@ -43,7 +43,7 @@ public class SpeakerBridge {
         try {
             String encrypted = aes.encrypt(message);
             out.println(encrypted);
-            logger.info("Messager forward: {}", encrypted);
+            logger.info("Message forward: {}", encrypted);
         } catch (Exception ex) {
             logger.error("Erreur dans le forward du message", ex);
         }
@@ -68,14 +68,14 @@ public class SpeakerBridge {
             while ((encryptedLine = in.readLine()) != null) {
                 // Déchiffrer le message reçu
                 String decrypted = aes.decrypt(encryptedLine);
-                logger.debug("Message reçu du speaker : {}", decrypted);
+                logger.info("Message reçu du speaker : {}", decrypted);
 
                 // Identifier et valider le message
                 RegexGrammar grammar = new RegexGrammar(decrypted);
                 String type = grammar.getTypeOfCommand();
 
                 if (type.equals("POST")) {
-                    //TODO: taskConverter.convertAndSend(decrypted);
+                    taskConverter.convertAndSend(decrypted);
                 } else {
                     logger.warn("Message inattendu reçu du speaker, type : {}", type.isBlank() ? "inconnu" : type);
                 }

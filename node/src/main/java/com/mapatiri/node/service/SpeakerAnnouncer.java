@@ -42,11 +42,11 @@ public class SpeakerAnnouncer implements Clockable {
             DatagramPacket packet = new DatagramPacket(data, data.length, group, config.getMulticastPort());
             multicastSocket.send(packet);
 
-            logger.info("ADVERT envoyé");
+            logger.info("ADVERT envoye");
 
             // Attendre la connexion TCP du speaker
             if (!isRunning) {
-                new Thread(this::waitForResponse).start();
+                new Thread(this::waitForResponse, "Wait for response thread").start();
                 isRunning = true;
             }
 
