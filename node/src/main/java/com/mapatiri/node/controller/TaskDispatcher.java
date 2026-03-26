@@ -10,6 +10,7 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
+import com.mapatiri.node.task.ActionTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.mapatiri.node.task.RequestTaskManager;
@@ -61,9 +62,7 @@ public class TaskDispatcher implements Dispatcher {
 
     @Override
     public void submit(String request, String senderDomain) throws BadRequestException {
-
-        String domain = configRepository.getConfig().getCurrentDomain();
-        var  senders = senderDomain + "@" + domain;
+        String sender = senderDomain + "@" + configRepository.getConfig().getCurrentDomain();
         logger.info("Processing submitted request from senderDomain={}, requestType={}",
                 senderDomain, getRequestPreview(request));
 
@@ -71,46 +70,41 @@ public class TaskDispatcher implements Dispatcher {
         String type = regexGrammar.getTypeOfCommand();
         logger.debug("Parsed command type={} from request", type);
 
-        if (type.equalsIgnoreCase("SUBSCRIBE")) {
-            List<String> components = regexGrammar.parseCommand();
-            String target = components.getFirst();
-            boolean shouldForward = DomainUtils.isDistantDomain(target, senders);
-            logger.info("SUBSCRIBE: senderDomain={} -> target={}, shouldForward={}",
-                    senders, target, shouldForward);
+        ActionTask task = switch (type.toUpperCase()) {
+            case "SUBSCRIBE" -> buildSubscribeTask(sender);
+            case "SEND"      -> buildSendTask(senderDomain, true);
+            case "MSG"       -> buildSendTask(regexGrammar.parseCommand().get(0), false);
+            default          -> {
+                logger.warn("Invalid command type={} from senderDomain={}", type, senderDomain);
+                throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
+            }
+        };
 
-            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senders, target, shouldForward);
-            requestTaskManager.submit(subscribeTask);
-            logger.info("Submitted SubscribeTask: senderDomain={} -> target={}", senders, target);
-
-        } else if (type.equalsIgnoreCase("MSG")) {
-            List<String> components = regexGrammar.parseCommand();
-            List<String> tags = regexGrammar.extractTagsFromMessage();
-            String sender = components.get(0);
-            String content = components.get(1);
-            logger.info("MSG: senderDomain={}, sender={}, tags={}, contentLength={}",
-                    senderDomain, sender, tags, content.length());
-
-            SendTask sendTask = new SendTask(sender, tags, content, false, connectionStore, userRepo, tagRepo, configRepository);
-            requestTaskManager.submit(sendTask);
-            logger.info("Submitted local MSG SendTask: senderDomain={}", senderDomain);
-
-        } else if (type.equalsIgnoreCase("SEND")) {
-            List<String> components = regexGrammar.parseCommand();
-            List<String> tags = regexGrammar.extractTagsFromMessage();
-            String content = components.getFirst();
-            logger.info("SEND: senderDomain={}, tags={}, contentLength={}",
-                    senderDomain, tags, content.length());
-
-            SendTask sendTask = new SendTask(senderDomain, tags, content, true, connectionStore, userRepo, tagRepo, configRepository);
-            requestTaskManager.submit(sendTask);
-            logger.info("Submitted forwardable SEND SendTask: senderDomain={}", senderDomain);
-
-        } else {
-            logger.warn("Invalid command type={} from senderDomain={}", type, senderDomain);
-            throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
-        }
-
+        requestTaskManager.submit(task);
         logger.debug("Request processing completed for senderDomain={}", senderDomain);
+    }
+
+    private SubscribeTask buildSubscribeTask(String sender) {
+        List<String> components = regexGrammar.parseCommand();
+        String target = components.getFirst();
+        boolean shouldForward = DomainUtils.isDistantDomain(target, sender);
+        logger.info("SUBSCRIBE: sender={} -> target={}, shouldForward={}", sender, target, shouldForward);
+
+        SubscribeTask task = new SubscribeTask(userRepo, tagRepo, sender, target, shouldForward);
+        logger.info("Submitted SubscribeTask: sender={} -> target={}", sender, target);
+        return task;
+    }
+
+    private SendTask buildSendTask(String sender, boolean shouldForward) {
+        List<String> components = regexGrammar.parseCommand();
+        List<String> tags = regexGrammar.extractTagsFromMessage();
+        String content = shouldForward ? components.getFirst() : components.get(1);
+        logger.info("{}: sender={}, tags={}, contentLength={}",
+                shouldForward ? "SEND" : "MSG", sender, tags, content.length());
+
+        SendTask task = new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository);
+        logger.info("Submitted {} SendTask: sender={}", shouldForward ? "forwardable SEND" : "local MSG", sender);
+        return task;
     }
 
    private String getRequestPreview(String request) {

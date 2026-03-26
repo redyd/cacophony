@@ -55,10 +55,10 @@ public class SendTask implements ActionTask {
 
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
-        var follow = connectionStore.getConnectionsFromLogin(localFollowers);
+        var connectionsFromLogin = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
-                follow.size(), sender);
-        for (ClientConnection followerCon : follow) {
+                connectionsFromLogin.size(), sender);
+        for (ClientConnection followerCon : connectionsFromLogin) {
             try {
                 LOGGER.debug("Sending message to connection={}", followerCon);
                 followerCon.send(mssg);

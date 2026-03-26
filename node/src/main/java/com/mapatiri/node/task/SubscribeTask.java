@@ -3,6 +3,7 @@ package com.mapatiri.node.task;
 import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
+import com.mapatiri.node.service.FollowerUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.logging.Level;
 
-
+/**
+ * LOGGER écrit par l'ia
+ */
 public class SubscribeTask implements ActionTask {
 
     private UserRepo userRepo;
@@ -34,43 +37,46 @@ public class SubscribeTask implements ActionTask {
     @Override
     public void executeTask() {
         LOGGER.info("Executing SubscribeTask: sender={} subscribing to={}", sender, toSubscribe);
-
         try {
-            var senderWithoutDomain = "";
             if (toSubscribe.startsWith("#")) {
-                LOGGER.info("Processing tag subscription: sender={} -> tag={}", sender, toSubscribe);
-
-                LOGGER.debug("Adding tag if missing: {}", toSubscribe);
-                //quand on veut ajouter un tag dans le tag repo on doit enlever son domaine et seulement mentionner le nom
-                String tagWithoutDomainString = toSubscribe.contains("@") ? toSubscribe.substring(0, toSubscribe.indexOf('@')) : toSubscribe;
-                Tag tagWithoutDomain = new Tag(tagWithoutDomainString);
-                LOGGER.debug("TAG WITHOUT A DOMAIN" + tagWithoutDomainString);
-                if (!tagRepo.tagExist(tagWithoutDomain)) {
-                    tagRepo.addTag(tagWithoutDomain);
-                }
-                LOGGER.debug("Adding sender={} as subscriber to tag={}", sender, tagWithoutDomainString);
-                tagRepo.addSubscriberToTag(tagWithoutDomainString, sender);
-
-                //quand dans le user repo on doit preciser quelle tag l'utilisateur suit on doit preciser le domaine
-                LOGGER.debug("Adding tag={} to sender={} user tags", toSubscribe, sender);
-                senderWithoutDomain = sender.substring(0, sender.indexOf('@'));
-                userRepo.addUserTag(senderWithoutDomain, toSubscribe);
-
-                LOGGER.info("Successfully subscribed sender={} to tag={}", sender, toSubscribe);
+                subscribeToTag();
             } else {
-                LOGGER.info("Processing user subscription: sender={} -> user={}", sender, toSubscribe);
-
-                LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribe);
-                userRepo.addSubscriberToUser(senderWithoutDomain, toSubscribe);
-
-                LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
+                subscribeToUser();
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to process subscription: sender={} to={}",
-                    new Object[]{sender, toSubscribe}, e);
+            LOGGER.error("Failed to process subscription: sender={} to={}", sender, toSubscribe, e);
+        }
+        LOGGER.info("SubscribeTask execution finished for sender={}", sender);
+    }
+
+    private void subscribeToTag() throws IOException {
+        LOGGER.info("Processing tag subscription: sender={} -> tag={}", sender, toSubscribe);
+
+        String tagName = FollowerUtils.stripDomain(toSubscribe);
+        Tag tag = new Tag(tagName);
+
+        if (!tagRepo.tagExist(tag)) {
+            tagRepo.addTag(tag);
         }
 
-        LOGGER.info("SubscribeTask execution finished for sender={}", sender);
+        LOGGER.debug("Adding sender={} as subscriber to tag={}", sender, tagName);
+        tagRepo.addSubscriberToTag(tagName, sender);
+
+        String senderLogin = FollowerUtils.stripDomain(sender);
+        LOGGER.debug("Adding tag={} to sender={} user tags", toSubscribe, senderLogin);
+        userRepo.addUserTag(senderLogin, toSubscribe);
+
+        LOGGER.info("Successfully subscribed sender={} to tag={}", sender, toSubscribe);
+    }
+
+    private void subscribeToUser() throws IOException {
+        LOGGER.info("Processing user subscription: sender={} -> user={}", sender, toSubscribe);
+
+        String senderLogin = FollowerUtils.stripDomain(sender);
+        LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribe);
+        userRepo.addSubscriberToUser(senderLogin, toSubscribe);
+
+        LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
     }
 
     @Override
