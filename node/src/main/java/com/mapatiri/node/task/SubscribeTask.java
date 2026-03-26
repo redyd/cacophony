@@ -36,25 +36,32 @@ public class SubscribeTask implements ActionTask {
         LOGGER.info("Executing SubscribeTask: sender={} subscribing to={}", sender, toSubscribe);
 
         try {
+            var senderWithoutDomain = "";
             if (toSubscribe.startsWith("#")) {
                 LOGGER.info("Processing tag subscription: sender={} -> tag={}", sender, toSubscribe);
 
                 LOGGER.debug("Adding tag if missing: {}", toSubscribe);
-                tagRepo.addTag(new Tag(toSubscribe));
+                //quand on veut ajouter un tag dans le tag repo on doit enlever son domaine et seulement mentionner le nom
+                String tagWithoutDomainString = toSubscribe.contains("@") ? toSubscribe.substring(0, toSubscribe.indexOf('@')) : toSubscribe;
+                Tag tagWithoutDomain = new Tag(tagWithoutDomainString);
+                LOGGER.debug("TAG WITHOUT A DOMAIN" + tagWithoutDomainString);
+                if (!tagRepo.tagExist(tagWithoutDomain)) {
+                    tagRepo.addTag(tagWithoutDomain);
+                }
+                LOGGER.debug("Adding sender={} as subscriber to tag={}", sender, tagWithoutDomainString);
+                tagRepo.addSubscriberToTag(tagWithoutDomainString, sender);
 
-                LOGGER.debug("Adding sender={} as subscriber to tag={}", sender, toSubscribe);
-                tagRepo.addSubscriberToTag(toSubscribe, sender);
-
+                //quand dans le user repo on doit preciser quelle tag l'utilisateur suit on doit preciser le domaine
                 LOGGER.debug("Adding tag={} to sender={} user tags", toSubscribe, sender);
-                userRepo.addUserTag(sender, toSubscribe);
+                senderWithoutDomain = sender.substring(0, sender.indexOf('@'));
+                userRepo.addUserTag(senderWithoutDomain, toSubscribe);
 
                 LOGGER.info("Successfully subscribed sender={} to tag={}", sender, toSubscribe);
             } else {
-                // User subscription
                 LOGGER.info("Processing user subscription: sender={} -> user={}", sender, toSubscribe);
 
                 LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribe);
-                userRepo.addSubscriberToUser(sender, toSubscribe);
+                userRepo.addSubscriberToUser(senderWithoutDomain, toSubscribe);
 
                 LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
             }
