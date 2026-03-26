@@ -104,6 +104,29 @@ public class SendTask implements ActionTask {
         }
         return followers;
     }
+    private Set<String> getDistantFollowers() {
+        Set<String> subscribers = userRepo.getUserFromLogin(login).getSubscribers();
+        LOGGER.debug("getDistantFollowers Resolving followers for sender={}", sender);
+        return subscribers.stream()
+                .filter(f -> DomainUtils.isDistantDomain(f, sender))
+                .collect(Collectors.toSet());
+    }
+    private Set<String> getDistantTagsFollowers() {
+        Set<String> followers = new HashSet<>();
+        List<Tag> tags = tagRepo.getAllTags().tags();
+        LOGGER.debug("Loaded {} tag from repository", tags.size());
+        for (var tag : tags) {
+            if (this.tags.contains(tag.getTag())) {
+                LOGGER.trace("Tag distant {} matched sender tags {}, adding its {} subscribers",
+                        tag.getTag(), this.tags, tag.getSubscribers().size());
+                followers.addAll(tag.getSubscribers().stream()
+                        .filter(f -> DomainUtils.isDistantDomain(f, sender))
+                        .filter(f -> !f.equals(this.login))
+                        .collect(Collectors.toSet()));
+            }
+        }
+        return followers;
+    }
 
     private Set<String> getFollowers(String sender) {
         LOGGER.debug("Resolving followers for sender={}", sender);
@@ -143,17 +166,9 @@ public class SendTask implements ActionTask {
 
     public Set<String> getFollowersFromOtherDomain() {
         LOGGER.debug("Resolving followers from other domains for sender={}", sender);
-        Set<String> followers = getFollowers(sender);
-        Set<String> followersFromOtherDomain = new HashSet<>();
-        for (String follower : followers) {
-            if (DomainUtils.isDistantDomain(follower, sender)) {
-                followersFromOtherDomain.add(follower);
-                LOGGER.trace("Follower={} marked as distant for sender={}", follower, sender);
-            }
-        }
-        LOGGER.info("Found {} followers from distant domains for sender={}",
-                followersFromOtherDomain.size(), sender);
-        return followersFromOtherDomain;
+        Set<String> followers = getDistantFollowers();
+        followers.addAll(getDistantTagsFollowers());
+        return followers;
     }
 
     public String getSender() {
