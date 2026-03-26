@@ -5,44 +5,91 @@ import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class SpeakerAnnouncerTest {
 
-    private ConfigRepository repo;
-    private SpeakerBridge bridge;
-    private UDPFactory factory;
-    private MulticastSocket socket;
-    private NodeConfig config;
+    @Mock private ConfigRepository configRepository;
+    @Mock private SpeakerBridge speakerBridge;
+    @Mock private UDPFactory udpFactory;
+    @Mock private MulticastSocket multicastSocket;
+    @Mock private NodeConfig nodeConfig;
+    private int freePort;
+
+    @InjectMocks
+    private SpeakerAnnouncer speakerAnnouncer;
 
     @BeforeEach
-    void setUp() {
-        repo = mock(ConfigRepository.class);
-        bridge = mock(SpeakerBridge.class);
-        factory = mock(UDPFactory.class);
-        socket = mock(MulticastSocket.class);
-        config = mock(NodeConfig.class);
+    void setUp() throws IOException {
+        try (ServerSocket tmp = new ServerSocket(0)) {
+            freePort = tmp.getLocalPort();
+        }
+
+        when(udpFactory.create(any())).thenReturn(multicastSocket);
+        when(configRepository.getConfig()).thenReturn(nodeConfig);
+        when(nodeConfig.getRelayPort()).thenReturn(freePort);
+        when(nodeConfig.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+        when(nodeConfig.getMulticastAddress()).thenReturn("224.224.200.200");
+        when(nodeConfig.getMulticastPort()).thenReturn(11003);
+
+        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge, udpFactory);
     }
 
     @Test
     void should_send_advert_packet() throws Exception {
+        speakerAnnouncer.onClockSignal();
 
-        when(repo.getConfig()).thenReturn(config);
-        when(factory.create(repo)).thenReturn(socket);
+        verify(multicastSocket).send(any(DatagramPacket.class));
+    }
 
-        when(config.getRelayPort()).thenReturn(5003);
-        when(config.getMulticastPort()).thenReturn(11003);
-        when(config.getMulticastAddress()).thenReturn("224.224.200.200");
-        when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+    @Test
+    void onClockSignal_startsWaitForResponseThreadOnce() throws Exception {
+        speakerAnnouncer.onClockSignal();
+        speakerAnnouncer.onClockSignal();
 
-        SpeakerAnnouncer announcer = new SpeakerAnnouncer(repo, bridge, factory);
+        verify(multicastSocket, times(2)).send(any(DatagramPacket.class));
+    }
 
-        announcer.onClockSignal();
+    @Test
+    void onClockSignal_ioException_doesNotThrow() throws Exception {
+        doThrow(new IOException("network error")).when(multicastSocket).send(any());
 
-        verify(socket).send(any(DatagramPacket.class));
+        assertDoesNotThrow(() -> speakerAnnouncer.onClockSignal());
+    }
+
+    @Test
+    void onClockSignal_speakerConnects_startListeningCalled() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        doAnswer(inv -> {
+            latch.countDown();
+            return null;
+        }).when(speakerBridge).startListening(any(Socket.class));
+
+        speakerAnnouncer.onClockSignal();
+
+        Thread.sleep(200);
+
+        try (Socket client = new Socket("localhost", freePort);) {
+            assertTrue(latch.await(3, TimeUnit.SECONDS));
+        }
+
+        verify(speakerBridge).startListening(any(Socket.class));
     }
 }

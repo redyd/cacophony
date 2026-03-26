@@ -1,5 +1,6 @@
 package com.mapatiri.node.task;
 
+import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
@@ -22,11 +23,16 @@ class TaskConverterTest {
 
     @BeforeEach
     void setup() {
+
         requestTaskManager = mock(RequestTaskManager.class);
         userRepo = mock(UserRepo.class);
         tagRepo = mock(TagRepo.class);
         connectionStore = mock(ConnectionStore.class);
         configRepository = mock(ConfigRepository.class);
+
+        NodeConfig config = mock(NodeConfig.class);
+        when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+        when(configRepository.getConfig()).thenReturn(config);
 
         taskConverter = new TaskConverter(
                 requestTaskManager,
@@ -66,7 +72,7 @@ class TaskConverterTest {
     }
 
     @Test
-    void shouldThrowExceptionForUnknownInnerCommand() {
+    void should_throw_exception_for_unknown_inner_command() {
 
         String message =
                 "POST 789@domainA alice1@domainA bob12@domainB UNKNOWN something\r\n";

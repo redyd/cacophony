@@ -2,7 +2,9 @@ package com.mapatiri.node.task;
 
 
 
+import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.Tag;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,10 +21,15 @@ import static org.mockito.Mockito.*;
 
         @Mock private UserRepo userRepo;
         @Mock private TagRepo tagRepo;
+        @Mock private ConfigRepository configRepository;
 
         @BeforeEach
         void setUp() {
             MockitoAnnotations.openMocks(this);
+            NodeConfig config = mock(NodeConfig.class);
+            when(config.getCurrentDomain()).thenReturn("node1.swillabus.xyz");
+
+            when(configRepository.getConfig()).thenReturn(config);
         }
 
         // ===== executeTask with TAG =====
@@ -39,8 +46,8 @@ import static org.mockito.Mockito.*;
             task.executeTask();
 
             verify(tagRepo).addTag(any(Tag.class));
-            verify(tagRepo).addSubscriberToTag("#metal11111@node1.xyz", "louis@node1.xyz");
-            verify(userRepo).addUserTag("louis@node1.xyz", "#metal11111@node1.xyz");
+            verify(tagRepo).addSubscriberToTag("#metal11111", "louis@node1.xyz");
+            verify(userRepo).addUserTag("louis", "#metal11111@node1.xyz");
         }
 
         @Test
@@ -70,7 +77,7 @@ import static org.mockito.Mockito.*;
 
             task.executeTask();
 
-            verify(userRepo).addSubscriberToUser( "louis@node1.xyz", "alice11111@node1.xyz");
+            verify(userRepo).addSubscriberToUser( "louis", "alice11111@node1.xyz");
         }
 
         @Test

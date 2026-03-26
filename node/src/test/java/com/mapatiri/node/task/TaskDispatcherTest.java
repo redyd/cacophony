@@ -4,6 +4,8 @@ package com.mapatiri.node.task;
 
 import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.exception.BadRequestException;
+import com.mapatiri.node.model.NodeConfig;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
@@ -24,6 +26,7 @@ class TaskDispatcherTest {
     @Mock private TagRepo tagRepo;
     @Mock private ConnectionStore connectionStore;
     @Mock private AuthTaskManager authTaskManager;
+    @Mock private ConfigRepository configRepository;
 
     private TaskDispatcher dispatcher;
     private final String LOCAL_DOMAIN = "louis@node1.swilabus.xyz";
@@ -31,8 +34,13 @@ class TaskDispatcherTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        NodeConfig config = mock(NodeConfig.class);
+        when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+        when(configRepository.getConfig()).thenReturn(config);
+
         dispatcher = new TaskDispatcher(
-                requestTaskManager, userRepo, tagRepo, connectionStore, authTaskManager
+                requestTaskManager, userRepo, tagRepo, connectionStore, authTaskManager, configRepository
         );
     }
 

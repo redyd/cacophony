@@ -62,7 +62,7 @@ public class TaskDispatcher implements Dispatcher {
 
     @Override
     public void submit(String request, String senderDomain) throws BadRequestException {
-        String sender = senderDomain + "@" + configRepository.getConfig().getCurrentDomain();
+        String sender = senderDomain;
         logger.info("Processing submitted request from senderDomain={}, requestType={}",
                 senderDomain, getRequestPreview(request));
 

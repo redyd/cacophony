@@ -1,7 +1,9 @@
 package com.mapatiri.node.task;
 
 
+import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.model.*;
+import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
@@ -13,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,12 +26,13 @@ import static org.mockito.Mockito.*;
         @Mock private UserRepo userRepo;
         @Mock private TagRepo tagRepo;
         @Mock private ConnectionStore connectionStore;
+        @Mock private ConfigRepository configRepository;
 
         private Users users;
         private Tags tags;
 
         @BeforeEach
-        void setUp() {
+        void setUp() throws NodeFileException {
             MockitoAnnotations.openMocks(this);
 
             // Setup default empty collections
@@ -37,6 +41,11 @@ import static org.mockito.Mockito.*;
 
             when(userRepo.getAllUsers()).thenReturn(users);
             when(tagRepo.getAllTags()).thenReturn(tags);
+
+            NodeConfig config = mock(NodeConfig.class);
+            when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+
+            when(configRepository.getConfig()).thenReturn(config);
         }
 
         // ===== getFollowersFromOtherDomain =====
@@ -45,7 +54,7 @@ import static org.mockito.Mockito.*;
         void getFollowersFromOtherDomain_noFollowers_returnsEmptySet() {
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", true,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             assertTrue(task.getFollowersFromOtherDomain().isEmpty());
@@ -62,32 +71,29 @@ import static org.mockito.Mockito.*;
 
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", true,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             // alice is on node1 → not distant
             assertTrue(task.getFollowersFromOtherDomain().isEmpty());
         }
 
-        // ✅ FIXED TEST — clean setup
         @Test
         void getFollowersFromOtherDomain_distantFollower_returnsFollower() {
+            User louis = new User("louis", "hash", 14, "salt"); // ou le login sans domaine
 
-            // Create a real User with full user@domain as login
             User lswinnen = new User("lswinnen@node2.xyz", "hash", 14, "salt");
-            lswinnen.getSubscribers().add("louis@node1.xyz"); // subscribed to the sender
+            louis.getSubscribers().add("lswinnen@node2.xyz");
             users.users().add(lswinnen);
 
+            when(userRepo.getUserFromLogin("louis")).thenReturn(louis);
+
             SendTask task = new SendTask(
-                    "louis@node1.xyz",
-                    List.of(),
-                    "Hey!",
-                    true,
-                    connectionStore, userRepo, tagRepo
+                    "louis@node1.xyz", List.of(), "Hey!", true,
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             Set<String> distant = task.getFollowersFromOtherDomain();
-
             assertTrue(distant.contains("lswinnen@node2.xyz"));
         }
 
@@ -116,7 +122,7 @@ import static org.mockito.Mockito.*;
 
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", false,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             task.executeTask();
@@ -134,7 +140,7 @@ import static org.mockito.Mockito.*;
 
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", false,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             // should not throw
@@ -162,7 +168,7 @@ import static org.mockito.Mockito.*;
 
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of("#metal11111"), "Hey #metal11111!", false,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
 
             task.executeTask();
@@ -176,7 +182,7 @@ import static org.mockito.Mockito.*;
         void shouldForward_true_returnsTrue() {
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", true,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
             assertTrue(task.shouldForward());
         }
@@ -185,7 +191,7 @@ import static org.mockito.Mockito.*;
         void shouldForward_false_returnsFalse() {
             SendTask task = new SendTask(
                     "louis@node1.xyz", List.of(), "Hey!", false,
-                    connectionStore, userRepo, tagRepo
+                    connectionStore, userRepo, tagRepo, configRepository
             );
             assertFalse(task.shouldForward());
         }
