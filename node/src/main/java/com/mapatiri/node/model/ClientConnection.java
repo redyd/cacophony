@@ -29,7 +29,7 @@ public class ClientConnection {
         this.out = out;
     }
 
-    public synchronized void send(String message) {
+    public  void send(String message) {
         LOGGER.info("Printing the mssg" +message);
         out.println(message);
     }
