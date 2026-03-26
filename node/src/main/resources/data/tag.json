@@ -3,8 +3,75 @@
     {
       "tag": "#monTag1",
       "subscribers": [
-        "mattini@node1.swilabus.xyz",
-        "lswinnen@node2.swilabus.xyz"
+        "louis@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#monTag2",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#Hello1",
+      "subscribers": [
+        "louis@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#Hello",
+      "subscribers": []
+    },
+    {
+      "tag": "#Hella1",
+      "subscribers": []
+    },
+    {
+      "tag": "#Hiiilolo",
+      "subscribers": []
+    },
+    {
+      "tag": "#Helloooo",
+      "subscribers": []
+    },
+    {
+      "tag": "#NODEdjdh1",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#NODEdjdh2",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#NODEdjdh",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#NODE1",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#NODE2",
+      "subscribers": []
+    },
+    {
+      "tag": "#NODE3",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#Hellolololo8",
+      "subscribers": [
+        "louis@node1.swilabus.xyz"
       ]
     }
   ]

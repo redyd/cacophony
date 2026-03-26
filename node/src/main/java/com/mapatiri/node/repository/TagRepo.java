@@ -18,4 +18,6 @@ public interface TagRepo {
     void addSubscriberToTag(String tagName, String subscriber) throws IOException;
 
     Tags getAllTags();
+
+    boolean tagExist(Tag tag);
 }

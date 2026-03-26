@@ -62,6 +62,8 @@ public class RegexGrammar {
         regex.put("LEAVE", Pattern.compile(LEAVE));
         regex.put("ADVERT", Pattern.compile(ADVERT));
         regex.put("POST", Pattern.compile(POST));
+        regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
+        regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
 
     public List<String> parseCommand() {
@@ -105,6 +107,56 @@ public class RegexGrammar {
             throw new IllegalArgumentException("Arguments don't match the command pattern");
         }
         return message;
+    }
+
+    public List<String> extractTagsFromMessage() {
+        String type = getTypeOfCommand();
+        if (!"MSG".equals(type) && !"POST".equals(type) && !"SEND".equals(type) ) {
+            throw new IllegalArgumentException("Only the MSG, SEND and the POST type is accepted");
+        }
+        List<String> parts = parseCommand();
+
+        String text;
+
+        if ("MSG".equals(type)) {
+            text = parts.get(1);
+        } else if ("POST".equals(type)){ // POST
+            text = parts.get(3);
+        }else{
+             text = parts.getFirst();
+
+        }
+
+        Pattern tagPattern = Pattern.compile(TAG);
+        Matcher m = tagPattern.matcher(text);
+
+        List<String> tags = new ArrayList<>();
+        while (m.find()) {
+            tags.add(m.group());
+        }
+        return tags;
+    }
+
+    public String generateIdAtDomain(String userAtDomain) {
+        String domain = userAtDomain.substring(userAtDomain.indexOf('@') + 1);
+
+        // je peux pas utiliser UUUID car il faut que je precise le mas de nbr que je souhaite
+        String id = String.valueOf((int)(Math.random() * 99999) + 1);
+
+        String result = id + "@" + domain;
+
+        Matcher matcher = regex.get("ID_AT_DOMAIN").matcher(result);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Generated ID does not match ID_AT_DOMAIN pattern");
+        }
+
+        return result;
+    }
+    private boolean isDistantDomain(String target, String localDomain) {
+        String domain = target.contains("@")
+                ? target.substring(target.indexOf('@') + 1)
+                : localDomain;
+        return !domain.equals(localDomain);
     }
 
 }
