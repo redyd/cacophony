@@ -66,7 +66,7 @@ public class SubscribeTask implements ActionTask {
                 LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
             }
         } catch (IOException e) {
-            LOGGER.error( "Failed to process subscription: sender={} to={}",
+            LOGGER.error("Failed to process subscription: sender={} to={}",
                     new Object[]{sender, toSubscribe}, e);
         }
 
