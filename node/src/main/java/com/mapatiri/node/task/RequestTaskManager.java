@@ -13,7 +13,7 @@ public class RequestTaskManager {
     private TaskRepeater taskRepeater;
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestTaskManager.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor = Executors.newCachedThreadPool();
 
     @Inject
     public RequestTaskManager(TaskRepeater taskRepeater) {
