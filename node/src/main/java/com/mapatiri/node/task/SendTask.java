@@ -6,6 +6,7 @@ import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
+import com.mapatiri.node.service.FollowerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.DomainUtils;
@@ -77,55 +78,27 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getLocalFollowers() {
-        Set<String> subscribers = userRepo.getUserFromLogin(login).getSubscribers();
-        LOGGER.debug("getLocalFollowers: Resolving followers for sender={}", sender);
-        return subscribers.stream()
-                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-                .map(f -> f.contains("@") ? f.substring(0, f.indexOf('@')) : f)
-                .collect(Collectors.toSet());
+        LOGGER.debug("getLocalFollowers: sender={}", sender);
+        return FollowerUtils.filterSubscribers(
+                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
     private Set<String> getLocalTagsFollowers() {
-        Set<String> followers = new HashSet<>();
-        List<Tag> tags = tagRepo.getAllTags().tags();
-        LOGGER.debug("Loaded {} tags from repository", tags.size());
-        for (var tag : tags) {
-            if (this.tags.contains(tag.getTag())) {
-                LOGGER.trace("Tag {} matched sender tags {}, adding its {} subscribers",
-                        tag.getTag(), this.tags, tag.getSubscribers().size());
-                followers.addAll(tag.getSubscribers().stream()
-                        .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-                        .map(f -> f.contains("@") ? f.substring(0, f.indexOf('@')) : f)
-                        .filter(f -> !f.equals(this.login))
-                        .collect(Collectors.toSet()));
-            }
-        }
-        return followers;
+        LOGGER.debug("getLocalTagsFollowers: sender={}", sender);
+        return FollowerUtils.filterTagSubscribers(
+                tagRepo.getAllTags().tags(), this.tags, sender, login, false);
     }
 
     private Set<String> getDistantFollowers() {
-        Set<String> subscribers = userRepo.getUserFromLogin(login).getSubscribers();
-        LOGGER.debug("getDistantFollowers: Resolving followers for sender={}", sender);
-        return subscribers.stream()
-                .filter(f -> DomainUtils.isDistantDomain(f, sender))
-                .collect(Collectors.toSet());
+        LOGGER.debug("getDistantFollowers: sender={}", sender);
+        return FollowerUtils.filterSubscribers(
+                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
     private Set<String> getDistantTagsFollowers() {
-        Set<String> followers = new HashSet<>();
-        List<Tag> tags = tagRepo.getAllTags().tags();
-        LOGGER.debug("Loaded {} tag from repository", tags.size());
-        for (var tag : tags) {
-            if (this.tags.contains(tag.getTag())) {
-                LOGGER.trace("Tag distant {} matched sender tags {}, adding its {} subscribers",
-                        tag.getTag(), this.tags, tag.getSubscribers().size());
-                followers.addAll(tag.getSubscribers().stream()
-                        .filter(f -> DomainUtils.isDistantDomain(f, sender))
-                        .filter(f -> !f.equals(this.login))
-                        .collect(Collectors.toSet()));
-            }
-        }
-        return followers;
+        LOGGER.debug("getDistantTagsFollowers: sender={}", sender);
+        return FollowerUtils.filterTagSubscribers(
+                tagRepo.getAllTags().tags(), this.tags, sender, login, true);
     }
 
     public Set<String> getFollowersFromOtherDomain() {
