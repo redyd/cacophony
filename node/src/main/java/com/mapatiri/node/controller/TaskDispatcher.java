@@ -78,9 +78,9 @@ public class TaskDispatcher implements Dispatcher {
             logger.info("SUBSCRIBE: senderDomain={} -> target={}, shouldForward={}",
                     senders, target, shouldForward);
 
-            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senderDomain, target, shouldForward);
+            SubscribeTask subscribeTask = new SubscribeTask(userRepo, tagRepo, senders, target, shouldForward);
             requestTaskManager.submit(subscribeTask);
-            logger.info("Submitted SubscribeTask: senderDomain={} -> target={}", senderDomain, target);
+            logger.info("Submitted SubscribeTask: senderDomain={} -> target={}", senders, target);
 
         } else if (type.equalsIgnoreCase("MSG")) {
             List<String> components = regexGrammar.parseCommand();
