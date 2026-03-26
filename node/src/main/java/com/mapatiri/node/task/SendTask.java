@@ -26,8 +26,6 @@ public class SendTask implements ActionTask {
     private List<String> tags;
     private String content;
     private boolean shouldForward;
-    private Set<ClientConnection> followers;
-    private ConfigRepository configRepository;
     RegexGrammar regexGrammar = new RegexGrammar();
 
     public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd,
@@ -42,18 +40,11 @@ public class SendTask implements ActionTask {
         this.content = content;
         this.shouldForward = shouldForwrd;
         this.connectionStore = connectionStore;
-        this.configRepository = configRepository;
+
 
         LOGGER.debug("SendTask created: sender={}, tags={}, shouldForward={}",
                 sender, tags, shouldForwrd);
     }
-//    private String senderWithDomain() {
-//        if (sender.contains("@")) {
-//            return sender;
-//        }
-//        String domain = configRepository.getConfig().getCurrentDomain();
-//        return sender + "@" + domain;
-//    }
 
     @Override
     public void executeTask() {
@@ -63,38 +54,16 @@ public class SendTask implements ActionTask {
         String mssg = regexGrammar.buildCommand("MSG", sender, getContent());
         LOGGER.debug("Built message for sender={}: {}", sender, mssg);
 
-//        Set<String> allFollowers = getFollowers(sender);
-//        LOGGER.info("Found {} total followers for sender={}", allFollowers.size(), sender);
-
-//        Set<String> localFollowers = allFollowers.stream()
-//                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-//                .collect(Collectors.toSet());
-//        List<String> folo = allFollowers.stream()
-//                .filter(f -> !DomainUtils.isDistantDomain(f, sender))
-//                .collect(Collectors.toList());
-//        LOGGER.info("Filtered {} local followers ({} distant) for sender={}",
-//                localFollowers.size(), allFollowers.size() - localFollowers.size(), sender);
-
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
         var follow  = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
                 follow.size(), sender);
-//        if(followers.size() ==1) {
-//            LOGGER.info("Envoie a swawa");
-//            Optional<ClientConnection> fol = connectionStore.get(folo.getFirst());
-//            LOGGER.info(folo.getFirst());
-//            if (fol.isPresent()) {
-//                var lo = fol.get();
-//                lo.send(mssg);
-//            }
-//        }
-
-
         for (ClientConnection followerCon : follow) {
             try {
                 LOGGER.debug("Sending message to connection={}", followerCon);
                 followerCon.send(mssg);
+                LOGGER.debug("FINISH mmsg was sended to connection={}", followerCon);
             } catch (Exception e) {
                 LOGGER.error("Failed to send message from sender={} to connection={}",
                         sender, followerCon, e);
@@ -129,6 +98,7 @@ public class SendTask implements ActionTask {
                 followers.addAll(tag.getSubscribers().stream()
                         .filter(f -> !DomainUtils.isDistantDomain(f, sender))
                         .map(f -> f.contains("@") ? f.substring(0, f.indexOf('@')) : f)
+                        .filter(f -> !f.equals(this.login))
                         .collect(Collectors.toSet()));
             }
         }
@@ -155,6 +125,7 @@ public class SendTask implements ActionTask {
                         login, login, sender);
             }
         }
+//todo a chnager
 
 //        List<Tag> tags = tagRepo.getAllTags().tags();
 //        LOGGER.debug("Loaded {} tags from repository", tags.size());
