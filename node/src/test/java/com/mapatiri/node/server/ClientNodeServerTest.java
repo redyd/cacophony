@@ -4,7 +4,7 @@ import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.controller.Dispatcher;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
-import com.mapatiri.node.exception.ServerSocketInitializer;
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.SocketFactory;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.NodeConfig;
@@ -88,7 +88,7 @@ class ClientNodeServerTest {
     @Test
     @DisplayName("run() — ServerSocketInitializer : log erreur sans propager")
     void run_serverSocketInitializerException_logsError() throws Exception {
-        when(tlsFactory.createSocket()).thenThrow(new ServerSocketInitializer("TLS init error"));
+        when(tlsFactory.createSocket()).thenThrow(new SocketCreation("TLS init error"));
 
         clientNodeServer.run(); // ne doit pas lever d'exception
     }

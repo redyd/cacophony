@@ -23,91 +23,88 @@ import java.util.List;
 
 public class TaskDispatcher implements Dispatcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskDispatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskDispatcher.class);
 
     private final AuthTaskManager auth;
-    private RequestTaskManager requestTaskManager;
-    private UserRepo userRepo;
-    private TagRepo tagRepo;
-    private ConnectionStore connectionStore;
+    private final RequestTaskManager requestTaskManager;
+    private final UserRepo userRepo;
+    private final TagRepo tagRepo;
+    private final ConnectionStore connectionStore;
+    private final ConfigRepository configRepository;
+
     private RegexGrammar regexGrammar;
-    private ConfigRepository  configRepository;
 
     @Inject
-    public TaskDispatcher(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo,
-                          ConnectionStore connectionStore, AuthTaskManager auth, ConfigRepository configRepository) {
+    public TaskDispatcher(
+            RequestTaskManager requestTaskManager,
+            UserRepo userRepo,
+            TagRepo tagRepo,
+            ConnectionStore connectionStore,
+            AuthTaskManager auth,
+            ConfigRepository configRepository) {
+
         this.auth = auth;
         this.requestTaskManager = requestTaskManager;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
-
-        logger.info("TaskDispatcher initialized");
     }
 
     @Override
     public ClientConnection startAuth(Socket socket) throws AuthentificationFailed {
-        logger.info("Starting auth handshake for socket={}", socket.getRemoteSocketAddress());
+        LOGGER.info("Starting auth for socket '{}'", socket.getRemoteSocketAddress());
+
         try {
             ClientConnection connection = auth.startHandshake(socket);
-            logger.info("Auth handshake completed successfully for socket={}", socket.getRemoteSocketAddress());
+            LOGGER.info("Auth completed successfully for socket '{}'", socket.getRemoteSocketAddress());
             return connection;
         } catch (AuthentificationFailed e) {
-            logger.error("Auth handshake failed for socket={}", socket.getRemoteSocketAddress(), e);
+            LOGGER.error("Auth failed for socket '{}'", socket.getRemoteSocketAddress(), e);
             throw e;
         }
     }
 
 
     @Override
-    public void submit(String request, String senderDomain) throws BadRequestException {
-        String sender =  senderDomain + "@" + configRepository.getConfig().getCurrentDomain();
-        logger.info("Processing submitted request from senderDomain={}, requestType={}",
-                senderDomain, getRequestPreview(request));
+    public void submit(String request, String login) throws BadRequestException {
+        String sender = configRepository.buildLoginAtCurrentDomain(login);
+        LOGGER.info("Processing request from '{}', of type '{}'", login, getRequestPreview(request));
 
         regexGrammar = new RegexGrammar(request);
         String type = regexGrammar.getTypeOfCommand();
-        logger.debug("Parsed command type={} from request", type);
 
         ActionTask task = switch (type.toUpperCase()) {
             case "SUBSCRIBE" -> buildSubscribeTask(sender);
-            case "SEND"      -> buildSendTask(senderDomain, true);
-            case "MSG"       -> buildSendTask(regexGrammar.parseCommand().get(0), false);
-            default          -> {
-                logger.warn("Invalid command type={} from senderDomain={}", type, senderDomain);
+            case "SEND" -> buildSendTask(login, true);
+            case "MSG" -> buildSendTask(regexGrammar.parseCommand().getFirst(), false);
+            default -> {
+                LOGGER.warn("User {} made a bad request: '{}'", type, login);
                 throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
             }
         };
 
         requestTaskManager.submit(task);
-        logger.debug("Request processing completed for senderDomain={}", senderDomain);
+        LOGGER.debug("Task for '{}' has been dispatched", login);
     }
 
     private SubscribeTask buildSubscribeTask(String sender) {
         List<String> components = regexGrammar.parseCommand();
         String target = components.getFirst();
         boolean shouldForward = DomainUtils.isDistantDomain(target, sender);
-        logger.info("SUBSCRIBE: sender={} -> target={}, shouldForward={}", sender, target, shouldForward);
 
-        SubscribeTask task = new SubscribeTask(userRepo, tagRepo, sender, target, shouldForward);
-        logger.info("Submitted SubscribeTask: sender={} -> target={}", sender, target);
-        return task;
+        return new SubscribeTask(userRepo, tagRepo, sender, target, shouldForward);
     }
 
     private SendTask buildSendTask(String sender, boolean shouldForward) {
         List<String> components = regexGrammar.parseCommand();
         List<String> tags = regexGrammar.extractTagsFromMessage();
         String content = shouldForward ? components.getFirst() : components.get(1);
-        logger.info("{}: sender={}, tags={}, contentLength={}",
-                shouldForward ? "SEND" : "MSG", sender, tags, content.length());
 
-        SendTask task = new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository);
-        logger.info("Submitted {} SendTask: sender={}", shouldForward ? "forwardable SEND" : "local MSG", sender);
-        return task;
+        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository);
     }
 
-   private String getRequestPreview(String request) {
+    private String getRequestPreview(String request) {
         if (request.length() > 50) {
             return request.substring(0, 50) + "...";
         }

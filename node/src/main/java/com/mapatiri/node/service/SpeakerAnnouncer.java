@@ -2,6 +2,7 @@ package com.mapatiri.node.service;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.repository.ConfigRepository;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public class SpeakerAnnouncer implements Clockable {
     private boolean isRunning = false;
 
     @Inject
-    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge, UDPFactory udpFactory) {
+    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge, UDPFactory udpFactory) throws SocketCreation {
         this.configRepository = jsonConfigRepository;
         this.speakerBridge = speakerBridge;
         this.multicastSocket = udpFactory.create(configRepository);

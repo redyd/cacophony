@@ -17,19 +17,16 @@ public class SendTask implements ActionTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SendTask.class);
 
-    private UserRepo userRepo;
-    private TagRepo tagRepo;
-    private ConnectionStore connectionStore;
-    private String sender;
-    private String login;
-    private List<String> tags;
-    private String content;
-    private boolean shouldForward;
-    RegexGrammar regexGrammar = new RegexGrammar();
+    private final UserRepo userRepo;
+    private final TagRepo tagRepo;
+    private final ConnectionStore connectionStore;
+    private final String sender;
+    private final String login;
+    private final List<String> tags;
+    private final String content;
+    private final boolean shouldForward;
 
-    public SendTask(String sender, List<String> tags, String content, boolean shouldForwrd,
-                    ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo, ConfigRepository configRepository) {
-
+    public SendTask(String sender, List<String> tags, String content, boolean shouldForward, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo, ConfigRepository configRepository) {
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         String domain = configRepository.getConfig().getCurrentDomain();
@@ -37,50 +34,37 @@ public class SendTask implements ActionTask {
         this.login = sender;
         this.tags = tags;
         this.content = content;
-        this.shouldForward = shouldForwrd;
+        this.shouldForward = shouldForward;
         this.connectionStore = connectionStore;
-
-
-        LOGGER.debug("SendTask created: sender={}, tags={}, shouldForward={}",
-                sender, tags, shouldForwrd);
     }
 
     @Override
     public void executeTask() {
-        LOGGER.info("Executing SendTask for sender={}", sender);
-
+        RegexGrammar regexGrammar = new RegexGrammar();
         String mssg = regexGrammar.buildCommand("MSG", sender, getContent());
-        LOGGER.debug("Built message for sender={}: {}", sender, mssg);
 
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
-        LOGGER.debug("executeTask: all local followers before connection lookup={}", localFollowers);
-        var connectionsFromLogin = connectionStore.getConnectionsFromLogin(localFollowers);
-        LOGGER.info("Resolved {} active connections for local followers of sender={}",
-                connectionsFromLogin.size(), sender);
-        for (ClientConnection followerCon : connectionsFromLogin) {
+        var activeUsers = connectionStore.getConnectionsFromLogin(localFollowers);
+
+        for (ClientConnection currentUser : activeUsers) {
             try {
-                LOGGER.debug("Sending message to connection={}", followerCon);
-                followerCon.send(mssg);
+                currentUser.send(mssg);
             } catch (Exception e) {
-                LOGGER.error("Failed to send message from sender={} to connection={}",
-                        sender, followerCon, e);
+                LOGGER.error("Message from '{}' could not be heard by '{}'", sender, currentUser.getUser().getLogin(), e);
             }
         }
 
-        LOGGER.info("SendTask execution finished for sender={}", sender);
+        LOGGER.info("A message has been sent to {} connected users", activeUsers.size());
     }
 
     @Override
     public boolean shouldForward() {
-        LOGGER.debug("shouldForward() called for sender={}, result={}", sender, shouldForward);
         return shouldForward;
     }
 
     private Set<String> getLocalFollowers() {
-        LOGGER.debug("getLocalFollowers: sender={}", sender);
-        return FollowerUtils.filterSubscribers(
-                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
+        return FollowerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
     /**
@@ -109,9 +93,7 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getDistantFollowers() {
-        LOGGER.debug("getDistantFollowers: sender={}", sender);
-        return FollowerUtils.filterSubscribers(
-                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
+        return FollowerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
     /**
@@ -119,13 +101,10 @@ public class SendTask implements ActionTask {
      * @return
      */
     private Set<String> getDistantTagsFollowers() {
-        LOGGER.debug("getDistantTagsFollowers: sender={}", sender);
-        return FollowerUtils.filterTagSubscribers(
-                tagRepo.getAllTags().tags(), this.tags, sender, login, true);
+        return FollowerUtils.filterTagSubscribers(tagRepo.getAllTags().tags(), this.tags, sender, login, true);
     }
 
     public Set<String> getFollowersFromOtherDomain() {
-        LOGGER.debug("Resolving followers from other domains for sender={}", sender);
         Set<String> followers = getDistantFollowers();
         followers.addAll(getDistantTagsFollowers());
         return followers;

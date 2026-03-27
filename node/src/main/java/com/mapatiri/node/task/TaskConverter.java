@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public class TaskConverter {
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskConverter.class);
 
     private final RequestTaskManager requestTaskManager;
     private final UserRepo userRepo;
@@ -25,8 +25,8 @@ public class TaskConverter {
     private final ConfigRepository configRepository;
 
     @Inject
-    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository ) {
-        this.requestTaskManager =  requestTaskManager;
+    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository) {
+        this.requestTaskManager = requestTaskManager;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
@@ -39,7 +39,6 @@ public class TaskConverter {
      * @param message le message a convertir et a envoyer
      */
     public void convertAndSend(String message) {
-        logger.info("Conversion du message POST : {}", message);
         RegexGrammar grammar = new RegexGrammar(message);
         List<String> parts = grammar.parseCommand();
 
@@ -48,28 +47,23 @@ public class TaskConverter {
         String receiver = parts.get(2);
         String innerMessage = parts.get(3);
         String userLogin = FollowerUtils.stripDomain(sender);
-        Optional<ClientConnection> optionalClientConnection = connectionStore.get(userLogin);
-        ClientConnection clientConnection ;
-        if (optionalClientConnection.isPresent()) {
-            clientConnection = optionalClientConnection.get();
-        }else {
-            logger.info("The client connection is null");
-            return;
-        }
+        Optional<ClientConnection> maybeClient = connectionStore.get(userLogin);
 
-        if (clientConnection.hasAlreadyReceived(idAtDomain)) {
-            logger.info("The task has already been received");
-            return;
-        } else {
-            clientConnection.markAsReceived(idAtDomain);
-        }
+        maybeClient.ifPresent(client -> {
+            if (client.hasAlreadyReceived(idAtDomain)) {
+                LOGGER.info("A duplicate message was about to be sent to {}", client.getUser().getLogin());
+                return;
+            }
 
-        logger.info("Message parse - sender: {}, receiver: {}, innerMessage: {}", sender, receiver, innerMessage);
+            client.markAsReceived(idAtDomain);
+        });
+
+        LOGGER.info("Message parse - sender: {}, receiver: {}, innerMessage: {}", sender, receiver, innerMessage);
 
         RegexGrammar innerGrammar = new RegexGrammar(innerMessage);
         String innerType = innerGrammar.getTypeOfCommand();
 
-        logger.info("Type de message interne detecte : {}", innerType);
+        LOGGER.info("Type de message interne detecte : {}", innerType);
 
         ActionTask task = switch (innerType) {
             case "MSG" -> {
@@ -77,22 +71,22 @@ public class TaskConverter {
                 String content = innerParts.get(1);
                 List<String> tags = innerGrammar.extractTagsFromMessage();
 
-                logger.info("Creation SendTask - sender: {}, tags: {}, content: {}", sender, tags, content);
+                LOGGER.info("Creation SendTask - sender: {}, tags: {}, content: {}", sender, tags, content);
 
                 yield new SendTask(sender, tags, content, false,
                         connectionStore, userRepo, tagRepo, configRepository);
             }
             case "SUBSCRIBE" -> {
-                logger.info("Creation SubscribeTask - sender: {}, receiver: {}", sender, receiver);
+                LOGGER.info("Creation SubscribeTask - sender: {}, receiver: {}", sender, receiver);
                 yield new SubscribeTask(userRepo, tagRepo, sender, receiver, false);
             }
             default -> {
-                logger.error("Type de message inconnu : {}", innerType);
+                LOGGER.error("Type de message inconnu : {}", innerType);
                 throw new IllegalArgumentException("Type inconnu : " + innerType);
             }
         };
 
-        logger.info("Ajout de la tâche {} a la file des taches", task.getClass().getSimpleName());
+        LOGGER.info("Ajout de la tâche {} a la file des taches", task.getClass().getSimpleName());
         requestTaskManager.submit(task);
     }
 }

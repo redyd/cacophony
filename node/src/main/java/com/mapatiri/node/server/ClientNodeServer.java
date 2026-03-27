@@ -5,7 +5,7 @@ import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
-import com.mapatiri.node.exception.ServerSocketInitializer;
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.SocketFactory;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
@@ -53,7 +53,7 @@ public class ClientNodeServer implements Runnable {
                     logger.info("A user socket has encountered an error: {}", e.getMessage());
                 }
             }
-        } catch (ServerSocketInitializer | IOException e) {
+        } catch (SocketCreation | IOException e) {
             logger.error("Could not create server socket: {}", e.getMessage());
         }
     }

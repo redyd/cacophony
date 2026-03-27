@@ -21,6 +21,7 @@ public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws NodeFileException {
+        Thread.currentThread().setName("Cacophony node");
         Injector injector = Guice.createInjector(new AppModule());
 
         // == CONFIG FILE ==
@@ -36,8 +37,8 @@ public class App {
         clock.add(injector.getInstance(SpeakerAnnouncer.class));
 
         // == INIT OBJECTS ==
-        var clockThread = new Thread(clock, "node clock");
-        var serverThread = new Thread(injector.getInstance(ClientNodeServer.class), "Node server");
+        var clockThread = new Thread(clock, "Clock");
+        var serverThread = new Thread(injector.getInstance(ClientNodeServer.class), "Client server");
 
         // == START ==
         clockThread.start();

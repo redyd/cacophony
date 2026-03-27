@@ -4,18 +4,13 @@ import com.mapatiri.node.exception.NodeFileException;
 import com.mapatiri.node.model.NodeConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 
 public class JsonConfigRepository implements ConfigRepository {
-
-    private static final Logger logger = LoggerFactory.getLogger(JsonConfigRepository.class);
 
     private NodeConfig currentConfig;
 
@@ -29,7 +24,7 @@ public class JsonConfigRepository implements ConfigRepository {
         try {
             NodeConfig config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), NodeConfig.class);
             if (config == null) {
-                throw new NodeFileException("Config vide pour: " + path);
+                throw new NodeFileException("Configuration file is empty for: " + path);
             }
 
             this.currentConfig = config;
@@ -41,5 +36,10 @@ public class JsonConfigRepository implements ConfigRepository {
     @Override
     public NodeConfig getConfig() {
         return currentConfig;
+    }
+
+    @Override
+    public String buildLoginAtCurrentDomain(String login) {
+        return login + "@" + currentConfig.getCurrentDomain();
     }
 }

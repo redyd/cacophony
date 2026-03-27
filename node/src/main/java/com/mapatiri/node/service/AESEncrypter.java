@@ -18,6 +18,7 @@ import java.util.Base64;
 
 /**
  * Créé à l'aide de l'IA
+ * Permet d'encrypter et de décrypter des messages.
  */
 public class AESEncrypter {
 
@@ -35,7 +36,7 @@ public class AESEncrypter {
         return new SecretKeySpec(keyBytes, "AES");
     }
 
-    public String encrypt(String content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public String encrypt(String content) {
         try {
             // Génération de l'IV afin d'avoir a chaque chiffrage, un message différent
             byte[] iv = new byte[16];

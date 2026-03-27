@@ -5,9 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.mapatiri.node.exception.TagConfigException;
 import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.model.Tags;
-import com.mapatiri.node.task.SubscribeTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 import java.io.IOException;
@@ -20,7 +17,6 @@ public class TagRepository implements TagRepo {
 
     private Tags tagsConfig;
     private Path path;
-    private final static Logger LOGGER = LoggerFactory.getLogger(TagRepository.class);
 
     @Override
     public void loadTags(Path path) throws TagConfigException {
@@ -66,8 +62,6 @@ public class TagRepository implements TagRepo {
         if (tagsConfig == null) return;
         for (Tag t : tagsConfig.tags()) {
             if (t.getTag().equals(tagName)) {
-                LOGGER.debug("TAG THAT WAS ADDED TO SUBSCRIBER " + tagName );
-                LOGGER.debug("THE SUBSCRIBER" + subscriber );
                 t.addSubscriber(subscriber);
                 saveTags();
                 return;

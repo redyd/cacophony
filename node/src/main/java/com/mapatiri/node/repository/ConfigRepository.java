@@ -20,4 +20,6 @@ public interface ConfigRepository {
      * @return la config du Node
      */
     NodeConfig getConfig();
+
+    String buildLoginAtCurrentDomain(String login);
 }

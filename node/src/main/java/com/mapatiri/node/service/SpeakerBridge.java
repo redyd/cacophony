@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 public class SpeakerBridge implements SpeakerBridgeService{
 
-    private final Logger logger = LoggerFactory.getLogger(SpeakerBridge.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(SpeakerBridge.class);
 
     private final AESEncrypter aes;
     private final Provider<TaskConverter> taskConverterProvider;
@@ -38,17 +38,17 @@ public class SpeakerBridge implements SpeakerBridgeService{
     @Override
     public void forward(String message) {
         if(out == null) {
-            logger.info("Erreur lors du forward");
+            LOGGER.info("Erreur lors du forward");
             return;
         }
 
         try {
             String encrypted = aes.encrypt(message);
             out.println(encrypted);
-            logger.info("Message crypte: {}", encrypted);
-            logger.info("Message forward: {}", encrypted);
+            LOGGER.info("Message crypte: {}", encrypted);
+            LOGGER.info("Message forward: {}", encrypted);
         } catch (Exception ex) {
-            logger.error("Erreur dans le forward du message", ex);
+            LOGGER.error("Erreur dans le forward du message", ex);
         }
     }
 
@@ -66,13 +66,13 @@ public class SpeakerBridge implements SpeakerBridgeService{
                     new InputStreamReader(speakerSocket.getInputStream(), StandardCharsets.UTF_8)
             );
 
-            logger.info("SpeakerBridge démarré, en écoute depuis {}", speakerSocket.getRemoteSocketAddress());
+            LOGGER.info("SpeakerBridge démarré, en écoute depuis {}", speakerSocket.getRemoteSocketAddress());
 
             String encryptedLine;
             while ((encryptedLine = in.readLine()) != null) {
                 // Déchiffrer le message reçu
                 String decrypted = aes.decrypt(encryptedLine);
-                logger.info("Message reçu du speaker : {}", decrypted);
+                LOGGER.info("Message reçu du speaker : {}", decrypted);
 
                 // Identifier et valider le message
                 RegexGrammar grammar = new RegexGrammar(decrypted);
@@ -81,12 +81,12 @@ public class SpeakerBridge implements SpeakerBridgeService{
                 if (type.equals("POST")) {
                     taskConverterProvider.get().convertAndSend(decrypted);
                 } else {
-                    logger.warn("Message inattendu reçu du speaker, type : {}", type.isBlank() ? "inconnu" : type);
+                    LOGGER.warn("Message inattendu reçu du speaker, type : {}", type.isBlank() ? "inconnu" : type);
                 }
             }
-            logger.warn("Connexion avec le speaker perdue depuis {}", speakerSocket.getRemoteSocketAddress());
+            LOGGER.warn("Connexion avec le speaker perdue depuis {}", speakerSocket.getRemoteSocketAddress());
         } catch (IOException e) {
-            logger.error("Erreur dans startListening : {}", e.getMessage());
+            LOGGER.error("Erreur dans startListening : {}", e.getMessage());
         }
     }
 }

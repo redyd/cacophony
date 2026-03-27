@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Permet de synchroniser la connexion et déconnexion d'utilisateurs
+ * Permet de synchroniser la connexion et déconnexion d'utilisateurs.
  */
 public class ClientSessionEventNotifier {
     private final Set<ClientSessionReacter> reacters;

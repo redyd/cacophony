@@ -4,11 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapatiri.node.exception.UserConfigException;
 import com.mapatiri.node.exception.UserConflictException;
-import com.mapatiri.node.model.Tag;
 import com.mapatiri.node.model.User;
 import com.mapatiri.node.model.Users;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,8 +17,6 @@ public class UserRepository implements UserRepo {
 
     private Users usersConfig = new Users(new ArrayList<>());
     private Path path;
-    private final static Logger LOGGER = LoggerFactory.getLogger(TagRepository.class);
-
 
     @Override
     public void loadUsers(Path path) throws UserConfigException {
@@ -77,12 +72,7 @@ public class UserRepository implements UserRepo {
     @Override
     public void addUserTag(String login, String tag) throws IOException {
         User user = getUserFromLogin(login);
-        for (String t : user.getUserTags()){
-            LOGGER.debug("TAG IN USER.TAGS" + login + tag);
-        }
-        if (user != null) {
-            user.getUserTags().add(tag);
-        }
+        user.getUserTags().add(tag);
         saveUsers();
     }
 

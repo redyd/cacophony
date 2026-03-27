@@ -10,10 +10,10 @@ import java.util.concurrent.Executors;
 
 public class RequestTaskManager {
 
-    private TaskRepeater taskRepeater;
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestTaskManager.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final TaskRepeater taskRepeater;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Inject
     public RequestTaskManager(TaskRepeater taskRepeater) {
@@ -22,25 +22,21 @@ public class RequestTaskManager {
 
 
     /**
-     * Le TaskDispenser vas appeler cette methode qui vas ajouter la tache dans la pile executor (qui est un thread)
-     * si la file est vide alors la tache sera executer par rapport
-     * a son type SEND/SUBSCRIBE grace au polymorfisme "task::executeTask" vas executer une methode de un des type
-     *
-     * @param task
+     * Le TaskDispenser vas appeler cette methode qui va ajouter la tache dans la pile executor (qui est un thread)
+     * si la file est vide alors la tache sera exécuter par rapport
+     * a son type SEND/SUBSCRIBE grace au polymorphisme "task::executeTask" vas exécuter une methode de un des type
      */
     public void submit(ActionTask task) {
         LOGGER.debug("Submitting task: {}", task);
         executor.submit(() -> {
             try {
-                LOGGER.debug(">>> BEFORE executeTask: {}", task);
                 task.executeTask();
-                LOGGER.debug(">>> AFTER executeTask: {}", task);
 
                 if (task.shouldForward()) {
-                    LOGGER.debug(">>> BEFORE forward: {}", task);
                     taskRepeater.convertAndSend(task);
-                    LOGGER.debug(">>> AFTER forward: {}", task);
                 }
+
+                LOGGER.info("Task '{}' has been submitted{}", task.getClass().getSimpleName(), task.shouldForward() ? " and forwarded" : "");
             } catch (Exception e) {
                 LOGGER.error("Error executing task: {}", task, e);
             } catch (Throwable t) {

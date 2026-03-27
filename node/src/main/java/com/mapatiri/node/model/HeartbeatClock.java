@@ -21,22 +21,22 @@ public class HeartbeatClock implements Runnable {
 
     @Override
     public void run() {
-        logger.info("L'horloge demarre - envoi d'un tick toutes les {}s", TICK_INTERVAL_MS / 1000);
+        logger.info("Clock set to {} seconds and started", TICK_INTERVAL_MS / 1000);
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 Thread.sleep(TICK_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                logger.info("Horloge interrompue.");
+                logger.info("Clock has been interrupted");
                 return;
             }
 
-            logger.info("Tick d'horloge");
+            logger.info("Ding dong !");
             for (Clockable clockable : clockables) {
                 try {
                     clockable.onClockSignal();
                 } catch (Exception e) {
-                    logger.warn("Erreur lors de l'envoi du signal pour {}: {}", clockable.getClass().getSimpleName(), e.getMessage());
+                    logger.warn("Could not wake up {} because of: {}", clockable.getClass().getSimpleName(), e.getMessage());
                 }
             }
         }

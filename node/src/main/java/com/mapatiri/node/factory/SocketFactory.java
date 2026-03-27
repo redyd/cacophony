@@ -1,7 +1,7 @@
 package com.mapatiri.node.factory;
 
 import com.google.inject.Inject;
-import com.mapatiri.node.exception.ServerSocketInitializer;
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
 
@@ -29,24 +29,24 @@ public class SocketFactory {
      * Permet de créer un server socket en fonction du fichier de configuration.
      *
      * @return un server socket
-     * @throws ServerSocketInitializer si l'initialisation échoue
+     * @throws SocketCreation si l'initialisation échoue
      */
-    public ServerSocket createSocket() throws ServerSocketInitializer {
+    public ServerSocket createSocket() throws SocketCreation {
         NodeConfig conf = config.getConfig();
         return conf.isTls()
                 ? secureSocket(conf)
                 : simpleSocket(conf);
     }
 
-    private ServerSocket simpleSocket(NodeConfig conf) throws ServerSocketInitializer {
+    private ServerSocket simpleSocket(NodeConfig conf) throws SocketCreation {
         try {
             return new ServerSocket(conf.getUnicastPort());
         } catch (IOException e) {
-            throw new ServerSocketInitializer(e);
+            throw new SocketCreation(e);
         }
     }
 
-    private ServerSocket secureSocket(NodeConfig conf) throws ServerSocketInitializer {
+    private ServerSocket secureSocket(NodeConfig conf) throws SocketCreation {
         try {
             SSLContext ctx = buildContext(conf);
 
@@ -57,7 +57,7 @@ public class SocketFactory {
             socket.setEnabledProtocols(new String[]{"TLSv1.3"});
             return socket;
         } catch (Exception e) {
-            throw new ServerSocketInitializer(e);
+            throw new SocketCreation(e);
         }
     }
 

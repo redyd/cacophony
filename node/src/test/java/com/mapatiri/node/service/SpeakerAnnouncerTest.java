@@ -1,5 +1,6 @@
 package com.mapatiri.node.service;
 
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
@@ -36,7 +37,7 @@ class SpeakerAnnouncerTest {
     private SpeakerAnnouncer speakerAnnouncer;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() throws IOException, SocketCreation {
         try (ServerSocket tmp = new ServerSocket(0)) {
             freePort = tmp.getLocalPort();
         }
