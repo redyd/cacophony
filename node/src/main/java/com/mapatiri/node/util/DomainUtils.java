@@ -1,4 +1,4 @@
-package util;
+package com.mapatiri.node.util;
 
 public class DomainUtils {
     public static String extractDomain(String userAtDomain) {

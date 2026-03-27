@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.mapatiri.node.task.RequestTaskManager;
 import com.mapatiri.node.task.SendTask;
 import com.mapatiri.node.task.SubscribeTask;
-import util.DomainUtils;
+import com.mapatiri.node.util.DomainUtils;
 
 import java.net.Socket;
 import java.util.List;
