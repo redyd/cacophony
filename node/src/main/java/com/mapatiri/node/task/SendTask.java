@@ -33,8 +33,9 @@ public class SendTask implements ActionTask {
 
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
-        this.sender = sender;
-        this.login = DomainUtils.getLogin(sender);
+        String domain = configRepository.getConfig().getCurrentDomain();
+        this.sender = sender + "@" + domain;
+        this.login = sender;
         this.tags = tags;
         this.content = content;
         this.shouldForward = shouldForwrd;
@@ -52,9 +53,8 @@ public class SendTask implements ActionTask {
         String mssg = regexGrammar.buildCommand("MSG", sender, getContent());
         LOGGER.debug("Built message for sender={}: {}", sender, mssg);
 
-        Set<String> localFollowers = new HashSet<>(getLocalFollowers());
+        Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
-
         var connectionsFromLogin = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
                 connectionsFromLogin.size(), sender);
@@ -78,14 +78,9 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getLocalFollowers() {
-        User user = userRepo.getUserFromLogin(login);
-        if(user == null) {
-            LOGGER.error("User not found for login={}", login);
-            return Set.of();
-        }
-
+        LOGGER.debug("getLocalFollowers: sender={}", sender);
         return FollowerUtils.filterSubscribers(
-                user.getSubscribers(), sender, login, false);
+                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
     private Set<String> getLocalTagsFollowers() {
@@ -95,14 +90,9 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getDistantFollowers() {
-        User user = userRepo.getUserFromLogin(login);
-        if(user == null) {
-            LOGGER.error("User not found for login={}", login);
-            return Set.of();
-        }
-
+        LOGGER.debug("getDistantFollowers: sender={}", sender);
         return FollowerUtils.filterSubscribers(
-                user.getSubscribers(), sender, login, true);
+                userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
     private Set<String> getDistantTagsFollowers() {
@@ -113,7 +103,7 @@ public class SendTask implements ActionTask {
 
     public Set<String> getFollowersFromOtherDomain() {
         LOGGER.debug("Resolving followers from other domains for sender={}", sender);
-        Set<String> followers = new HashSet<>(getDistantFollowers());
+        Set<String> followers = getDistantFollowers();
         followers.addAll(getDistantTagsFollowers());
         return followers;
     }
