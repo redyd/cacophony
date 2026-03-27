@@ -54,6 +54,7 @@ public class SendTask implements ActionTask {
 
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
+        LOGGER.debug("executeTask: all local followers before connection lookup={}", localFollowers);
         var connectionsFromLogin = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
                 connectionsFromLogin.size(), sender);
@@ -100,8 +101,11 @@ public class SendTask implements ActionTask {
 
         LOGGER.debug("getLocalTagsFollowers: used={}, allowed={}", this.tags, allowedTags);
 
-        return FollowerUtils.filterTagSubscribers(
+        Set<String> result = FollowerUtils.filterTagSubscribers(
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
+
+        LOGGER.debug("getLocalTagsFollowers: resolved subscribers={}", result);
+        return result;
     }
 
     private Set<String> getDistantFollowers() {
