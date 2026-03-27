@@ -72,9 +72,9 @@ public class SubscribeTask implements ActionTask {
     private void subscribeToUser() throws IOException {
         LOGGER.info("Processing user subscription: sender={} -> user={}", sender, toSubscribe);
 
-        String senderLogin = FollowerUtils.stripDomain(sender);
-        LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribe);
-        userRepo.addSubscriberToUser(senderLogin, toSubscribe);
+        String toSubscribeLogin = FollowerUtils.stripDomain(toSubscribe);
+        LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribeLogin);
+        userRepo.addSubscriberToUser(toSubscribeLogin,sender );
 
         LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
     }

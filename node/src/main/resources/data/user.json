@@ -5,9 +5,7 @@
       "bcryptHash": "WQRGW9GuAk0.Dil3.plVKh3WekVRD1u",
       "bcryptRound": 14,
       "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
-      "subscribers": [
-        "swawa@node1.swilabus.xyz"
-      ],
+      "subscribers": [],
       "userTags": [
         "#monTag1@node1.swilabus.xyz",
         "#Hello1@node1.swilabus.xyz",
@@ -29,7 +27,9 @@
       "bcryptHash": "uzndiiVF.wcyg0w2FPfbEQ5n5WTxK8i",
       "bcryptRound": 14,
       "bcryptSalt": "28JcaULITGzmyLbtIsnEW.",
-      "subscribers": [],
+      "subscribers": [
+        "louis@node1.swilabus.xyz"
+      ],
       "userTags": [
         "#Hello1@node1.swilabus.xyz",
         "#Helloooo@node1.swilabus.xyz",
