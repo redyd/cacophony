@@ -1,5 +1,6 @@
 package com.mapatiri.node.service;
 
+import com.google.inject.Provider;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.task.TaskConverter;
 import jakarta.inject.Inject;
@@ -13,19 +14,19 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class SpeakerBridge {
+public class SpeakerBridge implements SpeakerBridgeService{
 
     private final Logger logger = LoggerFactory.getLogger(SpeakerBridge.class);
 
     private final AESEncrypter aes;
-    private final TaskConverter taskConverter;
+    private final Provider<TaskConverter> taskConverterProvider;
 
     private PrintWriter out;
 
     @Inject
-    public SpeakerBridge(AESEncrypter aes, TaskConverter taskConverter) {
+    public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider) {
         this.aes = aes;
-        this.taskConverter = taskConverter;
+        this.taskConverterProvider = taskConverterProvider;
     }
 
     /**
@@ -34,6 +35,7 @@ public class SpeakerBridge {
      *
      * @param message le message a crypter puis a envoyer
      */
+    @Override
     public void forward(String message) {
         if(out == null) {
             logger.info("Erreur lors du forward");
@@ -55,6 +57,7 @@ public class SpeakerBridge {
      * Déchiffre chaque message reçu avec AES et le transmet au TaskConverter pour traitement.
      * Tourne indéfiniment jusqu'à la perte de connexion avec le speaker.
      */
+    @Override
     public void startListening(Socket speakerSocket) {
         try {
             // Préparer les flux
@@ -76,7 +79,7 @@ public class SpeakerBridge {
                 String type = grammar.getTypeOfCommand();
 
                 if (type.equals("POST")) {
-                    taskConverter.convertAndSend(decrypted);
+                    taskConverterProvider.get().convertAndSend(decrypted);
                 } else {
                     logger.warn("Message inattendu reçu du speaker, type : {}", type.isBlank() ? "inconnu" : type);
                 }

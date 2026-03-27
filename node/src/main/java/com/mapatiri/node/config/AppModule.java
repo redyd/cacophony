@@ -13,6 +13,7 @@ import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
+import com.mapatiri.node.task.TaskConverter;
 
 public class AppModule extends AbstractModule {
 
@@ -20,6 +21,7 @@ public class AppModule extends AbstractModule {
     protected void configure() {
         // Bind interface to implementation
         bind(Dispatcher.class).to(TaskDispatcher.class).in(Singleton.class);
+        bind(SpeakerBridgeService.class).to(SpeakerBridge.class);
 
         // Json repo
         bind(ConfigRepository.class).to(JsonConfigRepository.class).in(Singleton.class);
@@ -40,10 +42,12 @@ public class AppModule extends AbstractModule {
 
         // Clock
         bind(HeartbeatClock.class).in(Singleton.class);
-        bind(SpeakerAnnouncer.class).in(Singleton.class);
-        bind(SpeakerBridge.class).in(Singleton.class);
         bind(UDPFactory.class).in(Singleton.class);
+
+        // Bridge and announcer
+        bind(SpeakerAnnouncer.class).in(Singleton.class);
         bind(AESEncrypter.class).in(Singleton.class);
+        bind(TaskConverter.class).in(Singleton.class);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.mapatiri.node.task;
 
+import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
@@ -20,6 +21,7 @@ public class TaskConverter {
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
 
+    @Inject
     public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository) {
         this.requestTaskManager =  requestTaskManager;
         this.userRepo = userRepo;
