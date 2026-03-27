@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.mapatiri.node.task.RequestTaskManager;
 import com.mapatiri.node.task.SendTask;
 import com.mapatiri.node.task.SubscribeTask;
-import util.DomainUtils;
+import com.mapatiri.node.util.DomainUtils;
 
 import java.net.Socket;
 import java.util.List;
@@ -62,7 +62,7 @@ public class TaskDispatcher implements Dispatcher {
 
     @Override
     public void submit(String request, String senderDomain) throws BadRequestException {
-        String sender = senderDomain;
+        String sender =  senderDomain + "@" + configRepository.getConfig().getCurrentDomain();
         logger.info("Processing submitted request from senderDomain={}, requestType={}",
                 senderDomain, getRequestPreview(request));
 

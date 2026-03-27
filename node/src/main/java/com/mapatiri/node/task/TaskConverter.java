@@ -2,14 +2,17 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
+import com.mapatiri.node.service.FollowerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 public class TaskConverter {
 
@@ -22,7 +25,7 @@ public class TaskConverter {
     private final ConfigRepository configRepository;
 
     @Inject
-    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository) {
+    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository ) {
         this.requestTaskManager =  requestTaskManager;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
@@ -40,9 +43,26 @@ public class TaskConverter {
         RegexGrammar grammar = new RegexGrammar(message);
         List<String> parts = grammar.parseCommand();
 
+        String idAtDomain = parts.get(0);
         String sender = parts.get(1);
         String receiver = parts.get(2);
         String innerMessage = parts.get(3);
+        String userLogin = FollowerUtils.stripDomain(sender);
+        Optional<ClientConnection> optionalClientConnection = connectionStore.get(userLogin);
+        ClientConnection clientConnection ;
+        if (optionalClientConnection.isPresent()) {
+            clientConnection = optionalClientConnection.get();
+        }else {
+            logger.info("The client connection is null");
+            return;
+        }
+
+        if (clientConnection.hasAlreadyReceived(idAtDomain)) {
+            logger.info("The task has already been received");
+            return;
+        } else {
+            clientConnection.markAsReceived(idAtDomain);
+        }
 
         logger.info("Message parse - sender: {}, receiver: {}, innerMessage: {}", sender, receiver, innerMessage);
 
