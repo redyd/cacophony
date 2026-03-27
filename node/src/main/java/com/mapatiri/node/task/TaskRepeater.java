@@ -2,7 +2,6 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
-import com.mapatiri.node.service.AESEncrypter;
 import com.mapatiri.node.service.SpeakerBridge;
 
 import javax.crypto.NoSuchPaddingException;
@@ -13,12 +12,10 @@ import java.security.NoSuchAlgorithmException;
 public class TaskRepeater {
     private RegexGrammar regexGrammar = new RegexGrammar();
     private final SpeakerBridge speakerBridge;
-    private final AESEncrypter aesEncrypter;
 
     @Inject
-    public TaskRepeater(SpeakerBridge speakerBridge, AESEncrypter aesEncrypter) {
+    public TaskRepeater(SpeakerBridge speakerBridge) {
         this.speakerBridge = speakerBridge;
-        this.aesEncrypter = aesEncrypter;
     }
 
     public void convertAndSend(ActionTask task) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
