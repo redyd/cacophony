@@ -93,6 +93,10 @@ public class SendTask implements ActionTask {
                 userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
+    /**
+     * ça retourne les followers externe des tags local qui sont utilisé dans le message
+     * @return
+     */
     private Set<String> getDistantTagsFollowers() {
         LOGGER.debug("getDistantTagsFollowers: sender={}", sender);
         return FollowerUtils.filterTagSubscribers(
@@ -104,6 +108,22 @@ public class SendTask implements ActionTask {
         Set<String> followers = getDistantFollowers();
         followers.addAll(getDistantTagsFollowers());
         return followers;
+    }
+
+    /**
+     * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
+     * @return
+     */
+    public Set<String> getDistantTags(){
+        Set<String> distantTags = new HashSet<>();
+        Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
+        for (String tag : userTags) {
+            String tagWithoutDomain = FollowerUtils.stripDomain(tag);
+            if(tags.contains(tagWithoutDomain)){
+                distantTags.add(tag);
+            }
+        }
+        return distantTags;
     }
 
     public String getSender() {

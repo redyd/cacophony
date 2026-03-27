@@ -36,6 +36,9 @@ public class FollowerUtils {
                 .peek(tag -> LOGGER.trace("Tag {} matched, adding its {} subscribers",
                         tag.getTag(), tag.getSubscribers().size()))
                 .flatMap(tag -> tag.getSubscribers().stream())
+                .filter(subscriber -> tags.stream()
+                        .filter(tag -> senderTags.contains(tag.getTag()))
+                        .allMatch(tag -> tag.getSubscribers().contains(subscriber)))
                 .filter(f -> distant == DomainUtils.isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
                 .map(f -> distant ? f : stripDomain(f))
