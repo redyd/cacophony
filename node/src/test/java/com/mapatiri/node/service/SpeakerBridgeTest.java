@@ -1,5 +1,6 @@
 package com.mapatiri.node.service;
 
+import com.google.inject.Provider;
 import com.mapatiri.node.task.TaskConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ class SpeakerBridgeTest {
 
     @Mock private AESEncrypter aes;
     @Mock private TaskConverter taskConverter;
+    @Mock private Provider<TaskConverter> taskConverterProvider;
 
     @InjectMocks
     private SpeakerBridge speakerBridge;
@@ -49,6 +51,7 @@ class SpeakerBridgeTest {
 
     @Test
     void startListening_postMessage_callsTaskConverter() throws Exception {
+        when(taskConverterProvider.get()).thenReturn(taskConverter);
         String encryptedLine = "ENCRYPTED_POST";
         Socket socket = buildSocket(encryptedLine + "\n");
 

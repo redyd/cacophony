@@ -61,12 +61,11 @@ public class SpeakerAnnouncer implements Clockable {
         try (ServerSocket serverSocket = new ServerSocket(config.getRelayPort())) {
             logger.info("En attente de connexion du speaker sur le port {}", config.getRelayPort());
 
-            while(!Thread.currentThread().isInterrupted()) {
                 Socket speakerSocket = serverSocket.accept();
                 logger.info("Speaker connecté depuis {}", speakerSocket.getRemoteSocketAddress());
                 speakerBridge.startListening(speakerSocket);
                 logger.info("Speaker déconnecté, attente d'une nouvelle connexion");
-            }
+
         } catch (IOException e) {
             logger.error("Erreur dans waitForResponse : {}", e.getMessage());
         }

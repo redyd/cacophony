@@ -36,12 +36,12 @@ public class App {
         clock.add(injector.getInstance(SpeakerAnnouncer.class));
 
         // == INIT OBJECTS ==
-        var clientServer = new Thread(clock, "Node server");
-        var clockThread = new Thread(injector.getInstance(HeartbeatClock.class), "Node clock thread");
+        var clockThread = new Thread(clock, "node clock");
+        var serverThread = new Thread(injector.getInstance(ClientNodeServer.class), "Node server");
 
         // == START ==
-        clientServer.start();
         clockThread.start();
+        serverThread.start();
 
         logger.info("========== Node started ==========");
     }

@@ -77,7 +77,7 @@ import static org.mockito.Mockito.*;
 
             task.executeTask();
 
-            verify(userRepo).addSubscriberToUser( "louis", "alice11111@node1.xyz");
+            verify(userRepo).addSubscriberToUser("alice11111", "louis@node1.xyz");
         }
 
         @Test
