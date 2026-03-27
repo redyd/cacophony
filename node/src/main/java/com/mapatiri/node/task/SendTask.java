@@ -114,15 +114,20 @@ public class SendTask implements ActionTask {
      * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
      * @return
      */
-    public Set<String> getDistantTags(){
+    public Set<String> getDistantTags() {
         Set<String> distantTags = new HashSet<>();
         Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
+        LOGGER.debug("getDistantTags: checking {} user tags for sender={}", userTags.size(), sender);
+
         for (String tag : userTags) {
             String tagWithoutDomain = FollowerUtils.stripDomain(tag);
-            if(tags.contains(tagWithoutDomain)){
+            if (tags.contains(tagWithoutDomain)) {
+                LOGGER.debug("Distant tag matched: {}  (stripped={})", tag, tagWithoutDomain);
                 distantTags.add(tag);
             }
         }
+
+        LOGGER.info("getDistantTags: found {} distant tags for sender={}", distantTags.size(), sender);
         return distantTags;
     }
 
