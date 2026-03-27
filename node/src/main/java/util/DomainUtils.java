@@ -14,4 +14,11 @@ public class DomainUtils {
                 : localDomain;
         return !targetDomain.equals(senderDomain);
     }
+
+    public static String getLogin(String userAtDomain) {
+        if (userAtDomain == null || !userAtDomain.contains("@")) {
+            throw new IllegalArgumentException("Format invalide : " + userAtDomain);
+        }
+        return userAtDomain.substring(0, userAtDomain.indexOf("@"));
+    }
 }

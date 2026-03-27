@@ -2,14 +2,26 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.node.service.AESEncrypter;
+import com.mapatiri.node.service.SpeakerBridge;
+
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public class TaskRepeater {
     private RegexGrammar regexGrammar = new RegexGrammar();
+    private final SpeakerBridge speakerBridge;
+    private final AESEncrypter aesEncrypter;
 
     @Inject
-    public TaskRepeater() {}
+    public TaskRepeater(SpeakerBridge speakerBridge, AESEncrypter aesEncrypter) {
+        this.speakerBridge = speakerBridge;
+        this.aesEncrypter = aesEncrypter;
+    }
 
-    public void convertAndSend(ActionTask task) {
+    public void convertAndSend(ActionTask task) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
 
         if (task instanceof SendTask sendTask) {
@@ -20,17 +32,17 @@ public class TaskRepeater {
             for (String follower : sendTask.getFollowersFromOtherDomain()) {
 
                 String post = regexGrammar.buildCommand("POST", id, sendTask.getSender(), follower, aesMssg);
-
-                //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
+                speakerBridge.forward(post);
             }
 
         } else if (task instanceof SubscribeTask subscribeTask) {
-            //TODO ajouter encryptage aes
             String mssg = regexGrammar.buildCommand("SUBSCRIBE", subscribeTask.getToSubscribe());
             String aesMssg = mssg;
             String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
             String post = regexGrammar.buildCommand("POST", id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), aesMssg);
-            //TODO AJOUTER LE FOWARD pour l'envoyer au speaker
+
+            String encrypt = aesEncrypter.encrypt(post);
+            speakerBridge.forward(encrypt);
         }
 
     }

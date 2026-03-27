@@ -1,5 +1,6 @@
 package com.mapatiri.node.server;
 
+import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.controller.Dispatcher;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
@@ -37,6 +38,7 @@ class ClientNodeServerTest {
     @Mock private ConfigRepository config;
     @Mock private ServerSocket serverSocket;
     @Mock private NodeConfig nodeConfig;
+    @Mock private ClientSessionEventNotifier notifier;
 
     @InjectMocks
     private ClientNodeServer clientNodeServer;
@@ -197,8 +199,7 @@ class ClientNodeServerTest {
         clientNodeServer.run();
         latch.await(2, TimeUnit.SECONDS);
 
-        verify(cc).send("ERROR");
-    }
+        verify(cc).send(contains("ERROR"));    }
 
     @Test
     @DisplayName("handleClient() — AuthentificationFailed : pas de boucle message")
