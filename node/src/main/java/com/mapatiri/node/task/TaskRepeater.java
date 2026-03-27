@@ -41,8 +41,8 @@ public class TaskRepeater {
 
 
         }
-        String encrypt = aesEncrypter.encrypt(post);
-        speakerBridge.forward(encrypt);
+//        String encrypt = aesEncrypter.encrypt(post);
+        speakerBridge.forward(post);
 
     }
 
