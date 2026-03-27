@@ -23,30 +23,29 @@ public class TaskRepeater {
 
     public void convertAndSend(ActionTask task) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
+        String post = "";
 
         if (task instanceof SendTask sendTask) {
             String id = regexGrammar.generateIdAtDomain(sendTask.getSender());
 
-            String mssg = regexGrammar.buildCommand("MSG", sendTask.getSender(), sendTask.getContent());
-            String aesMssg = mssg;
+            String message = regexGrammar.buildCommand("MSG", sendTask.getSender(), sendTask.getContent());
             for (String follower : sendTask.getFollowersFromOtherDomain()) {
 
-                String post = regexGrammar.buildCommand("POST", id, sendTask.getSender(), follower, aesMssg);
-                speakerBridge.forward(post);
+                 post = regexGrammar.buildCommand("POST", id, sendTask.getSender(), follower, message);
             }
 
         } else if (task instanceof SubscribeTask subscribeTask) {
-            String mssg = regexGrammar.buildCommand("SUBSCRIBE", subscribeTask.getToSubscribe());
-            String aesMssg = mssg;
+            String message = regexGrammar.buildCommand("SUBSCRIBE", subscribeTask.getToSubscribe());
             String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
-            String post = regexGrammar.buildCommand("POST", id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), aesMssg);
+             post = regexGrammar.buildCommand("POST", id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), message);
 
-            String encrypt = aesEncrypter.encrypt(post);
-            speakerBridge.forward(encrypt);
+
         }
+        String encrypt = aesEncrypter.encrypt(post);
+        speakerBridge.forward(encrypt);
 
     }
-    //todo a mettre dans le la grammaire
+
 
 
 }
