@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SendTask implements ActionTask {
 
@@ -81,10 +82,26 @@ public class SendTask implements ActionTask {
                 userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
+    /**
+     * la fct retourne les abbonés au tag utilisé dans le mssg, et il faut que le user soit abboné au tag pour qu'il soit considéré
+     * @return
+     */
     private Set<String> getLocalTagsFollowers() {
         LOGGER.debug("getLocalTagsFollowers: sender={}", sender);
+
+        Set<String> userSubscribedTags = userRepo.getUserFromLogin(login).getUserTags()
+                .stream()
+                .map(FollowerUtils::stripDomain)
+                .collect(Collectors.toSet());
+
+        List<String> allowedTags = this.tags.stream()
+                .filter(userSubscribedTags::contains)
+                .collect(Collectors.toList());
+
+        LOGGER.debug("getLocalTagsFollowers: used={}, allowed={}", this.tags, allowedTags);
+
         return FollowerUtils.filterTagSubscribers(
-                tagRepo.getAllTags().tags(), this.tags, sender, login, false);
+                tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
     }
 
     private Set<String> getDistantFollowers() {
@@ -117,12 +134,15 @@ public class SendTask implements ActionTask {
     public Set<String> getDistantTags() {
         Set<String> distantTags = new HashSet<>();
         Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
+        String localDomain = sender.substring(sender.indexOf('@') + 1);
         LOGGER.debug("getDistantTags: checking {} user tags for sender={}", userTags.size(), sender);
 
         for (String tag : userTags) {
             String tagWithoutDomain = FollowerUtils.stripDomain(tag);
-            if (tags.contains(tagWithoutDomain)) {
-                LOGGER.debug("Distant tag matched: {}  (stripped={})", tag, tagWithoutDomain);
+            String tagDomain = tag.contains("@") ? tag.substring(tag.indexOf('@') + 1) : localDomain;
+
+            if (tags.contains(tagWithoutDomain) && !tagDomain.equals(localDomain)) {
+                LOGGER.debug("Distant tag matched: {} (stripped={})", tag, tagWithoutDomain);
                 distantTags.add(tag);
             }
         }
