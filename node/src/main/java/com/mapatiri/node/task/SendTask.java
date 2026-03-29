@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SendTask implements ActionTask {
 
@@ -53,6 +54,7 @@ public class SendTask implements ActionTask {
 
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());
+        LOGGER.debug("executeTask: all local followers before connection lookup={}", localFollowers);
         var connectionsFromLogin = connectionStore.getConnectionsFromLogin(localFollowers);
         LOGGER.info("Resolved {} active connections for local followers of sender={}",
                 connectionsFromLogin.size(), sender);
@@ -81,10 +83,29 @@ public class SendTask implements ActionTask {
                 userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
+    /**
+     * la fct retourne les abbonés au tag utilisé dans le mssg, et il faut que le user soit abboné au tag pour qu'il soit considéré
+     * @return
+     */
     private Set<String> getLocalTagsFollowers() {
         LOGGER.debug("getLocalTagsFollowers: sender={}", sender);
-        return FollowerUtils.filterTagSubscribers(
-                tagRepo.getAllTags().tags(), this.tags, sender, login, false);
+
+        Set<String> userSubscribedTags = userRepo.getUserFromLogin(login).getUserTags()
+                .stream()
+                .map(FollowerUtils::stripDomain)
+                .collect(Collectors.toSet());
+
+        List<String> allowedTags = this.tags.stream()
+                .filter(userSubscribedTags::contains)
+                .collect(Collectors.toList());
+
+        LOGGER.debug("getLocalTagsFollowers: used={}, allowed={}", this.tags, allowedTags);
+
+        Set<String> result = FollowerUtils.filterTagSubscribers(
+                tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
+
+        LOGGER.debug("getLocalTagsFollowers: resolved subscribers={}", result);
+        return result;
     }
 
     private Set<String> getDistantFollowers() {
@@ -93,6 +114,10 @@ public class SendTask implements ActionTask {
                 userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
+    /**
+     * ça retourne les followers externe des tags local qui sont utilisé dans le message
+     * @return
+     */
     private Set<String> getDistantTagsFollowers() {
         LOGGER.debug("getDistantTagsFollowers: sender={}", sender);
         return FollowerUtils.filterTagSubscribers(
@@ -104,6 +129,30 @@ public class SendTask implements ActionTask {
         Set<String> followers = getDistantFollowers();
         followers.addAll(getDistantTagsFollowers());
         return followers;
+    }
+
+    /**
+     * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
+     * @return
+     */
+    public Set<String> getDistantTags() {
+        Set<String> distantTags = new HashSet<>();
+        Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
+        String localDomain = sender.substring(sender.indexOf('@') + 1);
+        LOGGER.debug("getDistantTags: checking {} user tags for sender={}", userTags.size(), sender);
+
+        for (String tag : userTags) {
+            String tagWithoutDomain = FollowerUtils.stripDomain(tag);
+            String tagDomain = tag.contains("@") ? tag.substring(tag.indexOf('@') + 1) : localDomain;
+
+            if (tags.contains(tagWithoutDomain) && !tagDomain.equals(localDomain)) {
+                LOGGER.debug("Distant tag matched: {} (stripped={})", tag, tagWithoutDomain);
+                distantTags.add(tag);
+            }
+        }
+
+        LOGGER.info("getDistantTags: found {} distant tags for sender={}", distantTags.size(), sender);
+        return distantTags;
     }
 
     public String getSender() {
