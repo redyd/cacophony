@@ -6,10 +6,6 @@ import com.mapatiri.node.service.SpeakerBridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Set;
 
 public class TaskRepeater {
