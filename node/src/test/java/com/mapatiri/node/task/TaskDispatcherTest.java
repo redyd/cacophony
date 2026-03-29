@@ -42,6 +42,8 @@ class TaskDispatcherTest {
         dispatcher = new TaskDispatcher(
                 requestTaskManager, userRepo, tagRepo, connectionStore, authTaskManager, configRepository
         );
+
+        when(configRepository.buildAtDomain(LOCAL_DOMAIN)).thenReturn(LOCAL_DOMAIN);
     }
 
     // ===== SEND =====

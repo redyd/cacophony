@@ -1,5 +1,6 @@
 package com.mapatiri.node.service;
 
+import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
@@ -36,19 +37,20 @@ class SpeakerAnnouncerTest {
     private SpeakerAnnouncer speakerAnnouncer;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() throws IOException, SocketCreation {
         try (ServerSocket tmp = new ServerSocket(0)) {
             freePort = tmp.getLocalPort();
         }
 
-        when(udpFactory.create(any())).thenReturn(multicastSocket);
+        when(udpFactory.create()).thenReturn(multicastSocket);
         when(configRepository.getConfig()).thenReturn(nodeConfig);
         when(nodeConfig.getRelayPort()).thenReturn(freePort);
         when(nodeConfig.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
         when(nodeConfig.getMulticastAddress()).thenReturn("224.224.200.200");
         when(nodeConfig.getMulticastPort()).thenReturn(11003);
 
-        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge, udpFactory);
+        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge);
+        speakerAnnouncer.init(udpFactory);
     }
 
     @Test

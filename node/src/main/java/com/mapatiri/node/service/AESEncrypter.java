@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -18,11 +17,15 @@ import java.util.Base64;
 
 /**
  * Créé à l'aide de l'IA
+ * Permet d'encrypter et de décrypter des messages.
+ *
+ * @author Mattéo
  */
 public class AESEncrypter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AESEncrypter.class);
+
     private final JsonConfigRepository jsonConfigRepository;
-    private final Logger logger = LoggerFactory.getLogger(AESEncrypter.class);
 
     @Inject
     public AESEncrypter(JsonConfigRepository jsonConfigRepository) {
@@ -35,7 +38,7 @@ public class AESEncrypter {
         return new SecretKeySpec(keyBytes, "AES");
     }
 
-    public String encrypt(String content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public String encrypt(String content) {
         try {
             // Génération de l'IV afin d'avoir a chaque chiffrage, un message différent
             byte[] iv = new byte[16];
@@ -54,7 +57,7 @@ public class AESEncrypter {
                     + Base64.getEncoder().encodeToString(cipherText);
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            logger.error(e.getMessage());
+            LOGGER.error("Could not encrypt content: {}", e.getMessage());
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +85,7 @@ public class AESEncrypter {
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
                  InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            logger.error(e.getMessage());
+            LOGGER.error("Could not decrypt content: {}", e.getMessage());
         }
         return "";
     }

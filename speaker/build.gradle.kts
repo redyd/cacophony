@@ -10,4 +10,7 @@ dependencies {
     implementation(project(":grammar"))
     implementation(libs.guava)
     implementation(libs.guice)
+
+    implementation(libs.logback.core)
+    implementation(libs.logback.classic)
 }

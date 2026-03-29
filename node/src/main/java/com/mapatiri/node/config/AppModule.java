@@ -15,6 +15,12 @@ import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
 import com.mapatiri.node.task.TaskConverter;
 
+/**
+ * Module de configuration pour le gestionnaire d'injection de dépendances.
+ * Permet de configurer des singletons, transients et scoped.
+ *
+ * @author Timëo
+ */
 public class AppModule extends AbstractModule {
 
     @Override
@@ -25,8 +31,8 @@ public class AppModule extends AbstractModule {
 
         // Json repo
         bind(ConfigRepository.class).to(JsonConfigRepository.class).in(Singleton.class);
-        bind(UserRepo.class).to(UserRepository.class).in(Singleton.class);
-        bind(TagRepo.class).to(TagRepository.class).in(Singleton.class);
+        bind(UserRepo.class).to(JsonUserRepository.class).in(Singleton.class);
+        bind(TagRepo.class).to(JsonTagRepository.class).in(Singleton.class);
 
         // Define singleton services
         bind(ConnectionStore.class).asEagerSingleton();

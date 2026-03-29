@@ -1,9 +1,6 @@
 package com.mapatiri.node.task;
 
-public interface ActionTask extends Runnable {
-    default void run() {
-
-    }
+public interface ActionTask {
     void executeTask();
     boolean shouldForward();
 }

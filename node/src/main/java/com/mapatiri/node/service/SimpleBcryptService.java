@@ -4,6 +4,11 @@ import com.mapatiri.node.model.BcryptParams;
 
 import java.util.Arrays;
 
+/**
+ * Classe de parsing bcrypt.
+ *
+ * @author Riham
+ */
 public class SimpleBcryptService implements BcryptService {
 
     @Override

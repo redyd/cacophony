@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * Tâche de création et d'authentification.
+ *
+ * @author Timëo
  */
 public class RegisterTask implements AuthTask {
 

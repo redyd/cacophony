@@ -12,16 +12,19 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 /**
- * LOGGER écrit par l'ia
+ * Tâche d'abonnement : se charge d'abonner un utilisateur à une personne ou un tag
+ *
+ * @author Riham
  */
 public class SubscribeTask implements ActionTask {
 
-    private UserRepo userRepo;
-    private TagRepo tagRepo;
-    private String sender;
-    private String toSubscribe;
-    private boolean shouldForward;
     private final static Logger LOGGER = LoggerFactory.getLogger(SubscribeTask.class);
+
+    private final UserRepo userRepo;
+    private final TagRepo tagRepo;
+    private final String sender;
+    private final String toSubscribe;
+    private final boolean shouldForward;
 
     public SubscribeTask(UserRepo repo, TagRepo tagRepo, String sender, String toSubscribe, boolean shouldForward) {
         this.userRepo = repo;
@@ -29,14 +32,10 @@ public class SubscribeTask implements ActionTask {
         this.sender = sender;
         this.toSubscribe = toSubscribe;
         this.shouldForward = shouldForward;
-
-        LOGGER.info("SubscribeTask created: sender={}, toSubscribe={}, shouldForward={}",
-                sender, toSubscribe, shouldForward);
     }
 
     @Override
     public void executeTask() {
-        LOGGER.info("Executing SubscribeTask: sender={} subscribing to={}", sender, toSubscribe);
         try {
             if (toSubscribe.startsWith("#")) {
                 subscribeToTag();
@@ -44,14 +43,12 @@ public class SubscribeTask implements ActionTask {
                 subscribeToUser();
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to process subscription: sender={} to={}", sender, toSubscribe, e);
+            LOGGER.error("Failed to process subscription for {}", sender, e);
         }
-        LOGGER.info("SubscribeTask execution finished for sender={}", sender);
+        LOGGER.info("Subscription done for {}", sender);
     }
 
     private void subscribeToTag() throws IOException {
-        LOGGER.info("Processing tag subscription: sender={} -> tag={}", sender, toSubscribe);
-
         String tagName = FollowerUtils.stripDomain(toSubscribe);
         Tag tag = new Tag(tagName);
 
@@ -59,29 +56,19 @@ public class SubscribeTask implements ActionTask {
             tagRepo.addTag(tag);
         }
 
-        LOGGER.debug("Adding sender={} as subscriber to tag={}", sender, tagName);
         tagRepo.addSubscriberToTag(tagName, sender);
 
         String senderLogin = FollowerUtils.stripDomain(sender);
-        LOGGER.debug("Adding tag={} to sender={} user tags", toSubscribe, senderLogin);
         userRepo.addUserTag(senderLogin, toSubscribe);
-
-        LOGGER.info("Successfully subscribed sender={} to tag={}", sender, toSubscribe);
     }
 
     private void subscribeToUser() throws IOException {
-        LOGGER.info("Processing user subscription: sender={} -> user={}", sender, toSubscribe);
-
         String toSubscribeLogin = FollowerUtils.stripDomain(toSubscribe);
-        LOGGER.debug("Adding sender={} as subscriber to user={}", sender, toSubscribeLogin);
         userRepo.addSubscriberToUser(toSubscribeLogin,sender );
-
-        LOGGER.info("Successfully subscribed sender={} to user={}", sender, toSubscribe);
     }
 
     @Override
     public boolean shouldForward() {
-        LOGGER.info("shouldForward() called for sender={}, result={}", sender, shouldForward);
         return shouldForward;
     }
 

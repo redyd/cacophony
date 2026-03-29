@@ -5,6 +5,11 @@ import com.mapatiri.node.model.ClientConnection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Permet de synchroniser la connexion et déconnexion d'utilisateurs.
+ *
+ * @author Timëo
+ */
 public class ClientSessionEventNotifier {
     private final Set<ClientSessionReacter> reacters;
 

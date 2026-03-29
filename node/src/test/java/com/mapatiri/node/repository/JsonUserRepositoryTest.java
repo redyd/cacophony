@@ -12,13 +12,13 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserRepositoryTest {
+class JsonUserRepositoryTest {
 
-    private UserRepository repo;
+    private JsonUserRepository repo;
 
     @BeforeEach
     void setUp() {
-        repo = new UserRepository();
+        repo = new JsonUserRepository();
     }
 
     @Test
@@ -73,9 +73,8 @@ class UserRepositoryTest {
 
         repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
         repo.addUserTag("louis", "#tag1");
-        repo.saveUsers();
 
-        UserRepository newRepo = new UserRepository();
+        JsonUserRepository newRepo = new JsonUserRepository();
         newRepo.loadUsers(path);
 
         User loaded = newRepo.getUserFromLogin("louis");
@@ -92,13 +91,11 @@ class UserRepositoryTest {
         Path path = Path.of("src/test/resources/user-test.json");
         Files.copy(path, tempTarget);
 
-        UserRepository repo = new UserRepository();
+        JsonUserRepository repo = new JsonUserRepository();
         repo.loadUsers(tempTarget);
 
         repo.addUser(new User("testUser", "hash123", 14, "saltXYZ"));
         repo.addUserTag("testUser", "#tagTest");
         repo.addSubscriberToUser("testUser", "louis");
-
-        repo.saveUsers();
     }
 }

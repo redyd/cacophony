@@ -9,8 +9,8 @@ public class User {
     private final String bcryptHash;
     private final int bcryptRound;
     private final String bcryptSalt;
-    private Set<String> subscribers;
-    private Set<String> userTags;
+    private final Set<String> subscribers;
+    private final Set<String> userTags;
 
     public User(String login, String bcryptHash, int bcryptRound, String bcryptSalt) {
         this.login = login;

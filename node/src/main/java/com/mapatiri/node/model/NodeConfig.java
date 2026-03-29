@@ -2,6 +2,12 @@ package com.mapatiri.node.model;
 
 import java.nio.file.Path;
 
+/**
+ * Représente une configuration du node.
+ *
+ * @author Timëo
+ * @author Riham
+ */
 public class NodeConfig {
 
     public static final Path KEYSTORE_PATH = Path.of("src", "main", "resources", "data", "keystore.p12");

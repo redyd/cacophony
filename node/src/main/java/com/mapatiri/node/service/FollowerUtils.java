@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 /**
  * Fait a l'aide de l'ia
+ *
+ * @author Riham
  */
 
 public class FollowerUtils {
