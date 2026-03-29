@@ -7,9 +7,7 @@
       "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
       "subscribers": [],
       "userTags": [
-        "#monTag1@node1.swilabus.xyz",
-        "#Hello1@node1.swilabus.xyz",
-        "#Hellolololo8@node1.swilabus.xyz"
+        "#monTag1@node1.swilabus.xyz"
       ]
     },
     {
@@ -28,16 +26,9 @@
       "bcryptRound": 14,
       "bcryptSalt": "28JcaULITGzmyLbtIsnEW.",
       "subscribers": [
+        "louis@node1.swilabus.xyz"
       ],
       "userTags": [
-        "#Hello1@node1.swilabus.xyz",
-        "#Helloooo@node1.swilabus.xyz",
-        "#NODEdjdh1@node1.swilabus.xyz",
-        "#NODEdjdh2@node1.swilabus.xyz",
-        "#NODEdjdh@node1.swilabus.xyz",
-        "#NODE1@node1.swilabus.xyz",
-        "#NODE2@node1.swilabus.xyz",
-        "#NODE3@node1.swilabus.xyz"
       ]
     }
   ]

@@ -1,9 +1,10 @@
 {
   "tags": [
     {
-      "tag": "#monTag2",
+      "tag": "#monTag1",
       "subscribers": [
-        "swawa@node1.swilabus.xyz"
+        "louis@node1.swilabus.xyz",
+        "godswila@node1.swilabus.xyz"
       ]
     }
   ]
