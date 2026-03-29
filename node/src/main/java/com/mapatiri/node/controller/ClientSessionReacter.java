@@ -4,6 +4,8 @@ import com.mapatiri.node.model.ClientConnection;
 
 /**
  * À implémenter dans les classes où l'on veut être mis à jour des connexions et déconnexion des utilisateurs.
+ *
+ * @author Timëo
  */
 public interface ClientSessionReacter {
 

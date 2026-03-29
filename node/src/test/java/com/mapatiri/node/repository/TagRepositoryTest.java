@@ -14,20 +14,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TagRepositoryTest {
 
-    private TagRepository repo;
+    private JsonTagRepository repo;
 
     @BeforeEach
     void setUp() {
-        repo = new TagRepository();
+        repo = new JsonTagRepository();
     }
 
     @Test
-    void AddTagAndRetrieve() throws IOException {
+    void AddTagAndRetrieve(@TempDir Path tempDir) throws IOException {
+        Path path = tempDir.resolve("tags.json");
+        Files.writeString(path, "{\"tags\":[]}");
+        repo.loadTags(path);
+
         repo.addTag(new Tag("#monTag1"));
         Tags all = repo.getAllTags();
         assertNotNull(all);
         assertEquals(1, all.tags().size());
-        assertEquals("#monTag1", all.tags().get(0).getTag());
+        assertEquals("#monTag1", all.tags().getFirst().getTag());
     }
 
     @Test
@@ -42,7 +46,7 @@ class TagRepositoryTest {
         repo.addSubscriberToTag("#monTag1", "louis@node1.swilabus.xyz");
         repo.addSubscriberToTag("#monTag1", "godswila@node1.swilabus.xyz");
 
-        Tag loaded = repo.getAllTags().tags().get(0);
+        Tag loaded = repo.getAllTags().tags().getFirst();
         assertTrue(loaded.getSubscribers().contains("louis@node1.swilabus.xyz"));
         assertTrue(loaded.getSubscribers().contains("godswila@node1.swilabus.xyz"));
     }
@@ -56,12 +60,11 @@ class TagRepositoryTest {
         Tag tag = new Tag("#monTag1");
         tag.addSubscriber("louis@node1.swilabus.xyz");
         repo.addTag(tag);
-        repo.saveTags();
 
-        TagRepository newRepo = new TagRepository();
+        JsonTagRepository newRepo = new JsonTagRepository();
         newRepo.loadTags(path);
 
-        Tag loaded = newRepo.getAllTags().tags().get(0);
+        Tag loaded = newRepo.getAllTags().tags().getFirst();
         assertEquals("#monTag1", loaded.getTag());
         assertTrue(loaded.getSubscribers().contains("louis@node1.swilabus.xyz"));
     }
@@ -70,12 +73,10 @@ class TagRepositoryTest {
     void LoadModifySaveTagJson() throws Exception {
         Path path = Path.of("src/test/resources/tag-test.json");
 
-        TagRepository repo = new TagRepository();
+        JsonTagRepository repo = new JsonTagRepository();
         repo.loadTags(path);
 
         repo.addTag(new Tag("#tagTest"));
         repo.addSubscriberToTag("#tagTest", "testUser@node1.swilabus.xyz");
-
-        repo.saveTags();
     }
 }

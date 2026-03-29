@@ -1,10 +1,5 @@
 package com.mapatiri.node.model;
 
-import com.mapatiri.node.task.SubscribeTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.Socket;
 import java.util.HashSet;
@@ -12,6 +7,9 @@ import java.util.Set;
 
 /**
  * Représente une connexion client ouverte et permet d'interagir facilement avec.
+ *
+ * @author Timëo
+ * @author Riham
  */
 public class ClientConnection {
 
@@ -20,7 +18,6 @@ public class ClientConnection {
     private final BufferedReader in;
     private final PrintWriter out;
     private final Set<String> processedMessageIds = new HashSet<>();
-    private final static Logger LOGGER = LoggerFactory.getLogger(ClientConnection.class);
 
     public ClientConnection(Socket socket, User user, BufferedReader in, PrintWriter out) throws IOException {
         this.socket = socket;
@@ -44,6 +41,7 @@ public class ClientConnection {
     public void close() throws IOException {
         socket.close();
     }
+
     public boolean hasAlreadyReceived(String idAtDomain) {
         return processedMessageIds.contains(idAtDomain);
     }

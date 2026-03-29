@@ -12,23 +12,36 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Annoncement du node via UDP. Cette classe est abonnée à {@link com.mapatiri.node.model.HeartbeatClock}.
+ *
+ * @author Mattéo
+ */
 public class SpeakerAnnouncer implements Clockable {
 
-    private final Logger logger = LoggerFactory.getLogger(SpeakerAnnouncer.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(SpeakerAnnouncer.class);
+
     private final ConfigRepository configRepository;
     private final SpeakerBridge speakerBridge;
-    private final MulticastSocket multicastSocket;
+    private MulticastSocket multicastSocket;
     private boolean isRunning = false;
 
     @Inject
-    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge, UDPFactory udpFactory) throws SocketCreation {
+    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge) {
         this.configRepository = jsonConfigRepository;
         this.speakerBridge = speakerBridge;
-        this.multicastSocket = udpFactory.create(configRepository);
+    }
+
+    public void init(UDPFactory factory) throws SocketCreation {
+        this.multicastSocket = factory.create();
     }
 
     @Override
     public void onClockSignal() {
+        if (multicastSocket == null) {
+            throw new IllegalStateException("Multicast socket has not been initialized.");
+        }
+
         try {
             var config = configRepository.getConfig();
 
@@ -43,7 +56,7 @@ public class SpeakerAnnouncer implements Clockable {
             DatagramPacket packet = new DatagramPacket(data, data.length, group, config.getMulticastPort());
             multicastSocket.send(packet);
 
-            logger.info("ADVERT envoye");
+            LOGGER.info("Advert has been sent.");
 
             // Attendre la connexion TCP du speaker
             if (!isRunning) {
@@ -52,7 +65,7 @@ public class SpeakerAnnouncer implements Clockable {
             }
 
         } catch (IOException e) {
-            logger.error("Erreur lors de l'envoi de l'ADVERT : {}", e.getMessage());
+            LOGGER.error("Error while sending advert: {}", e.getMessage());
         }
     }
 
@@ -60,15 +73,13 @@ public class SpeakerAnnouncer implements Clockable {
         var config = configRepository.getConfig();
 
         try (ServerSocket serverSocket = new ServerSocket(config.getRelayPort())) {
-            logger.info("En attente de connexion du speaker sur le port {}", config.getRelayPort());
+            LOGGER.info("Waiting connexion on port '{}'", config.getRelayPort());
 
-                Socket speakerSocket = serverSocket.accept();
-                logger.info("Speaker connecté depuis {}", speakerSocket.getRemoteSocketAddress());
-                speakerBridge.startListening(speakerSocket);
-                logger.info("Speaker déconnecté, attente d'une nouvelle connexion");
-
+            Socket speakerSocket = serverSocket.accept();
+            LOGGER.info("Speaker connected from: '{}'", speakerSocket.getRemoteSocketAddress());
+            speakerBridge.startListening(speakerSocket);
         } catch (IOException e) {
-            logger.error("Erreur dans waitForResponse : {}", e.getMessage());
+            LOGGER.error("Error while waiting for speaker connection: {}", e.getMessage());
         }
     }
 }

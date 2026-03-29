@@ -14,7 +14,10 @@ import java.net.ServerSocket;
 import java.security.*;
 
 /**
- * Créé à l'aide de l'IA
+ * Permet d'instancier un serveur socket pour la connexion client - node.
+ * Classe réalisée à l'aide de l'IA.
+ *
+ * @author Timëo
  */
 public class SocketFactory {
 

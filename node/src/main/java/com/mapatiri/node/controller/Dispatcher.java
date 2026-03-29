@@ -7,7 +7,9 @@ import com.mapatiri.node.model.ClientConnection;
 import java.net.Socket;
 
 /**
- * Redispatch les interactions avec le client, entre la connexion et la soumission d'un message
+ * Redispatch les interactions avec le client, entre la connexion et la soumission d'un message.
+ *
+ * @author Timëo
  */
 public interface Dispatcher {
 

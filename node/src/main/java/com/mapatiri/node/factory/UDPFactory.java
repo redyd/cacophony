@@ -1,5 +1,6 @@
 package com.mapatiri.node.factory;
 
+import com.google.inject.Inject;
 import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.repository.ConfigRepository;
 import org.slf4j.Logger;
@@ -10,12 +11,21 @@ import java.net.NetworkInterface;
 
 /**
  * Factory pour le socket UDP.
+ *
+ * @author Mattéo
  */
 public class UDPFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UDPFactory.class);
 
-    public MulticastSocket create(ConfigRepository configRepository) throws SocketCreation {
+    private final ConfigRepository configRepository;
+
+    @Inject
+    public UDPFactory(ConfigRepository configRepository) {
+        this.configRepository = configRepository;
+    }
+
+    public MulticastSocket create() throws SocketCreation {
         try {
             var config = configRepository.getConfig();
 
@@ -26,7 +36,7 @@ public class UDPFactory {
             if (networkInterface != null) {
                 socket.setNetworkInterface(networkInterface);
             } else {
-                LOGGER.warn("Network interface '{}' not found", config.getNetworkInterface());
+                LOGGER.warn("Network interface '{}' not found. Please edit your config.", config.getNetworkInterface());
                 throw new SocketCreation("Could not create multicast socket");
             }
 

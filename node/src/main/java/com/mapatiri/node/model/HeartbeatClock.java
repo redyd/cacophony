@@ -6,11 +6,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * Horloge interne qui émet un signal à ses abonnés à un intervalle régulier.
+ * Intervalle par défaut : 30 secondes.
+ *
+ * @author Mattéo
+ */
 public class HeartbeatClock implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(HeartbeatClock.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatClock.class);
     private static final long TICK_INTERVAL_MS = 30_000L;
 
     private final Set<Clockable> clockables = new HashSet<>();
@@ -21,22 +26,23 @@ public class HeartbeatClock implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Clock set to {} seconds and started", TICK_INTERVAL_MS / 1000);
+        LOGGER.info("Clock set to {} seconds and started", TICK_INTERVAL_MS / 1000);
+
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 Thread.sleep(TICK_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                logger.info("Clock has been interrupted");
+                LOGGER.info("Clock has been interrupted");
                 return;
             }
 
-            logger.info("Ding dong !");
+            LOGGER.info("Ding dong !");
             for (Clockable clockable : clockables) {
                 try {
                     clockable.onClockSignal();
                 } catch (Exception e) {
-                    logger.warn("Could not wake up {} because of: {}", clockable.getClass().getSimpleName(), e.getMessage());
+                    LOGGER.warn("Could not wake up {} because of: {}", clockable.getClass().getSimpleName(), e.getMessage());
                 }
             }
         }

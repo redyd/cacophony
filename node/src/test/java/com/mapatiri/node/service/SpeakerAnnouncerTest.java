@@ -42,14 +42,15 @@ class SpeakerAnnouncerTest {
             freePort = tmp.getLocalPort();
         }
 
-        when(udpFactory.create(any())).thenReturn(multicastSocket);
+        when(udpFactory.create()).thenReturn(multicastSocket);
         when(configRepository.getConfig()).thenReturn(nodeConfig);
         when(nodeConfig.getRelayPort()).thenReturn(freePort);
         when(nodeConfig.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
         when(nodeConfig.getMulticastAddress()).thenReturn("224.224.200.200");
         when(nodeConfig.getMulticastPort()).thenReturn(11003);
 
-        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge, udpFactory);
+        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge);
+        speakerAnnouncer.init(udpFactory);
     }
 
     @Test

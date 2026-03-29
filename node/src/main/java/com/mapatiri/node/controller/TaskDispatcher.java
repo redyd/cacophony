@@ -21,6 +21,11 @@ import com.mapatiri.node.util.DomainUtils;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * Dispatcher de tâche qui gère la soumission des messages et une tentative d'authentification.
+ *
+ * @author Riham
+ */
 public class TaskDispatcher implements Dispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskDispatcher.class);
@@ -68,7 +73,7 @@ public class TaskDispatcher implements Dispatcher {
 
     @Override
     public void submit(String request, String login) throws BadRequestException {
-        String sender = configRepository.buildLoginAtCurrentDomain(login);
+        String sender = configRepository.buildAtDomain(login);
         LOGGER.info("Processing request from '{}', of type '{}'", login, getRequestPreview(request));
 
         regexGrammar = new RegexGrammar(request);

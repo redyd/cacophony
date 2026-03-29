@@ -10,11 +10,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Implémentation du {@link ConfigRepository} pour du json.
+ *
+ * @author Timëo
+ */
 public class JsonConfigRepository implements ConfigRepository {
 
     private NodeConfig currentConfig;
 
-    @Override
     public void loadConfig(Path path) throws NodeFileException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -35,11 +39,17 @@ public class JsonConfigRepository implements ConfigRepository {
 
     @Override
     public NodeConfig getConfig() {
+        if (currentConfig == null) {
+            throw new IllegalStateException("You should init the configuration before requesting it");
+        }
         return currentConfig;
     }
 
     @Override
-    public String buildLoginAtCurrentDomain(String login) {
-        return login + "@" + currentConfig.getCurrentDomain();
+    public String buildAtDomain(String element) {
+        if (currentConfig == null) {
+            throw new IllegalStateException("You should init the configuration before requesting it");
+        }
+        return element + "@" + currentConfig.getCurrentDomain();
     }
 }

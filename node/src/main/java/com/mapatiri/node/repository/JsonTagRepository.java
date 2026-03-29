@@ -11,25 +11,33 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
-public class TagRepository implements TagRepo {
+/**
+ * Repository de tags json.
+ *
+ * @author Mattéo
+ */
+public class JsonTagRepository implements TagRepo {
+
+    private final Gson gson;
 
     private Tags tagsConfig;
     private Path path;
 
-    @Override
-    public void loadTags(Path path) throws TagConfigException {
-        this.path = path;
-        Gson gson = new GsonBuilder()
+    public JsonTagRepository() {
+        this.gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
                 .create();
+    }
+
+    public void loadTags(Path path) throws TagConfigException {
+        this.path = path;
 
         try {
             Tags config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), Tags.class);
             if (config == null) {
-                throw new TagConfigException("Config vide pour: " + path);
+                throw new TagConfigException("Empty config for: " + path);
             }
 
             this.tagsConfig = config;
@@ -39,27 +47,21 @@ public class TagRepository implements TagRepo {
     }
 
     @Override
-    public void saveTags() throws IOException {
-        if (path == null) return;
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-
-        Files.writeString(path, gson.toJson(tagsConfig), StandardCharsets.UTF_8);
-    }
-
-    @Override
     public void addTag(Tag tag) throws IOException {
         if (tagsConfig == null) {
-            tagsConfig = new Tags(new ArrayList<>());
+            throw new IllegalStateException("Repository must be initialized before adding tags.");
         }
+
         tagsConfig.tags().add(tag);
         saveTags();
     }
 
     @Override
     public void addSubscriberToTag(String tagName, String subscriber) throws IOException {
-        if (tagsConfig == null) return;
+        if (tagsConfig == null) {
+            throw new IllegalStateException("Repository must be initialized before adding subscriber to tags.");
+        }
+
         for (Tag t : tagsConfig.tags()) {
             if (t.getTag().equals(tagName)) {
                 t.addSubscriber(subscriber);
@@ -76,11 +78,21 @@ public class TagRepository implements TagRepo {
 
     @Override
     public boolean tagExist(Tag tag) {
-       for(Tag t : tagsConfig.tags()){
-           if(t.getTag().equals(tag.getTag())){
-               return true;
-           }
-       }
-       return false;
+        for (Tag t : tagsConfig.tags()) {
+            if (t.getTag().equals(tag.getTag())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void saveTags() throws IOException {
+        if (path == null) {
+            throw new IllegalStateException("Repository must be initialized before saving tags.");
+        }
+
+        synchronized (this) {
+            Files.writeString(path, gson.toJson(tagsConfig), StandardCharsets.UTF_8);
+        }
     }
 }

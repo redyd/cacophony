@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Enregistre toutes les connexions actives et authentifiées dans le node
+ * Enregistre toutes les connexions actives et authentifiées dans le node.
+ *
+ * @author Timëo
  */
 public class ConnectionStore implements Clockable, ClientSessionReacter {
 
@@ -71,13 +73,13 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
     @Override
     public void onUserLogout(ClientConnection client) {
         connections.remove(client.getUser().getLogin());
-        LOGGER.info("Client '{}' removed from store", client.getUser().getLogin());
+        LOGGER.info("Client '{}' has been removed from store", client.getUser().getLogin());
     }
 
     @Override
     public void onUserLogin(ClientConnection client) {
         put(client);
-        LOGGER.info("Client '{}' added to store", client.getUser().getLogin());
+        LOGGER.info("Client '{}' has been added to store", client.getUser().getLogin());
     }
     public Set<ClientConnection> getConnectionsFromLogin(Set<String> logins) {
         Set<ClientConnection> connectionsResult = new HashSet<>();

@@ -18,9 +18,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Thread principal du node qui établit la connexion avec les clients, démarre l'authentification
+ * et gère la réception des messages.
+ *
+ * @author Timëo
+ */
 public class ClientNodeServer implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientNodeServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientNodeServer.class);
 
     private final SocketFactory tlsFactory;
     private final Dispatcher dispatcher;
@@ -38,7 +44,7 @@ public class ClientNodeServer implements Runnable {
     @Override
     public void run() {
         try (ServerSocket socket = tlsFactory.createSocket()) {
-            logger.info(" ** Server client started on port {} (tls {}) ** ", socket.getLocalPort(), config.getConfig().isTls() ? "on" : "off");
+            LOGGER.info(" ** Server client started on port {} (tls {}) ** ", socket.getLocalPort(), config.getConfig().isTls() ? "on" : "off");
 
             while (!socket.isClosed()) {
                 try {
@@ -50,11 +56,11 @@ public class ClientNodeServer implements Runnable {
 
                     new Thread(() -> handleClient(client)).start();
                 } catch (IOException e) {
-                    logger.info("A user socket has encountered an error: {}", e.getMessage());
+                    LOGGER.info("A user socket has encountered an error: {}", e.getMessage());
                 }
             }
         } catch (SocketCreation | IOException e) {
-            logger.error("Could not create server socket: {}", e.getMessage());
+            LOGGER.error("Could not create server socket: {}", e.getMessage());
         }
     }
 
@@ -62,7 +68,7 @@ public class ClientNodeServer implements Runnable {
         try {
             ClientConnection client = dispatcher.startAuth(sslSocket);
             Thread.currentThread().setName("Client-" + client.getUser().getLogin());
-            logger.info("Client {} is log in", client.getUser().getLogin());
+            LOGGER.info("Client {} is log in", client.getUser().getLogin());
             this.notifier.onUserLogin(client);
 
             while (!client.isDisconnected()) {
@@ -78,19 +84,19 @@ public class ClientNodeServer implements Runnable {
 
                     dispatcher.submit(message, client.getUser().getLogin());
                 } catch (IOException e) {
-                    logger.warn("Error while waiting for message: {}", e.getMessage());
+                    LOGGER.warn("Error while waiting for message: {}", e.getMessage());
                     break;
                 } catch (BadRequestException e) {
-                    logger.info("User made a bad request: {}", e.getMessage());
+                    LOGGER.info("User made a bad request: {}", e.getMessage());
                     String badRequest = new RegexGrammar().buildCommand("ERROR", "Bad Request");
                     client.send(badRequest);
                 }
             }
 
-            logger.info("Client {} log off", client.getUser().getLogin());
+            LOGGER.info("Client {} log off", client.getUser().getLogin());
             this.notifier.onUserLogout(client);
         } catch (AuthentificationFailed e) {
-            logger.info("Someone could not be authenticated: {}", e.getMessage());
+            LOGGER.info("Someone could not be authenticated: {}", e.getMessage());
         }
     }
 
