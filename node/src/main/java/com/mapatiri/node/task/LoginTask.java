@@ -17,6 +17,8 @@ import java.util.List;
 
 /**
  * Permet d'authentifier un utilisateur déjà enregistré.
+ *
+ * @author Timëo
  */
 public class LoginTask implements AuthTask {
 

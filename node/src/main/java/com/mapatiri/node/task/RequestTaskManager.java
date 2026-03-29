@@ -8,6 +8,11 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * File de tâche qui va exécuter les différentes requêtes d'envois de messages et d'abonnements (tâches {@link ActionTask)}.
+ *
+ * @author Riham
+ */
 public class RequestTaskManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestTaskManager.class);
@@ -20,14 +25,12 @@ public class RequestTaskManager {
         this.taskRepeater = taskRepeater;
     }
 
-
     /**
      * Le TaskDispenser vas appeler cette methode qui va ajouter la tache dans la pile executor (qui est un thread)
      * si la file est vide alors la tache sera exécuter par rapport
      * a son type SEND/SUBSCRIBE grace au polymorphisme "task::executeTask" vas exécuter une methode de un des type
      */
     public void submit(ActionTask task) {
-        LOGGER.debug("Submitting task: {}", task);
         executor.submit(() -> {
             try {
                 task.executeTask();

@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Tâche d'envoi de message.
+ *
+ * @author Riham
+ */
 public class SendTask implements ActionTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SendTask.class);
@@ -26,7 +31,15 @@ public class SendTask implements ActionTask {
     private final String content;
     private final boolean shouldForward;
 
-    public SendTask(String sender, List<String> tags, String content, boolean shouldForward, ConnectionStore connectionStore, UserRepo userRepo, TagRepo tagRepo, ConfigRepository configRepository) {
+    public SendTask(
+            String sender,
+            List<String> tags,
+            String content,
+            boolean shouldForward,
+            ConnectionStore connectionStore,
+            UserRepo userRepo,
+            TagRepo tagRepo,
+            ConfigRepository configRepository) {
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         String domain = configRepository.getConfig().getCurrentDomain();
@@ -68,12 +81,9 @@ public class SendTask implements ActionTask {
     }
 
     /**
-     * la fct retourne les abbonés au tag utilisé dans le mssg, et il faut que le user soit abboné au tag pour qu'il soit considéré
-     * @return
+     * la fct retourne les abonnés au tag utilisé dans le mssg, et il faut que le user soit abonné au tag pour qu'il soit considéré
      */
     private Set<String> getLocalTagsFollowers() {
-        LOGGER.debug("getLocalTagsFollowers: sender={}", sender);
-
         Set<String> userSubscribedTags = userRepo.getUserFromLogin(login).getUserTags()
                 .stream()
                 .map(FollowerUtils::stripDomain)
@@ -83,13 +93,8 @@ public class SendTask implements ActionTask {
                 .filter(userSubscribedTags::contains)
                 .collect(Collectors.toList());
 
-        LOGGER.debug("getLocalTagsFollowers: used={}, allowed={}", this.tags, allowedTags);
-
-        Set<String> result = FollowerUtils.filterTagSubscribers(
+        return FollowerUtils.filterTagSubscribers(
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
-
-        LOGGER.debug("getLocalTagsFollowers: resolved subscribers={}", result);
-        return result;
     }
 
     private Set<String> getDistantFollowers() {
@@ -98,7 +103,6 @@ public class SendTask implements ActionTask {
 
     /**
      * ça retourne les followers externe des tags local qui sont utilisé dans le message
-     * @return
      */
     private Set<String> getDistantTagsFollowers() {
         return FollowerUtils.filterTagSubscribers(tagRepo.getAllTags().tags(), this.tags, sender, login, true);
@@ -112,25 +116,21 @@ public class SendTask implements ActionTask {
 
     /**
      * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
-     * @return
      */
     public Set<String> getDistantTags() {
         Set<String> distantTags = new HashSet<>();
         Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
         String localDomain = sender.substring(sender.indexOf('@') + 1);
-        LOGGER.debug("getDistantTags: checking {} user tags for sender={}", userTags.size(), sender);
 
         for (String tag : userTags) {
             String tagWithoutDomain = FollowerUtils.stripDomain(tag);
             String tagDomain = tag.contains("@") ? tag.substring(tag.indexOf('@') + 1) : localDomain;
 
             if (tags.contains(tagWithoutDomain) && !tagDomain.equals(localDomain)) {
-                LOGGER.debug("Distant tag matched: {} (stripped={})", tag, tagWithoutDomain);
                 distantTags.add(tag);
             }
         }
 
-        LOGGER.info("getDistantTags: found {} distant tags for sender={}", distantTags.size(), sender);
         return distantTags;
     }
 

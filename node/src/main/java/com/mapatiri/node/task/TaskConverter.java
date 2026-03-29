@@ -8,12 +8,18 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.FollowerUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Convertit un message POST pour la mettre sur la pile des tâches.
+ *
+ * @author Mattéo
+ */
 public class TaskConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskConverter.class);
@@ -58,35 +64,26 @@ public class TaskConverter {
             client.markAsReceived(idAtDomain);
         });
 
-        LOGGER.info("Message parse - sender: {}, receiver: {}, innerMessage: {}", sender, receiver, innerMessage);
+        ActionTask task = getActionTask(innerMessage, sender, receiver);
 
+        requestTaskManager.submit(task);
+    }
+
+    private @NonNull ActionTask getActionTask(String innerMessage, String sender, String receiver) {
         RegexGrammar innerGrammar = new RegexGrammar(innerMessage);
         String innerType = innerGrammar.getTypeOfCommand();
 
-        LOGGER.info("Type de message interne detecte : {}", innerType);
-
-        ActionTask task = switch (innerType) {
+        return switch (innerType) {
             case "MSG" -> {
                 List<String> innerParts = innerGrammar.parseCommand();
                 String content = innerParts.get(1);
                 List<String> tags = innerGrammar.extractTagsFromMessage();
 
-                LOGGER.info("Creation SendTask - sender: {}, tags: {}, content: {}", sender, tags, content);
-
                 yield new SendTask(sender, tags, content, false,
                         connectionStore, userRepo, tagRepo, configRepository);
             }
-            case "SUBSCRIBE" -> {
-                LOGGER.info("Creation SubscribeTask - sender: {}, receiver: {}", sender, receiver);
-                yield new SubscribeTask(userRepo, tagRepo, sender, receiver, false);
-            }
-            default -> {
-                LOGGER.error("Type de message inconnu : {}", innerType);
-                throw new IllegalArgumentException("Type inconnu : " + innerType);
-            }
+            case "SUBSCRIBE" -> new SubscribeTask(userRepo, tagRepo, sender, receiver, false);
+            default -> throw new IllegalArgumentException("Type inconnu : " + innerType);
         };
-
-        LOGGER.info("Ajout de la tâche {} a la file des taches", task.getClass().getSimpleName());
-        requestTaskManager.submit(task);
     }
 }

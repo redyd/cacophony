@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 /**
- * Tâche d'abonnement: se charge d'abonner un utilisateur à une personne ou un tag
+ * Tâche d'abonnement : se charge d'abonner un utilisateur à une personne ou un tag
+ *
+ * @author Riham
  */
 public class SubscribeTask implements ActionTask {
 
