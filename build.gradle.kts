@@ -19,8 +19,6 @@ subprojects {
 
         dependencies {
             "implementation"(libs.slf4j.api)
-            "implementation"(libs.logback.core)
-            "implementation"(libs.logback.classic)
 
             "testImplementation"(libs.junit.api)
             "testImplementation"(libs.mockito)
@@ -28,6 +26,7 @@ subprojects {
 
             "testRuntimeOnly"(libs.junit.engine)
             "testRuntimeOnly"(libs.junit.launcher)
+            "testRuntimeOnly"(libs.logback.classic)
         }
 
         tasks.withType<Test>().configureEach {

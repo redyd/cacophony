@@ -37,7 +37,6 @@ public class UDPFactory {
                 socket.setNetworkInterface(networkInterface);
             } else {
                 LOGGER.warn("Network interface '{}' not found. Please edit your config.", config.getNetworkInterface());
-                throw new SocketCreation("Could not create multicast socket");
             }
 
             return socket;

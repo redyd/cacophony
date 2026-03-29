@@ -8,6 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+/**
+ * Convertit une {@link ActionTask} en message POST et le propage dans le {@link SpeakerBridge}.
+ *
+ * @author Riham
+ */
 public class TaskRepeater {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskRepeater.class);

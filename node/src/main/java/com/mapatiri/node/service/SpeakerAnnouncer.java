@@ -73,7 +73,7 @@ public class SpeakerAnnouncer implements Clockable {
         var config = configRepository.getConfig();
 
         try (ServerSocket serverSocket = new ServerSocket(config.getRelayPort())) {
-            LOGGER.info("Waiting connexion on port '{}'", config.getRelayPort());
+            LOGGER.info("Waiting for connexion on port '{}'", config.getRelayPort());
 
             Socket speakerSocket = serverSocket.accept();
             LOGGER.info("Speaker connected from: '{}'", speakerSocket.getRemoteSocketAddress());
