@@ -29,14 +29,16 @@ public class TaskConverter {
     private final TagRepo tagRepo;
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
+    private final FollowerUtils followerUtils;
 
     @Inject
-    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository) {
+    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository, FollowerUtils followerUtils) {
         this.requestTaskManager = requestTaskManager;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
+        this.followerUtils = followerUtils;
     }
 
     /**
@@ -52,7 +54,7 @@ public class TaskConverter {
         String sender = parts.get(1);
         String receiver = parts.get(2);
         String innerMessage = parts.get(3);
-        String userLogin = FollowerUtils.stripDomain(sender);
+        String userLogin = followerUtils.stripDomain(sender);
         Optional<ClientConnection> maybeClient = connectionStore.get(userLogin);
 
         maybeClient.ifPresent(client -> {
@@ -80,9 +82,9 @@ public class TaskConverter {
                 List<String> tags = innerGrammar.extractTagsFromMessage();
 
                 yield new SendTask(sender, tags, content, false,
-                        connectionStore, userRepo, tagRepo, configRepository);
+                        connectionStore, userRepo, tagRepo, configRepository, followerUtils);
             }
-            case "SUBSCRIBE" -> new SubscribeTask(userRepo, tagRepo, sender, receiver, false);
+            case "SUBSCRIBE" -> new SubscribeTask(userRepo, tagRepo,followerUtils, sender, receiver, false);
             default -> throw new IllegalArgumentException("Type inconnu : " + innerType);
         };
     }

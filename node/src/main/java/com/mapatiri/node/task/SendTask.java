@@ -25,6 +25,7 @@ public class SendTask implements ActionTask {
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
     private final ConnectionStore connectionStore;
+    private final FollowerUtils followerUtils;
     private final String sender;
     private final String login;
     private final List<String> tags;
@@ -39,7 +40,8 @@ public class SendTask implements ActionTask {
             ConnectionStore connectionStore,
             UserRepo userRepo,
             TagRepo tagRepo,
-            ConfigRepository configRepository) {
+            ConfigRepository configRepository,
+            FollowerUtils followerUtils) {
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         String domain = configRepository.getConfig().getCurrentDomain();
@@ -49,6 +51,7 @@ public class SendTask implements ActionTask {
         this.content = content;
         this.shouldForward = shouldForward;
         this.connectionStore = connectionStore;
+        this.followerUtils = followerUtils;
     }
 
     @Override
@@ -77,7 +80,7 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getLocalFollowers() {
-        return FollowerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
+        return followerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
     /**
@@ -86,26 +89,26 @@ public class SendTask implements ActionTask {
     private Set<String> getLocalTagsFollowers() {
         Set<String> userSubscribedTags = userRepo.getUserFromLogin(login).getUserTags()
                 .stream()
-                .map(FollowerUtils::stripDomain)
+                .map(followerUtils::stripDomain)
                 .collect(Collectors.toSet());
 
         List<String> allowedTags = this.tags.stream()
                 .filter(userSubscribedTags::contains)
                 .collect(Collectors.toList());
 
-        return FollowerUtils.filterTagSubscribers(
+        return followerUtils.filterTagSubscribers(
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
     }
 
     private Set<String> getDistantFollowers() {
-        return FollowerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
+        return followerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
     /**
      * ça retourne les followers externe des tags local qui sont utilisé dans le message
      */
     private Set<String> getDistantTagsFollowers() {
-        return FollowerUtils.filterTagSubscribers(tagRepo.getAllTags().tags(), this.tags, sender, login, true);
+        return followerUtils.filterTagSubscribers(tagRepo.getAllTags().tags(), this.tags, sender, login, true);
     }
 
     public Set<String> getFollowersFromOtherDomain() {
@@ -123,7 +126,7 @@ public class SendTask implements ActionTask {
         String localDomain = sender.substring(sender.indexOf('@') + 1);
 
         for (String tag : userTags) {
-            String tagWithoutDomain = FollowerUtils.stripDomain(tag);
+            String tagWithoutDomain = followerUtils.stripDomain(tag);
             String tagDomain = tag.contains("@") ? tag.substring(tag.indexOf('@') + 1) : localDomain;
 
             if (tags.contains(tagWithoutDomain) && !tagDomain.equals(localDomain)) {

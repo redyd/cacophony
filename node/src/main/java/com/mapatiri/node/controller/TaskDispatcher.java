@@ -10,6 +10,7 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
+import com.mapatiri.node.service.FollowerUtils;
 import com.mapatiri.node.task.ActionTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class TaskDispatcher implements Dispatcher {
     private final RequestTaskManager requestTaskManager;
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
+    private final FollowerUtils followerUtils;
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
 
@@ -46,7 +48,8 @@ public class TaskDispatcher implements Dispatcher {
             TagRepo tagRepo,
             ConnectionStore connectionStore,
             AuthTaskManager auth,
-            ConfigRepository configRepository) {
+            ConfigRepository configRepository,
+            FollowerUtils followerUtils) {
 
         this.auth = auth;
         this.requestTaskManager = requestTaskManager;
@@ -54,6 +57,7 @@ public class TaskDispatcher implements Dispatcher {
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
+        this.followerUtils =  followerUtils;
     }
 
     @Override
@@ -98,7 +102,7 @@ public class TaskDispatcher implements Dispatcher {
         String target = components.getFirst();
         boolean shouldForward = DomainUtils.isDistantDomain(target, sender);
 
-        return new SubscribeTask(userRepo, tagRepo, sender, target, shouldForward);
+        return new SubscribeTask(userRepo, tagRepo,followerUtils, sender, target, shouldForward);
     }
 
     private SendTask buildSendTask(String sender, boolean shouldForward) {
@@ -106,7 +110,7 @@ public class TaskDispatcher implements Dispatcher {
         List<String> tags = regexGrammar.extractTagsFromMessage();
         String content = shouldForward ? components.getFirst() : components.get(1);
 
-        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository);
+        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository, followerUtils);
     }
 
     private String getRequestPreview(String request) {

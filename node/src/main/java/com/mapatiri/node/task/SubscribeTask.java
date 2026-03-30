@@ -22,16 +22,18 @@ public class SubscribeTask implements ActionTask {
 
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
+    private final FollowerUtils followerUtils;
     private final String sender;
     private final String toSubscribe;
     private final boolean shouldForward;
 
-    public SubscribeTask(UserRepo repo, TagRepo tagRepo, String sender, String toSubscribe, boolean shouldForward) {
+    public SubscribeTask(UserRepo repo, TagRepo tagRepo, FollowerUtils followerUtils, String sender, String toSubscribe, boolean shouldForward) {
         this.userRepo = repo;
         this.tagRepo = tagRepo;
         this.sender = sender;
         this.toSubscribe = toSubscribe;
         this.shouldForward = shouldForward;
+        this.followerUtils = followerUtils;
     }
 
     @Override
@@ -49,7 +51,7 @@ public class SubscribeTask implements ActionTask {
     }
 
     private void subscribeToTag() throws IOException {
-        String tagName = FollowerUtils.stripDomain(toSubscribe);
+        String tagName = followerUtils.stripDomain(toSubscribe);
         Tag tag = new Tag(tagName);
 
         if (!tagRepo.tagExist(tag)) {
@@ -58,12 +60,12 @@ public class SubscribeTask implements ActionTask {
 
         tagRepo.addSubscriberToTag(tagName, sender);
 
-        String senderLogin = FollowerUtils.stripDomain(sender);
+        String senderLogin = followerUtils.stripDomain(sender);
         userRepo.addUserTag(senderLogin, toSubscribe);
     }
 
     private void subscribeToUser() throws IOException {
-        String toSubscribeLogin = FollowerUtils.stripDomain(toSubscribe);
+        String toSubscribeLogin = followerUtils.stripDomain(toSubscribe);
         userRepo.addSubscriberToUser(toSubscribeLogin,sender );
     }
 

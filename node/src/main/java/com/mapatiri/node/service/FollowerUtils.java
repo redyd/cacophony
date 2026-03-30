@@ -20,11 +20,11 @@ public class FollowerUtils {
 
     private FollowerUtils() {} // ← empêche l'instanciation
 
-    public static String stripDomain(String login) {
+    public  String stripDomain(String login) {
         return login.contains("@") ? login.substring(0, login.indexOf('@')) : login;
     }
 
-    public static Set<String> filterSubscribers(Set<String> subscribers, String sender, String login, boolean distant) {
+    public  Set<String> filterSubscribers(Set<String> subscribers, String sender, String login, boolean distant) {
         return subscribers.stream()
                 .filter(f -> distant == DomainUtils.isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
@@ -32,7 +32,7 @@ public class FollowerUtils {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<String> filterTagSubscribers(List<Tag> tags, List<String> senderTags, String sender, String login, boolean distant) {
+    public  Set<String> filterTagSubscribers(List<Tag> tags, List<String> senderTags, String sender, String login, boolean distant) {
         return tags.stream()
                 .filter(tag -> senderTags.contains(tag.getTag()))
                 .peek(tag -> LOGGER.trace("Tag {} matched, adding its {} subscribers",
