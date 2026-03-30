@@ -1,11 +1,11 @@
 package com.mapatiri.node.service;
 
 public class DomainUtils {
-    public static String extractDomain(String userAtDomain) {
+    public String extractDomain(String userAtDomain) {
         return userAtDomain.substring(userAtDomain.indexOf('@') + 1);
     }
 
-    public static boolean isDistantDomain(String target, String localDomain) {
+    public boolean isDistantDomain(String target, String localDomain) {
         String targetDomain = target.contains("@")
                 ? extractDomain(target)
                 : target;
@@ -15,7 +15,7 @@ public class DomainUtils {
         return !targetDomain.equals(senderDomain);
     }
 
-    public static String getLogin(String userAtDomain) {
+    public String getLogin(String userAtDomain) {
         if (userAtDomain == null || !userAtDomain.contains("@")) {
             throw new IllegalArgumentException("Format invalide : " + userAtDomain);
         }

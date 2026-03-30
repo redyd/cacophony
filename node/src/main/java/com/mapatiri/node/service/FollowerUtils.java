@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 
 public class FollowerUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(FollowerUtils.class);
-
-    private FollowerUtils() {} // ← empêche l'instanciation
+    private final DomainUtils domainUtils;
+    private FollowerUtils(DomainUtils domainUtils) {
+        this.domainUtils = domainUtils;
+    } // ← empêche l'instanciation
 
     public  String stripDomain(String login) {
         return login.contains("@") ? login.substring(0, login.indexOf('@')) : login;
@@ -25,7 +27,7 @@ public class FollowerUtils {
 
     public  Set<String> filterSubscribers(Set<String> subscribers, String sender, String login, boolean distant) {
         return subscribers.stream()
-                .filter(f -> distant == DomainUtils.isDistantDomain(f, sender))
+                .filter(f -> distant == domainUtils.isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
                 .map(f -> distant ? f : stripDomain(f))
                 .collect(Collectors.toSet());
@@ -37,7 +39,7 @@ public class FollowerUtils {
                 .peek(tag -> LOGGER.trace("Tag {} matched, adding its {} subscribers",
                         tag.getTag(), tag.getSubscribers().size()))
                 .flatMap(tag -> tag.getSubscribers().stream())
-                .filter(f -> distant == DomainUtils.isDistantDomain(f, sender))
+                .filter(f -> distant == domainUtils.isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
                 .map(f -> distant ? f : stripDomain(f))
                 .collect(Collectors.toSet());
