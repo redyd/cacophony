@@ -105,7 +105,7 @@ public class TaskDispatcher implements Dispatcher {
         String target = components.getFirst();
         boolean shouldForward = domainUtils.isDistantDomain(target, sender);
 
-        return new SubscribeTask(userRepo, tagRepo,followerUtils, sender, target, shouldForward);
+        return new SubscribeTask(userRepo, tagRepo,followerUtils, sender, target, shouldForward, domainUtils);
     }
 
     private SendTask buildSendTask(String sender, boolean shouldForward) {
