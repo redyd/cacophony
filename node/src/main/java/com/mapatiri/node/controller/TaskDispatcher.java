@@ -78,19 +78,34 @@ public class TaskDispatcher implements Dispatcher {
 
         regexGrammar = new RegexGrammar(request);
         String type = regexGrammar.getTypeOfCommand();
+        String successMessage;
 
         ActionTask task = switch (type.toUpperCase()) {
-            case "SUBSCRIBE" -> buildSubscribeTask(sender);
-            case "SEND" -> buildSendTask(login, true);
-            case "MSG" -> buildSendTask(regexGrammar.parseCommand().getFirst(), false);
+            case "SUBSCRIBE" -> {
+                successMessage = "Subscribed with success";
+                yield buildSubscribeTask(sender);
+            }
+            case "SEND" -> {
+                successMessage = "Sent with success";
+                yield buildSendTask(login, true);
+            }
+            case "MSG" -> {
+                successMessage = "Received with success";
+                yield buildSendTask(regexGrammar.parseCommand().getFirst(), false);
+            }
             default -> {
                 LOGGER.warn("User {} made a bad request: '{}'", type, login);
                 throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
             }
         };
 
+        String finalSuccessMessage = successMessage;
+
         requestTaskManager.submit(task);
-        LOGGER.debug("Task for '{}' has been dispatched", login);
+        connectionStore.get(login).ifPresent(connection -> {
+           String ok = new RegexGrammar().buildCommand("OK", finalSuccessMessage);
+           connection.send(ok);
+        });
     }
 
     private SubscribeTask buildSubscribeTask(String sender) {
