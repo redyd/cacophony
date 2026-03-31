@@ -31,5 +31,5 @@ public interface TagRepo {
      * Vérifie si un tag existe pour ce node.
      */
     boolean tagExist(Tag tag);
-//    boolean tagExistInDomain(String tagName, String domain);
+
 }

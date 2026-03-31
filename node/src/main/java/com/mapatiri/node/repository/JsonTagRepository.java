@@ -95,13 +95,4 @@ public class JsonTagRepository implements TagRepo {
             Files.writeString(path, gson.toJson(tagsConfig), StandardCharsets.UTF_8);
         }
     }
-//    @Override
-//    public boolean tagExistInDomain(String tagName, String domain) {
-//        for (Tag t : tagsConfig.tags()) {
-//            if (t.getTag().equals(tagName) && t.getDomain().equals(domain)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
 }
