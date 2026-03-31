@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
  * @author Riham
  */
 
-public class FollowerUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FollowerUtils.class);
+public class IdentityUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityUtils.class);
 
-    private FollowerUtils() {
+    private IdentityUtils() {
 
     } // ← empêche l'instanciation
 

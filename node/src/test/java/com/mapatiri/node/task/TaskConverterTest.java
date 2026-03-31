@@ -5,7 +5,7 @@ import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
-import com.mapatiri.node.service.FollowerUtils;
+import com.mapatiri.node.service.IdentityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +19,7 @@ class TaskConverterTest {
     private TagRepo tagRepo;
     private ConnectionStore connectionStore;
     private ConfigRepository configRepository;
-    private  FollowerUtils followerUtils;
+    private IdentityUtils identityUtils;
 
     private TaskConverter taskConverter;
 
@@ -31,7 +31,7 @@ class TaskConverterTest {
         tagRepo = mock(TagRepo.class);
         connectionStore = mock(ConnectionStore.class);
         configRepository = mock(ConfigRepository.class);
-        followerUtils = mock(FollowerUtils.class);
+        identityUtils = mock(IdentityUtils.class);
 
 
         NodeConfig config = mock(NodeConfig.class);
@@ -44,7 +44,7 @@ class TaskConverterTest {
                 tagRepo,
                 connectionStore,
                 configRepository,
-                followerUtils
+                identityUtils
         );
     }
 

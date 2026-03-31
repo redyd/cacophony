@@ -36,7 +36,7 @@ public class AppModule extends AbstractModule {
 
         // Define singleton services
         bind(ConnectionStore.class).asEagerSingleton();
-        bind(FollowerUtils.class).in(Singleton.class);
+        bind(IdentityUtils.class).in(Singleton.class);
 
         bind(SocketFactory.class).in(Singleton.class);
         bind(ClientNodeServer.class).in(Singleton.class);
