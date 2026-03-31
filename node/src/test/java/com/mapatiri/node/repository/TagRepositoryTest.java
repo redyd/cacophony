@@ -27,11 +27,12 @@ class TagRepositoryTest {
         Files.writeString(path, "{\"tags\":[]}");
         repo.loadTags(path);
 
-        repo.addTag(new Tag("#monTag1"));
+        repo.addTag(new Tag("#monTag1", "node1.swilabus.xyz")); // ← domaine ajouté
         Tags all = repo.getAllTags();
         assertNotNull(all);
         assertEquals(1, all.tags().size());
         assertEquals("#monTag1", all.tags().getFirst().getTag());
+        assertEquals("node1.swilabus.xyz", all.tags().getFirst().getDomain()); // ← vérification domaine
     }
 
     @Test
@@ -40,8 +41,7 @@ class TagRepositoryTest {
         Files.writeString(path, "{\"tags\":[]}");
         repo.loadTags(path);
 
-        Tag tag = new Tag("#monTag1");
-        repo.addTag(tag);
+        repo.addTag(new Tag("#monTag1", "node1.swilabus.xyz")); // ← domaine ajouté
 
         repo.addSubscriberToTag("#monTag1", "louis@node1.swilabus.xyz");
         repo.addSubscriberToTag("#monTag1", "godswila@node1.swilabus.xyz");
@@ -57,7 +57,7 @@ class TagRepositoryTest {
         Files.writeString(path, "{\"tags\":[]}");
         repo.loadTags(path);
 
-        Tag tag = new Tag("#monTag1");
+        Tag tag = new Tag("#monTag1", "node1.swilabus.xyz"); // ← domaine ajouté
         tag.addSubscriber("louis@node1.swilabus.xyz");
         repo.addTag(tag);
 
@@ -66,6 +66,7 @@ class TagRepositoryTest {
 
         Tag loaded = newRepo.getAllTags().tags().getFirst();
         assertEquals("#monTag1", loaded.getTag());
+        assertEquals("node1.swilabus.xyz", loaded.getDomain()); // ← vérification domaine
         assertTrue(loaded.getSubscribers().contains("louis@node1.swilabus.xyz"));
     }
 
@@ -76,7 +77,7 @@ class TagRepositoryTest {
         JsonTagRepository repo = new JsonTagRepository();
         repo.loadTags(path);
 
-        repo.addTag(new Tag("#tagTest"));
+        repo.addTag(new Tag("#tagTest", "node1.swilabus.xyz")); // ← domaine ajouté
         repo.addSubscriberToTag("#tagTest", "testUser@node1.swilabus.xyz");
     }
 }
