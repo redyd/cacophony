@@ -72,13 +72,6 @@ public class JsonUserRepository implements UserRepo {
         saveUsers();
     }
 
-    @Override
-    public void addUserTag(String login, String tag) throws IOException {
-        User user = getUserFromLogin(login);
-        user.getUserTags().add(tag);
-        saveUsers();
-    }
-
     private void saveUsers() throws IOException {
         if (usersConfig == null) {
             throw new IllegalStateException("Users repository must be initialized");

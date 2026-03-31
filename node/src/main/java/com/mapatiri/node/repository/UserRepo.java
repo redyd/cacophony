@@ -41,5 +41,4 @@ public interface UserRepo {
      */
     void addSubscriberToUser(String login, String subscriberId) throws IOException;
 
-    void addUserTag(String login, String tag) throws IOException;
 }
