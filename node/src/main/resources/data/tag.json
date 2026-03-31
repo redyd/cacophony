@@ -1,9 +1,11 @@
 {
   "tags": [
     {
-      "tag": "#monTag1",
+      "tag": "#monTag26",
+      "domain": "node1.swilabus.xyz",
       "subscribers": [
-        "louis@node1.swilabus.xyz"
+        "louis@node1.swilabus.xyz",
+        "swawa@node1.swilabus.xyz"
       ]
     }
   ]
