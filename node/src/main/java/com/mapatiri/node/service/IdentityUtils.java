@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 public class IdentityUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityUtils.class);
 
-    private IdentityUtils() {
-
-    } // ← empêche l'instanciation
 
     public  String stripDomain(String login) {
         return login.contains("@") ? login.substring(0, login.indexOf('@')) : login;
