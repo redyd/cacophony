@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 
 public class FollowerUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(FollowerUtils.class);
-    private final DomainUtils domainUtils;
-    private FollowerUtils(DomainUtils domainUtils) {
-        this.domainUtils = domainUtils;
+
+    private FollowerUtils() {
+
     } // ← empêche l'instanciation
 
     public  String stripDomain(String login) {
@@ -27,7 +27,7 @@ public class FollowerUtils {
 
     public  Set<String> filterSubscribers(Set<String> subscribers, String sender, String login, boolean distant) {
         return subscribers.stream()
-                .filter(f -> distant == domainUtils.isDistantDomain(f, sender))
+                .filter(f -> distant == isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
                 .map(f -> distant ? f : stripDomain(f))
                 .collect(Collectors.toSet());
@@ -39,9 +39,29 @@ public class FollowerUtils {
                 .peek(tag -> LOGGER.trace("Tag {} matched, adding its {} subscribers",
                         tag.getTag(), tag.getSubscribers().size()))
                 .flatMap(tag -> tag.getSubscribers().stream())
-                .filter(f -> distant == domainUtils.isDistantDomain(f, sender))
+                .filter(f -> distant == isDistantDomain(f, sender))
                 .filter(f -> !stripDomain(f).equals(login))
                 .map(f -> distant ? f : stripDomain(f))
                 .collect(Collectors.toSet());
+    }
+    public String extractDomain(String userAtDomain) {
+        return userAtDomain.substring(userAtDomain.indexOf('@') + 1);
+    }
+
+    public boolean isDistantDomain(String target, String localDomain) {
+        String targetDomain = target.contains("@")
+                ? extractDomain(target)
+                : target;
+        String senderDomain = localDomain.contains("@")
+                ? extractDomain(localDomain)
+                : localDomain;
+        return !targetDomain.equals(senderDomain);
+    }
+
+    public String getLogin(String userAtDomain) {
+        if (userAtDomain == null || !userAtDomain.contains("@")) {
+            throw new IllegalArgumentException("Format invalide : " + userAtDomain);
+        }
+        return userAtDomain.substring(0, userAtDomain.indexOf("@"));
     }
 }

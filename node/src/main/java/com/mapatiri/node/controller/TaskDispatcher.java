@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.mapatiri.node.task.RequestTaskManager;
 import com.mapatiri.node.task.SendTask;
 import com.mapatiri.node.task.SubscribeTask;
-import com.mapatiri.node.service.DomainUtils;
 
 import java.net.Socket;
 import java.util.List;
@@ -38,7 +37,6 @@ public class TaskDispatcher implements Dispatcher {
     private final FollowerUtils followerUtils;
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
-    private final DomainUtils domainUtils;
 
     private RegexGrammar regexGrammar;
 
@@ -50,8 +48,7 @@ public class TaskDispatcher implements Dispatcher {
             ConnectionStore connectionStore,
             AuthTaskManager auth,
             ConfigRepository configRepository,
-            FollowerUtils followerUtils,
-            DomainUtils domainUtils) {
+            FollowerUtils followerUtils) {
 
         this.auth = auth;
         this.requestTaskManager = requestTaskManager;
@@ -60,7 +57,6 @@ public class TaskDispatcher implements Dispatcher {
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
         this.followerUtils =  followerUtils;
-        this.domainUtils = domainUtils;
     }
 
     @Override
@@ -103,9 +99,9 @@ public class TaskDispatcher implements Dispatcher {
     private SubscribeTask buildSubscribeTask(String sender) {
         List<String> components = regexGrammar.parseCommand();
         String target = components.getFirst();
-        boolean shouldForward = domainUtils.isDistantDomain(target, sender);
+        boolean shouldForward = followerUtils.isDistantDomain(target, sender);
 
-        return new SubscribeTask(userRepo, tagRepo,followerUtils, sender, target, shouldForward, domainUtils);
+        return new SubscribeTask(userRepo, tagRepo,followerUtils, sender, target, shouldForward);
     }
 
     private SendTask buildSendTask(String sender, boolean shouldForward) {
