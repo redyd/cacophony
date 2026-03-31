@@ -6,7 +6,7 @@ import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
-import com.mapatiri.node.service.FollowerUtils;
+import com.mapatiri.node.service.IdentityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public class SendTask implements ActionTask {
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
     private final ConnectionStore connectionStore;
-    private final FollowerUtils followerUtils;
+    private final IdentityUtils identityUtils;
     private final String sender;
     private final String login;
     private final List<String> tags;
@@ -41,7 +41,7 @@ public class SendTask implements ActionTask {
             UserRepo userRepo,
             TagRepo tagRepo,
             ConfigRepository configRepository,
-            FollowerUtils followerUtils) {
+            IdentityUtils identityUtils) {
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         String domain = configRepository.getConfig().getCurrentDomain();
@@ -51,7 +51,7 @@ public class SendTask implements ActionTask {
         this.content = content;
         this.shouldForward = shouldForward;
         this.connectionStore = connectionStore;
-        this.followerUtils = followerUtils;
+        this.identityUtils = identityUtils;
     }
 
     @Override
@@ -80,35 +80,39 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getLocalFollowers() {
-        return followerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
+        return identityUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 
     /**
      * la fct retourne les abonnés au tag utilisé dans le mssg, et il faut que le user soit abonné au tag pour qu'il soit considéré
      */
     private Set<String> getLocalTagsFollowers() {
-        Set<String> userSubscribedTags = userRepo.getUserFromLogin(login).getUserTags()
-                .stream()
-                .map(followerUtils::stripDomain)
-                .collect(Collectors.toSet());
+        Set<String> userSubscribedTags = getSenderSubscribedTags();
 
         List<String> allowedTags = this.tags.stream()
                 .filter(userSubscribedTags::contains)
                 .collect(Collectors.toList());
 
-        return followerUtils.filterTagSubscribers(
+        return identityUtils.filterTagSubscribers(
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
     }
 
     private Set<String> getDistantFollowers() {
-        return followerUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
+        return identityUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
     /**
      * ça retourne les followers externe des tags local qui sont utilisé dans le message
      */
     private Set<String> getDistantTagsFollowers() {
-        return followerUtils.filterTagSubscribers(tagRepo.getAllTags().tags(), this.tags, sender, login, true);
+        Set<String> senderSubscribedTags = getSenderSubscribedTags();
+
+        List<String> allowedTags = this.tags.stream()
+                .filter(senderSubscribedTags::contains)
+                .collect(Collectors.toList());
+
+        return identityUtils.filterTagSubscribers(
+                tagRepo.getAllTags().tags(), allowedTags, sender, login, true);
     }
 
     public Set<String> getFollowersFromOtherDomain() {
@@ -121,20 +125,21 @@ public class SendTask implements ActionTask {
      * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
      */
     public Set<String> getDistantTags() {
-        Set<String> distantTags = new HashSet<>();
-        Set<String> userTags = userRepo.getUserFromLogin(login).getUserTags();
         String localDomain = sender.substring(sender.indexOf('@') + 1);
+        Set<String> senderSubscribedTags = getSenderSubscribedTags();
 
-        for (String tag : userTags) {
-            String tagWithoutDomain = followerUtils.stripDomain(tag);
-            String tagDomain = tag.contains("@") ? tag.substring(tag.indexOf('@') + 1) : localDomain;
-
-            if (tags.contains(tagWithoutDomain) && !tagDomain.equals(localDomain)) {
-                distantTags.add(tag);
-            }
-        }
-
-        return distantTags;
+        return tagRepo.getAllTags().tags().stream()
+                .filter(tag -> tags.contains(tag.getTag()))
+                .filter(tag -> senderSubscribedTags.contains(tag.getTag()))
+                .filter(tag -> !tag.getDomain().equals(localDomain))
+                .map(tag -> tag.getTag() + "@" + tag.getDomain())
+                .collect(Collectors.toSet());
+    }
+    private Set<String> getSenderSubscribedTags() {
+        return tagRepo.getAllTags().tags().stream()
+                .filter(tag -> tag.getSubscribers().contains(sender))
+                .map(Tag::getTag)
+                .collect(Collectors.toSet());
     }
 
     public String getSender() {
