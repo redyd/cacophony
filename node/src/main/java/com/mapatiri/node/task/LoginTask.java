@@ -73,7 +73,12 @@ public class LoginTask implements AuthTask {
         out.println(challenge);
 
         // wait for challenge response
-        RegexGrammar challengeResponse = new RegexGrammar(in.readLine());
+        String resp = in.readLine();
+        if (resp == null || resp.isBlank()) {
+            throw new AuthentificationFailed("Response is empty");
+        }
+
+        RegexGrammar challengeResponse = new RegexGrammar(resp);
         List<String> challengeResponseValues = challengeResponse.parseCommand();
 
         // check challenge response validity
