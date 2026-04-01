@@ -96,9 +96,13 @@ public class TaskDispatcher implements Dispatcher {
                 successMessage = "Received with success";
                 yield buildSendTask(regexGrammar.parseCommand().getFirst(), false);
             }
+            case "LEAVE" -> {
+                successMessage = "Leaving with success";
+                yield buildLeaveTask(login);
+            }
             default -> {
                 LOGGER.warn("User {} made a bad request: '{}'", type, login);
-                throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
+                throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
             }
         };
 
@@ -109,6 +113,10 @@ public class TaskDispatcher implements Dispatcher {
            String ok = new RegexGrammar().buildCommand("OK", finalSuccessMessage);
            connection.send(ok);
         });
+    }
+
+    private LeaveTask buildLeaveTask(String sender) {
+        return new LeaveTask(notifier, connectionStore, sender);
     }
 
     private SubscribeTask buildSubscribeTask(String sender) {
