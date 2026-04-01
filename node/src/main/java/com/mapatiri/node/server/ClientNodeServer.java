@@ -3,6 +3,7 @@ package com.mapatiri.node.server;
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.controller.ClientSessionEventNotifier;
+import com.mapatiri.node.controller.ClientSessionReacter;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.exception.SocketCreation;
@@ -99,5 +100,4 @@ public class ClientNodeServer implements Runnable {
             LOGGER.info("Someone could not be authenticated: {}", e.getMessage());
         }
     }
-
 }

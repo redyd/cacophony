@@ -1,5 +1,6 @@
 package com.mapatiri.node.task;
 
+import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.model.NodeConfig;
@@ -26,6 +27,7 @@ class TaskDispatcherTest {
     @Mock private ConnectionStore connectionStore;
     @Mock private AuthTaskManager authTaskManager;
     @Mock private ConfigRepository configRepository;
+    @Mock private ClientSessionEventNotifier notifier;
 
     private IdentityUtils identityUtils; // ← vraie instance, pas un mock
     private TaskDispatcher dispatcher;
@@ -42,11 +44,11 @@ class TaskDispatcherTest {
         NodeConfig config = mock(NodeConfig.class);
         when(config.getCurrentDomain()).thenReturn(LOCAL_DOMAIN);
         when(configRepository.getConfig()).thenReturn(config);
-        when(configRepository.buildAtDomain(LOGIN)).thenReturn(SENDER); // ← login sans domaine
+        when(configRepository.buildAtDomain(LOGIN)).thenReturn(SENDER);
 
         dispatcher = new TaskDispatcher(
                 requestTaskManager, userRepo, tagRepo, connectionStore,
-                authTaskManager, configRepository, identityUtils // ← ajout
+                authTaskManager, configRepository, identityUtils, notifier
         );
     }
 
@@ -162,13 +164,6 @@ class TaskDispatcherTest {
     void submit_invalidCommand_throwsBadRequestException() {
         assertThrows(BadRequestException.class, () ->
                 dispatcher.submit("INVALID command\r\n", LOGIN)
-        );
-    }
-
-    @Test
-    void submit_leaveCommand_throwsBadRequestException() {
-        assertThrows(BadRequestException.class, () ->
-                dispatcher.submit("LEAVE\r\n", LOGIN)
         );
     }
 

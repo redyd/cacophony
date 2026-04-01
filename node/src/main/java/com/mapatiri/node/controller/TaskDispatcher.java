@@ -11,12 +11,9 @@ import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.IdentityUtils;
-import com.mapatiri.node.task.ActionTask;
+import com.mapatiri.node.task.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mapatiri.node.task.RequestTaskManager;
-import com.mapatiri.node.task.SendTask;
-import com.mapatiri.node.task.SubscribeTask;
 
 import java.net.Socket;
 import java.util.List;
@@ -37,6 +34,7 @@ public class TaskDispatcher implements Dispatcher {
     private final IdentityUtils identityUtils;
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
+    private final ClientSessionEventNotifier notifier;
 
     private RegexGrammar regexGrammar;
 
@@ -48,7 +46,7 @@ public class TaskDispatcher implements Dispatcher {
             ConnectionStore connectionStore,
             AuthTaskManager auth,
             ConfigRepository configRepository,
-            IdentityUtils identityUtils) {
+            IdentityUtils identityUtils, ClientSessionEventNotifier notifier) {
 
         this.auth = auth;
         this.requestTaskManager = requestTaskManager;
@@ -57,6 +55,7 @@ public class TaskDispatcher implements Dispatcher {
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
         this.identityUtils = identityUtils;
+        this.notifier = notifier;
     }
 
     @Override
@@ -96,9 +95,13 @@ public class TaskDispatcher implements Dispatcher {
                 successMessage = "Received with success";
                 yield buildSendTask(regexGrammar.parseCommand().getFirst(), false);
             }
+            case "LEAVE" -> {
+                successMessage = "Leaving with success";
+                yield buildLeaveTask(login);
+            }
             default -> {
                 LOGGER.warn("User {} made a bad request: '{}'", type, login);
-                throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
+                throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
             }
         };
 
@@ -109,6 +112,10 @@ public class TaskDispatcher implements Dispatcher {
            String ok = new RegexGrammar().buildCommand("OK", finalSuccessMessage);
            connection.send(ok);
         });
+    }
+
+    private LeaveTask buildLeaveTask(String sender) {
+        return new LeaveTask(notifier, connectionStore, sender);
     }
 
     private SubscribeTask buildSubscribeTask(String sender) {
