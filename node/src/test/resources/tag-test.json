@@ -2,92 +2,134 @@
   "tags": [
     {
       "tag": "",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": [
         "testUser@node1.swilabus.xyz"
       ]
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
       "subscribers": []
     },
     {
       "tag": "#tagTest",
+      "domain": "",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagTest",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagTest",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagTest",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagTest",
+      "domain": "node1.swilabus.xyz",
       "subscribers": []
     }
   ]

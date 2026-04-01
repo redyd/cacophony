@@ -10,7 +10,6 @@ public class User {
     private final int bcryptRound;
     private final String bcryptSalt;
     private final Set<String> subscribers;
-    private final Set<String> userTags;
 
     public User(String login, String bcryptHash, int bcryptRound, String bcryptSalt) {
         this.login = login;
@@ -19,7 +18,6 @@ public class User {
         this.bcryptSalt = bcryptSalt;
 
         this.subscribers = new HashSet<>();
-        this.userTags = new HashSet<>();
     }
 
     public String getLogin() {
@@ -46,7 +44,4 @@ public class User {
         return subscribers;
     }
 
-    public Set<String> getUserTags() {
-        return userTags;
-    }
 }

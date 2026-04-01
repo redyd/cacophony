@@ -10,13 +10,13 @@ import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
+import com.mapatiri.node.service.IdentityUtils;
 import com.mapatiri.node.task.ActionTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.mapatiri.node.task.RequestTaskManager;
 import com.mapatiri.node.task.SendTask;
 import com.mapatiri.node.task.SubscribeTask;
-import com.mapatiri.node.util.DomainUtils;
 
 import java.net.Socket;
 import java.util.List;
@@ -34,6 +34,7 @@ public class TaskDispatcher implements Dispatcher {
     private final RequestTaskManager requestTaskManager;
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
+    private final IdentityUtils identityUtils;
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
 
@@ -46,7 +47,8 @@ public class TaskDispatcher implements Dispatcher {
             TagRepo tagRepo,
             ConnectionStore connectionStore,
             AuthTaskManager auth,
-            ConfigRepository configRepository) {
+            ConfigRepository configRepository,
+            IdentityUtils identityUtils) {
 
         this.auth = auth;
         this.requestTaskManager = requestTaskManager;
@@ -54,6 +56,7 @@ public class TaskDispatcher implements Dispatcher {
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
         this.configRepository = configRepository;
+        this.identityUtils = identityUtils;
     }
 
     @Override
@@ -111,9 +114,9 @@ public class TaskDispatcher implements Dispatcher {
     private SubscribeTask buildSubscribeTask(String sender) {
         List<String> components = regexGrammar.parseCommand();
         String target = components.getFirst();
-        boolean shouldForward = DomainUtils.isDistantDomain(target, sender);
+        boolean shouldForward = identityUtils.isDistantDomain(target, sender);
 
-        return new SubscribeTask(userRepo, tagRepo, sender, target, shouldForward);
+        return new SubscribeTask(userRepo, tagRepo, identityUtils, sender, target, shouldForward);
     }
 
     private SendTask buildSendTask(String sender, boolean shouldForward) {
@@ -121,7 +124,7 @@ public class TaskDispatcher implements Dispatcher {
         List<String> tags = regexGrammar.extractTagsFromMessage();
         String content = shouldForward ? components.getFirst() : components.get(1);
 
-        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository);
+        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository, identityUtils);
     }
 
     private String getRequestPreview(String request) {

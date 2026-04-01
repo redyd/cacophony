@@ -5,7 +5,7 @@
   "multicastPort": 11003,
   "unicastPort": 5002,
   "relayPort": 5003,
-  "networkInterface": "enp1s0",
+  "networkInterface": "wireless_32768",
   "base64AES": "1f2682Wgj/OGwmbUCBAH8fuCeKsBYz8E4o+HM4+50is\u003d",
   "tls": true,
   "keystorePassword": "labo2026"

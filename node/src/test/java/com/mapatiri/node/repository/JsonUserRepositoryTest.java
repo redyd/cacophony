@@ -36,7 +36,7 @@ class JsonUserRepositoryTest {
         assertEquals(14, user.getBcryptRound());
         assertEquals("saltXYZ", user.getBcryptSalt());
         assertTrue(user.getSubscribers().isEmpty());
-        assertTrue(user.getUserTags().isEmpty());
+        // ← getUserTags() supprimé
     }
 
     @Test
@@ -52,18 +52,7 @@ class JsonUserRepositoryTest {
         assertTrue(user.getSubscribers().contains("louis"));
     }
 
-    @Test
-    void testAddUserTag(@TempDir Path tempDir) throws IOException, UserConflictException {
-        Path path = tempDir.resolve("users.json");
-        Files.writeString(path, "{\"users\":[]}");
-        repo.loadUsers(path);
-
-        repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
-        repo.addUserTag("louis", "#tagDeTest");
-
-        User user = repo.getUserFromLogin("louis");
-        assertTrue(user.getUserTags().contains("#tagDeTest"));
-    }
+    // ← testAddUserTag() supprimé
 
     @Test
     void testSaveAndLoadUsers(@TempDir Path tempDir) throws Exception {
@@ -72,7 +61,6 @@ class JsonUserRepositoryTest {
         repo.loadUsers(path);
 
         repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
-        repo.addUserTag("louis", "#tag1");
 
         JsonUserRepository newRepo = new JsonUserRepository();
         newRepo.loadUsers(path);
@@ -82,7 +70,28 @@ class JsonUserRepositoryTest {
         assertEquals("hash123", loaded.getBcryptHash());
         assertEquals(14, loaded.getBcryptRound());
         assertEquals("saltXYZ", loaded.getBcryptSalt());
-        assertTrue(loaded.getUserTags().contains("#tag1"));
+        // ← getUserTags() supprimé
+    }
+
+    @Test
+    void testDuplicateUserThrows(@TempDir Path tempDir) throws IOException, UserConflictException {
+        Path path = tempDir.resolve("users.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
+        repo.addUser(new User("louis", "hash123", 14, "saltXYZ"));
+
+        assertThrows(UserConflictException.class, () ->
+                repo.addUser(new User("louis", "hash456", 14, "saltABC")));
+    }
+
+    @Test
+    void testGetUnknownUserReturnsNull(@TempDir Path tempDir) throws Exception {
+        Path path = tempDir.resolve("users.json");
+        Files.writeString(path, "{\"users\":[]}");
+        repo.loadUsers(path);
+
+        assertNull(repo.getUserFromLogin("unknown"));
     }
 
     @Test
@@ -95,7 +104,11 @@ class JsonUserRepositoryTest {
         repo.loadUsers(tempTarget);
 
         repo.addUser(new User("testUser", "hash123", 14, "saltXYZ"));
-        repo.addUserTag("testUser", "#tagTest");
         repo.addSubscriberToUser("testUser", "louis");
+        // ← addUserTag() supprimé
+
+        User loaded = repo.getUserFromLogin("testUser");
+        assertNotNull(loaded);
+        assertTrue(loaded.getSubscribers().contains("louis"));
     }
 }
