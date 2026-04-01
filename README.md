@@ -8,6 +8,7 @@ Membres :
 - SOEUR Timëo
 
 ## Structure du projet
+
 ```
 cacophony
 ├── grammar    (librairie partagée)
@@ -31,11 +32,13 @@ Le projet est organisé en trois sous-modules Gradle :
 ## Exécuter un sous-projet
 
 ### Node
+
 ```bash
 ./gradlew node:run
 ```
 
 ### Speaker
+
 ```bash
 ./gradlew speaker:run
 ```
@@ -43,6 +46,7 @@ Le projet est organisé en trois sous-modules Gradle :
 ## Tests
 
 Les tests unitaires sont configurés globalement avec JUnit 5. Pour les lancer :
+
 ```bash
 ./gradlew test          # tous les sous-projets
 ./gradlew node:test     # uniquement node
@@ -52,7 +56,8 @@ Les tests unitaires sont configurés globalement avec JUnit 5. Pour les lancer :
 
 ## Logging
 
-Un système de log est mis en place avec SLF4J. Des exemples d'utilisation sont disponibles dans les classes `App` de chaque sous-projet.
+Un système de log est mis en place avec SLF4J. Retrouvez les détails des logs dans le dossier resources/logs de chaque
+sous projets.
 
 ## Gestion des dépendances
 
