@@ -59,7 +59,7 @@ public class ConnectionCatcher {
                 String domain = parts.get(1);
 
                 // Déléguer au speakerServer pour établir la connexion TCP
-                speakerServer.startConnectionFor(domain, relayPort);
+                speakerServer.startConnectionFor(nodeIP, domain, relayPort);
             }
         }
     }

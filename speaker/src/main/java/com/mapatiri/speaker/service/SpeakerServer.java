@@ -6,19 +6,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class SpeakerServer {
     private static final Logger logger = LoggerFactory.getLogger(SpeakerServer.class);
 
-    private final RegexGrammar  regexGrammar = new RegexGrammar();
+    private final RegexGrammar regexGrammar = new RegexGrammar();
 
     public SpeakerServer() {
 
     }
 
-    public void startConnectionFor(String domain, int port) {
+    public void startConnectionFor(InetAddress nodeIp, String domain, int port) {
         try(Socket socket = new Socket(domain, port)) {
             logger.info("Connected to " + socket.getInetAddress().getHostName());
 
@@ -27,7 +28,7 @@ public class SpeakerServer {
         }
     }
 
-    private void handleNode(String domain, int port) {
+    private void handleNode(InetAddress nodeIp, String domain, int port) {
 
     }
 }
