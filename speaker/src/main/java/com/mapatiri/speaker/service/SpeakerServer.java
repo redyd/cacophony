@@ -20,7 +20,7 @@ public class SpeakerServer {
     }
 
     public void startConnectionFor(InetAddress nodeIp, String domain, int port) {
-        try(Socket socket = new Socket(domain, port)) {
+        try(Socket socket = new Socket(nodeIp, port)) {
             logger.info("Connected to " + socket.getInetAddress().getHostName());
 
         } catch (IOException e) {

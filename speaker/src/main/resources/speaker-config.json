@@ -1,6 +1,6 @@
 {
   "multicastAddress": "224.224.200.200",
-  "multicastPort": 5001,
+  "multicastPort": 11003,
   "networkInterface": "wireless_32768",
   "configuredDomains": [
     {
