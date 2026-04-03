@@ -1,6 +1,6 @@
 package com.mapatiri.grammar;
 
-import com.mapatiri.grammar.parse.ParsedCommand;
+import com.mapatiri.grammar.parse.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -45,7 +45,7 @@ public class RegexGrammar {
     private final String command;
     private final Map<String, Pattern> regex = new HashMap<>();
 
-    public RegexGrammar(){
+    public RegexGrammar() {
         this("");
     }
 
@@ -85,13 +85,65 @@ public class RegexGrammar {
         }
         return elements;
     }
+
     public ParsedCommand parse(String command) {
+
         String trimmed = command.trim();
         if (trimmed.isBlank()) {
             throw new IllegalArgumentException("The command doesn't match any regex");
         }
-        String comand =
+
+        Matcher subMatcher = regex.get("SUBSCRIBE").matcher(trimmed);
+        if (subMatcher.matches()) {
+            return new Subscribe(subMatcher.group(1));
+        }
+
+        Matcher sendMatcher = regex.get("SEND").matcher(trimmed);
+        if (sendMatcher.matches()) {
+            return new Send(sendMatcher.group(1));
+        }
+
+        Matcher msgMatcher = regex.get("MSG").matcher(trimmed);
+        if (msgMatcher.matches()) {
+            return new Msg(msgMatcher.group(1), msgMatcher.group(2));
+        }
+
+        Matcher postMatcher = regex.get("POST").matcher(trimmed);
+        if (postMatcher.matches()) {
+            return new Post(
+                    postMatcher.group(1),
+                    postMatcher.group(2),
+                    postMatcher.group(3),
+                    postMatcher.group(4)
+            );
+        }
+
+        Matcher leaveMatcher = regex.get("LEAVE").matcher(trimmed);
+        if (leaveMatcher.matches()) {
+            return new Leave();
+        }
+
+        throw new IllegalArgumentException("The command should only be SUBSCRIBE, SEND, MSG, POST : " + trimmed);
+
     }
+
+    public String build(ParsedCommand command) {
+        return switch (command) {
+            case Send s -> validate("SEND", "SEND " + s.content() + "\r\n");
+            case Subscribe s -> validate("SUBSCRIBE", "SUBSCRIBE " + s.target() + "\r\n");
+            case Post p ->
+                    validate("POST", "POST " + p.id() + " " + p.sender() + " " + p.receiver() + " " + p.content() + "\r\n");
+            case Leave l -> "LEAVE\r\n";
+            default -> throw new IllegalArgumentException("Cannot build: " + command);
+        };
+    }
+
+    private String validate(String type, String message) {
+        Matcher m = regex.get(type).matcher(message);
+        if (!m.matches()) throw new IllegalArgumentException("Invalid: " + message);
+        return message;
+    }
+
 
     public String getTypeOfCommand() {
         Set<String> keys = regex.keySet();
@@ -119,24 +171,7 @@ public class RegexGrammar {
         return message;
     }
 
-    public List<String> extractTagsFromMessage() {
-        String type = getTypeOfCommand();
-        if (!"MSG".equals(type) && !"POST".equals(type) && !"SEND".equals(type) ) {
-            throw new IllegalArgumentException("Only the MSG, SEND and the POST type is accepted");
-        }
-        List<String> parts = parseCommand();
-
-        String text;
-
-        if ("MSG".equals(type)) {
-            text = parts.get(1);
-        } else if ("POST".equals(type)){ // POST
-            text = parts.get(3);
-        }else{
-             text = parts.getFirst();
-
-        }
-
+    public List<String> extractTagsFromMessage(String text) {
         Pattern tagPattern = Pattern.compile(TAG);
         Matcher m = tagPattern.matcher(text);
 
@@ -151,7 +186,7 @@ public class RegexGrammar {
         String domain = userAtDomain.substring(userAtDomain.indexOf('@') + 1);
 
         // je peux pas utiliser UUUID car il faut que je precise le mas de nbr que je souhaite
-        String id = String.valueOf((int)(Math.random() * 99999) + 1);
+        String id = String.valueOf((int) (Math.random() * 99999) + 1);
 
         String result = id + "@" + domain;
 
