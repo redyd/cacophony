@@ -1,5 +1,7 @@
 package com.mapatiri.grammar;
 
+import com.mapatiri.grammar.parse.ParsedCommand;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,6 +64,7 @@ public class RegexGrammar {
         regex.put("LEAVE", Pattern.compile(LEAVE));
         regex.put("ADVERT", Pattern.compile(ADVERT));
         regex.put("POST", Pattern.compile(POST));
+        //TODO A suprimer
         regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
         regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
@@ -81,6 +84,13 @@ public class RegexGrammar {
             elements.add(matcher.group(i));
         }
         return elements;
+    }
+    public ParsedCommand parse(String command) {
+        String trimmed = command.trim();
+        if (trimmed.isBlank()) {
+            throw new IllegalArgumentException("The command doesn't match any regex");
+        }
+        String comand =
     }
 
     public String getTypeOfCommand() {
@@ -151,12 +161,6 @@ public class RegexGrammar {
         }
 
         return result;
-    }
-    private boolean isDistantDomain(String target, String localDomain) {
-        String domain = target.contains("@")
-                ? target.substring(target.indexOf('@') + 1)
-                : localDomain;
-        return !domain.equals(localDomain);
     }
 
 }
