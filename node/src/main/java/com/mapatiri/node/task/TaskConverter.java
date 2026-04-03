@@ -69,12 +69,12 @@ public class TaskConverter {
                         client.markAsReceived(idAtDomain);
                         String msg = new RegexGrammar().buildCommand("MSG", sender, content);
                         client.send(msg);
-                        LOGGER.info("Message de {} livré à {}", sender, receiverLogin);
+                        LOGGER.info("Message of {} delivered to {}", sender, receiverLogin);
                     } else {
-                        LOGGER.info("Message dupliqué ignoré pour {}", receiverLogin);
+                        LOGGER.info("Duplicated ignored for {}", receiverLogin);
                     }
                 } catch (Exception e) {
-                    LOGGER.error("Erreur livraison à {}", receiverLogin, e);
+                    LOGGER.error("Delivery error to {}", receiverLogin, e);
                 }
             });
 
@@ -82,7 +82,7 @@ public class TaskConverter {
             ActionTask task = new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
             requestTaskManager.submit(task);
         } else {
-            LOGGER.warn("Type inconnu dans POST : {}", innerType);
+            LOGGER.warn("Unknown type in POST : {}", innerType);
         }
     }
 
@@ -100,7 +100,7 @@ public class TaskConverter {
                         connectionStore, userRepo, tagRepo, configRepository, identityUtils);
             }
             case "SUBSCRIBE" -> new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
-            default -> throw new IllegalArgumentException("Type inconnu : " + innerType);
+            default -> throw new IllegalArgumentException("Unknown type : " + innerType);
         };
     }
 }

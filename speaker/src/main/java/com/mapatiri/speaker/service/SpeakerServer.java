@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 public class SpeakerServer {
-    private static final Logger logger = LoggerFactory.getLogger(SpeakerServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpeakerServer.class);
 
     private final RegexGrammar regexGrammar = new RegexGrammar();
     private final NodeStore nodeStore;
@@ -36,12 +36,12 @@ public class SpeakerServer {
                 .anyMatch(d -> d.getDomain().equals(domain));
 
         if (!isKnown) {
-            logger.warn("Domaine inconnu ignore : {}", domain);
+            LOGGER.warn("Unknown domain ignored : {}", domain);
             return;
         }
 
         if (nodeStore.isConnected(domain)) {
-            logger.info("Deja connecte a {}, ADVERT ignore", domain);
+            LOGGER.info("Already connected to {}, ADVERT ignored", domain);
             return;
         }
 
@@ -54,12 +54,11 @@ public class SpeakerServer {
             NodeConnection nodeConnection = new NodeConnection(domain, socket);
             nodeStore.Add(nodeConnection);
 
-            logger.info("Connecte au node {}", domain);
+            LOGGER.info("Connected to node {}", domain);
 
             String encryptedLine;
             while ((encryptedLine = nodeConnection.waitForMessage()) != null) {
                 String decrypted = aesEncrypter.decrypt(domain, encryptedLine);
-                logger.debug("Message recu de {} : {}", domain, decrypted);
 
                 // Parser le POST pour trouver le domaine destinataire
                 RegexGrammar grammar = new RegexGrammar(decrypted);
@@ -75,11 +74,11 @@ public class SpeakerServer {
                 nodeStore.broadcast(destDomain, reEncrypted);
             }
 
-            logger.info("Node déconnecté : {}", domain);
+            LOGGER.info("Node disconnected : {}", domain);
             nodeStore.remove(domain);
 
         } catch (IOException e) {
-            logger.error("Erreur avec le node {} : {}", domain, e.getMessage());
+            LOGGER.error("Error with the node {} : {}", domain, e.getMessage());
             nodeStore.remove(domain);
         }
     }

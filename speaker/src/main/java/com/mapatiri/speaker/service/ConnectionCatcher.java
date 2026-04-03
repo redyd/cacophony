@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class ConnectionCatcher {
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionCatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionCatcher.class);
     private final SpeakerServer speakerServer;
     private final SpeakerConfigRepository speakerConfig;
 
@@ -37,7 +37,7 @@ public class ConnectionCatcher {
             NetworkInterface networkInterface = NetworkInterface.getByName(config.getNetworkInterface());
             multicastSocket.joinGroup(new InetSocketAddress(group, config.getMulticastPort()), networkInterface);
 
-            logger.info("Listening for UDP packets on port {}",  config.getMulticastPort());
+            LOGGER.info("Listening for UDP packets on port {}",  config.getMulticastPort());
 
             byte[] buffer = new byte[256];
 
@@ -50,12 +50,12 @@ public class ConnectionCatcher {
                 String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
                 InetAddress nodeIP = packet.getAddress();
 
-                logger.info("ADVERT recu de {} : {}", nodeIP, message.trim());
+                LOGGER.info("ADVERT received from {} : {}", nodeIP, message.trim());
 
                 // Parser le message ADVERT
                 RegexGrammar regexGrammar = new RegexGrammar(message);
                 if (!regexGrammar.getTypeOfCommand().equals("ADVERT")) {
-                    logger.warn("Message non ADVERT reçu, ignoré");
+                    LOGGER.warn("ADVERT message non received : {}, ignore", message);
                     continue;
                 }
 
@@ -67,7 +67,7 @@ public class ConnectionCatcher {
                 speakerServer.startConnectionFor(nodeIP, domain, relayPort);
             }
         }  catch (IOException e) {
-            logger.error("Erreur dans listenUdp : {}", e.getMessage());
+            LOGGER.error("Error in listenUdp : {}", e.getMessage());
         }
     }
 

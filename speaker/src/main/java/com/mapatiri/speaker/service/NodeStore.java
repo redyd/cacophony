@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeStore.class);
     private final Map<String, NodeConnection> connections = new ConcurrentHashMap<>();
 
     public void Add(NodeConnection nodeConnection) {
@@ -28,15 +28,14 @@ public class NodeStore {
     public void broadcast(String destDomain, String message) {
         NodeConnection nodeConnection = connections.get(destDomain);
         if (nodeConnection == null) {
-            logger.info("Node destinataire non connecte : {}", destDomain);
+            LOGGER.info("Receiver node not connected : {}", destDomain);
             return;
         }
         try {
-            logger.debug("Message envoyé vers node2 : '{}'", message);
             nodeConnection.send(message);
-            logger.info("Message forward vers {}", destDomain);
+            LOGGER.info("Message forward to {}", destDomain);
         } catch (IOException e) {
-            logger.error("Erreur lors du forward vers {} : {}", destDomain, e.getMessage());
+            LOGGER.error("Error during the forward to {} : {}", destDomain, e.getMessage());
         }
     }
 }

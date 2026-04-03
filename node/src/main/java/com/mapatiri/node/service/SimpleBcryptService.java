@@ -15,7 +15,7 @@ public class SimpleBcryptService implements BcryptService {
     public BcryptParams parseByCrypt(String bcrypt, int saltLength) {//ai
         // Vérifie format Bcrypt "$2b$14$..."
         if (bcrypt == null || !bcrypt.startsWith("$2b$")) {
-            throw new IllegalArgumentException("Format Bcrypt invalide: " + bcrypt);
+            throw new IllegalArgumentException("Invalid Bcrypt format: " + bcrypt);
         }
 
         // Split sur "$" → ["", "2b", "14", "salt+bcryptHash"]
@@ -24,7 +24,7 @@ public class SimpleBcryptService implements BcryptService {
                 .toArray(String[]::new);
 
         if (parts.length != 3) {
-            throw new IllegalArgumentException("Bcrypt malformé: " + bcrypt);
+            throw new IllegalArgumentException("Malfored bcrypt: " + bcrypt);
         }
 
         // part 0: 2b, part 1: round count, part 2: salt+hash

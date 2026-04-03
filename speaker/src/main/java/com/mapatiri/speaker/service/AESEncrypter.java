@@ -19,7 +19,7 @@ import java.util.Base64;
 public class AESEncrypter {
 
     private final SpeakerConfigRepository repo;
-    private static final Logger logger = LoggerFactory.getLogger(AESEncrypter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AESEncrypter.class);
 
     @Inject
     public AESEncrypter(SpeakerConfigRepository repo) {
@@ -59,7 +59,7 @@ public class AESEncrypter {
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
                  InvalidKeyException e) {
-            logger.error("Could not encrypt content: {}", e.getMessage());
+            LOGGER.error("Could not encrypt content: {}", e.getMessage());
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
         }
@@ -87,7 +87,7 @@ public class AESEncrypter {
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
                  InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            logger.error("Could not decrypt content: {}", e.getMessage());
+            LOGGER.error("Could not decrypt content: {}", e.getMessage());
         }
         return "";    }
 }

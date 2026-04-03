@@ -14,11 +14,11 @@ import java.nio.file.Path;
 
 public class App {
 
-    private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws IOException {
         Injector injector = Guice.createInjector(new AppModule());
-        logger.info("========== Speaker started ==========");
+        LOGGER.info("========== Speaker started ==========");
 
         var repo = injector.getInstance(SpeakerConfigRepository.class);
         repo.loadConfig(resolveResource("speaker-config.json"));

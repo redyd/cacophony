@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 public class NodeConnection {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeConnection.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeConnection.class);
 
     private final String domain;
     private final Socket socket;
