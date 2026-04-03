@@ -3,6 +3,7 @@ package com.mapatiri.node.task;
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.node.service.SpeakerBridge;
+import com.mapatiri.node.service.SpeakerBridgeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,10 @@ public class TaskRepeater {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskRepeater.class);
 
     private final RegexGrammar regexGrammar;
-    private final SpeakerBridge speakerBridge;
+    private final SpeakerBridgeService speakerBridge;
 
     @Inject
-    public TaskRepeater(SpeakerBridge speakerBridge) {
+    public TaskRepeater(SpeakerBridgeService speakerBridge) {
         this.speakerBridge = speakerBridge;
         this.regexGrammar = new RegexGrammar();
     }

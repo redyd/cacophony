@@ -8,6 +8,7 @@ application {
 
 dependencies {
     implementation(project(":grammar"))
+    implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.guice)
 

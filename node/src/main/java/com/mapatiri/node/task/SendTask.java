@@ -45,8 +45,13 @@ public class SendTask implements ActionTask {
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         String domain = configRepository.getConfig().getCurrentDomain();
-        this.sender = sender + "@" + domain;
-        this.login = sender;
+        if (sender.contains("@")) {
+            this.sender = sender;
+            this.login = sender.substring(0, sender.indexOf('@'));
+        } else {
+            this.sender = sender + "@" + domain;
+            this.login = sender;
+        }
         this.tags = tags;
         this.content = content;
         this.shouldForward = shouldForward;
@@ -80,6 +85,10 @@ public class SendTask implements ActionTask {
     }
 
     private Set<String> getLocalFollowers() {
+        User user = userRepo.getUserFromLogin(login);
+        if (user == null) {
+            return userRepo.getLocalSubscribersOf(sender);
+        }
         return identityUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, false);
     }
 

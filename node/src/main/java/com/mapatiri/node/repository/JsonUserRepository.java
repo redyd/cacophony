@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 public class JsonUserRepository implements UserRepo {
 
@@ -80,5 +82,16 @@ public class JsonUserRepository implements UserRepo {
         synchronized (this) {
             Files.writeString(path, gson.toJson(usersConfig), StandardCharsets.UTF_8);
         }
+    }
+
+    @Override
+    public Set<String> getLocalSubscribersOf(String senderAtDomain) {
+        Set<String> result = new HashSet<>();
+        for (User user : usersConfig.users()) {
+            if (user.getSubscribers().contains(senderAtDomain)) {
+                result.add(user.getLogin());
+            }
+        }
+        return result;
     }
 }

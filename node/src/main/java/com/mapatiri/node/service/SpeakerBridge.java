@@ -27,7 +27,7 @@ public class SpeakerBridge implements SpeakerBridgeService {
     private final AESEncrypter aes;
     private final Provider<TaskConverter> taskConverterProvider;
 
-    private PrintWriter out;
+    private volatile PrintWriter out;
 
     @Inject
     public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider) {
@@ -67,6 +67,7 @@ public class SpeakerBridge implements SpeakerBridgeService {
         try {
             // Préparer les flux
             this.out = new PrintWriter(speakerSocket.getOutputStream(), true);
+
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(speakerSocket.getInputStream(), StandardCharsets.UTF_8)
             );

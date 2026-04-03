@@ -26,7 +26,7 @@ public class ClientConnection {
         this.out = out;
     }
 
-    public  void send(String message) {
+    public void send(String message) {
         out.println(message);
     }
 
