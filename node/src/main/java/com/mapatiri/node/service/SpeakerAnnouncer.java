@@ -65,7 +65,7 @@ public class SpeakerAnnouncer implements Clockable {
             }
 
         } catch (IOException e) {
-            LOGGER.error("Error while sending advert: {}", e.getMessage());
+            LOGGER.error("ErrorProtocole while sending advert: {}", e.getMessage());
         }
     }
 
@@ -79,7 +79,7 @@ public class SpeakerAnnouncer implements Clockable {
             LOGGER.info("Speaker connected from: '{}'", speakerSocket.getRemoteSocketAddress());
             speakerBridge.startListening(speakerSocket);
         } catch (IOException e) {
-            LOGGER.error("Error while waiting for speaker connection: {}", e.getMessage());
+            LOGGER.error("ErrorProtocole while waiting for speaker connection: {}", e.getMessage());
         }
     }
 }

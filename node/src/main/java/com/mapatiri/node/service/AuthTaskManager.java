@@ -79,7 +79,7 @@ public class AuthTaskManager {
 
             return task.authenticate(client, in, out, response, randomString);
         } catch (IOException e) {
-            throw new AuthentificationFailed("Error getting connection to client");
+            throw new AuthentificationFailed("ErrorProtocole getting connection to client");
         }
     }
 

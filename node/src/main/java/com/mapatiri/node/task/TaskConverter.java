@@ -2,6 +2,10 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Msg;
+import com.mapatiri.grammar.parse.ParsedCommand;
+import com.mapatiri.grammar.parse.Post;
+import com.mapatiri.grammar.parse.Subscribe;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
@@ -48,59 +52,50 @@ public class TaskConverter {
      */
     public void convertAndSend(String message) {
         RegexGrammar grammar = new RegexGrammar(message);
-        List<String> parts = grammar.parseCommand();
+        Post post = switch (grammar.parse(message)) {
+            case Post p -> p;
+            default -> throw new IllegalArgumentException("Expected POST command: " + message);
+        };
 
-        String idAtDomain = parts.get(0);
-        String sender = parts.get(1);
-        String receiver = parts.get(2);
-        String innerMessage = parts.get(3);
+        String idAtDomain = post.id();
+        String sender = post.sender();
+        String receiver = post.receiver();
+        String innerMessage = post.content();
+        String userLogin = identityUtils.stripDomain(sender);
+        Optional<ClientConnection> maybeClient = connectionStore.get(userLogin);
 
-        RegexGrammar innerGrammar = new RegexGrammar(innerMessage);
-        String innerType = innerGrammar.getTypeOfCommand();
+        try {
+            ActionTask task = getActionTask(innerMessage, sender, receiver);
 
-        if (innerType.equals("MSG")) {
-            List<String> innerParts = innerGrammar.parseCommand();
-            String content = innerParts.get(1);
-            String receiverLogin = identityUtils.stripDomain(receiver);
-
-            connectionStore.get(receiverLogin).ifPresent(client -> {
-                try {
-                    if (!client.hasAlreadyReceived(idAtDomain)) {
-                        client.markAsReceived(idAtDomain);
-                        String msg = new RegexGrammar().buildCommand("MSG", sender, content);
-                        client.send(msg);
-                        LOGGER.info("Message of {} delivered to {}", sender, receiverLogin);
-                    } else {
-                        LOGGER.info("Duplicated ignored for {}", receiverLogin);
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Delivery error to {}", receiverLogin, e);
+            maybeClient.ifPresent(client -> {
+                if (client.hasAlreadyReceived(idAtDomain)) {
+                    LOGGER.info("A duplicate message was about to be sent to {}", client.getUser().getLogin());
+                    return;
                 }
+
+                client.markAsReceived(idAtDomain);
             });
 
-        } else if (innerType.equals("SUBSCRIBE")) {
-            ActionTask task = new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
             requestTaskManager.submit(task);
-        } else {
-            LOGGER.warn("Unknown type in POST : {}", innerType);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown message type received. It will be ignored.");
         }
     }
 
     private @NonNull ActionTask getActionTask(String innerMessage, String sender, String receiver) {
-        RegexGrammar innerGrammar = new RegexGrammar(innerMessage);
-        String innerType = innerGrammar.getTypeOfCommand();
+        RegexGrammar grammar = new RegexGrammar();
 
-        return switch (innerType) {
-            case "MSG" -> {
-                List<String> innerParts = innerGrammar.parseCommand();
-                String content = innerParts.get(1);
-                List<String> tags = innerGrammar.extractTagsFromMessage();
 
-                yield new SendTask(sender, tags, content, false,
+        return switch (grammar.parse(innerMessage)) {
+            case Msg msg -> {
+
+                List<String> tags = grammar.extractTagsFromMessage(innerMessage);
+
+                yield new SendTask(sender, tags, msg.content(), false,
                         connectionStore, userRepo, tagRepo, configRepository, identityUtils);
             }
-            case "SUBSCRIBE" -> new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
-            default -> throw new IllegalArgumentException("Unknown type : " + innerType);
+            case Subscribe ignored -> new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
+            default -> throw new IllegalArgumentException("Unknown type");
         };
     }
 }

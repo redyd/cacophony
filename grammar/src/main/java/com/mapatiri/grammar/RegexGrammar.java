@@ -3,6 +3,7 @@ package com.mapatiri.grammar;
 import com.mapatiri.grammar.parse.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +45,21 @@ public class RegexGrammar {
 
     private final String command;
     private final Map<String, Pattern> regex = new HashMap<>();
+    private final List<Parser<? extends ParsedCommand>> PARSERS = List.of(
+            new Parser<>("SUBSCRIBE",   m -> new Subscribe(m.group(1))),
+            new Parser<>("SEND",        m -> new Send(m.group(1))),
+            new Parser<>("MSG",         m -> new Msg(m.group(1), m.group(2))),
+            new Parser<>("POST",        m -> new Post(m.group(1), m.group(2), m.group(3), m.group(4))),
+            new Parser<>("CHALLENGE",   m -> new Challenge(m.group(1), m.group(2))),
+            new Parser<>("LEAVE",       m -> new Leave()),
+            new Parser<>("ERROR",       m -> new ErrorProtocole(m.group(1))),
+            new Parser<>("RESPONSE",    m -> new Response(m.group(1))),
+            new Parser<>("USER_ACTION", m -> new UserAction(m.group(1))),
+            new Parser<>("WELCOME",     m -> new Welcome(m.group(1), m.group(2))),
+            new Parser<>("ONBOARDING",  m -> new Onboarding(m.group(1), m.group(2), m.group(3))),
+            new Parser<>("OK",          m -> new Ok(m.group(1))),
+            new Parser<>("ADVERT",      m -> new Advert(m.group(1), m.group(2)))
+    );
 
     public RegexGrammar() {
         this("");
@@ -87,7 +103,6 @@ public class RegexGrammar {
     }
 
     public ParsedCommand parse(String command) {
-
         String trimmed = command.trim();
         if (trimmed.isBlank()) {
             throw new IllegalArgumentException("The command doesn't match any regex");
@@ -118,23 +133,86 @@ public class RegexGrammar {
             );
         }
 
+        Matcher challengeMatcher = regex.get("CHALLENGE").matcher(trimmed);
+        if (challengeMatcher.matches()) {
+            return new Challenge(challengeMatcher.group(1), challengeMatcher.group(2));
+        }
+
         Matcher leaveMatcher = regex.get("LEAVE").matcher(trimmed);
         if (leaveMatcher.matches()) {
             return new Leave();
         }
 
-        throw new IllegalArgumentException("The command should only be SUBSCRIBE, SEND, MSG, POST : " + trimmed);
+        Matcher errorMatcher = regex.get("ERROR").matcher(trimmed);
+        if (errorMatcher.matches()) {
+            return new ErrorProtocole(errorMatcher.group(1));
+        }
 
+        Matcher responseMatcher = regex.get("RESPONSE").matcher(trimmed);
+        if (responseMatcher.matches()) {
+            return new Response(responseMatcher.group(1));
+        }
+
+        Matcher userActionMatcher = regex.get("USER_ACTION").matcher(trimmed);
+        if (userActionMatcher.matches()) {
+            return new UserAction(userActionMatcher.group(1));
+        }
+
+        Matcher welcomeMatcher = regex.get("WELCOME").matcher(trimmed);
+        if (welcomeMatcher.matches()) {
+            return new Welcome(welcomeMatcher.group(1), welcomeMatcher.group(2));
+        }
+
+        Matcher onboardingMatcher = regex.get("ONBOARDING").matcher(trimmed);
+        if (onboardingMatcher.matches()) {
+            return new Onboarding(
+                    onboardingMatcher.group(1),
+                    onboardingMatcher.group(2),
+                    onboardingMatcher.group(3)
+            );
+        }
+
+        Matcher okMatcher = regex.get("OK").matcher(trimmed);
+        if (okMatcher.matches()) {
+            return new Ok(okMatcher.group(1));
+        }
+
+        Matcher advertMatcher = regex.get("ADVERT").matcher(trimmed);
+        if (advertMatcher.matches()) {
+            return new Advert(advertMatcher.group(1), advertMatcher.group(2));
+        }
+
+        throw new IllegalArgumentException("Unknown command: " + trimmed);
     }
 
     public String build(ParsedCommand command) {
         return switch (command) {
-            case Send s -> validate("SEND", "SEND " + s.content() + "\r\n");
-            case Subscribe s -> validate("SUBSCRIBE", "SUBSCRIBE " + s.target() + "\r\n");
+            case Send s ->
+                    validate("SEND", "SEND " + s.content() + "\r\n");
+            case Subscribe s ->
+                    validate("SUBSCRIBE", "SUBSCRIBE " + s.target() + "\r\n");
             case Post p ->
                     validate("POST", "POST " + p.id() + " " + p.sender() + " " + p.receiver() + " " + p.content() + "\r\n");
-            case Leave l -> "LEAVE\r\n";
-            default -> throw new IllegalArgumentException("Cannot build: " + command);
+            case Msg m ->
+                    validate("MSG", "MSG " + m.sender() + " " + m.content() + "\r\n");
+            case Leave l ->
+                    "LEAVE\r\n";
+            case Challenge c ->
+                    validate("CHALLENGE", "CHALLENGE " + c.counter() + " " + c.randomString() + "\r\n");
+            case Response r ->
+                    validate("RESPONSE", "RESPONSE " + r.sha3hex() + "\r\n");
+            case Onboarding o ->
+                    validate("ONBOARDING", "ONBOARDING " + o.user() + " " + o.saltLength() + " " + o.bcryptHash() + "\r\n");
+            case UserAction u ->
+                    validate("USER_ACTION", "USER " + u.login() + "\r\n");
+            case Ok o ->
+                    validate("OK", "OK " + o.message() + "\r\n");
+            case ErrorProtocole e ->
+                    validate("ERROR", "ERROR " + e.message() + "\r\n");
+            case Advert a ->
+                    validate("ADVERT", "ADVERT " + a.port() + " " + a.domain() + "\r\n");
+            case Welcome w ->
+                    validate("WELCOME", "WELCOME " + w.domain() + " " + w.randomString() + "\r\n");
         };
     }
 

@@ -85,7 +85,7 @@ public class ClientNodeServer implements Runnable {
 
                     dispatcher.submit(message, client.getUser().getLogin());
                 } catch (IOException e) {
-                    LOGGER.warn("Error while waiting for message: {}", e.getMessage());
+                    LOGGER.warn("ErrorProtocole while waiting for message: {}", e.getMessage());
                     break;
                 } catch (BadRequestException e) {
                     LOGGER.info("User made a bad request: {}", e.getMessage());

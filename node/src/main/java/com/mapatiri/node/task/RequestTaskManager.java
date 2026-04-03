@@ -41,7 +41,7 @@ public class RequestTaskManager {
 
                 LOGGER.info("Task '{}' has been submitted{}", task.getClass().getSimpleName(), task.shouldForward() ? " and forwarded" : "");
             } catch (Exception e) {
-                LOGGER.error("Error executing task: {}", task, e);
+                LOGGER.error("ErrorProtocole executing task: {}", task, e);
             } catch (Throwable t) {
                 LOGGER.error("FATAL error in task: {}", task, t);
             }

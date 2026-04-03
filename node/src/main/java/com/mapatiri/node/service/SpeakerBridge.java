@@ -92,7 +92,7 @@ public class SpeakerBridge implements SpeakerBridgeService {
             }
             LOGGER.warn("Connection has been lost with speaker '{}'", speakerSocket.getRemoteSocketAddress());
         } catch (IOException e) {
-            LOGGER.error("Error while listening speaker messages: {}", e.getMessage());
+            LOGGER.error("ErrorProtocole while listening speaker messages: {}", e.getMessage());
         }
     }
 }
