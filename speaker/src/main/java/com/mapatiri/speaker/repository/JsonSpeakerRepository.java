@@ -2,7 +2,7 @@ package com.mapatiri.speaker.repository;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mapatiri.speaker.Exception.SpeakerFileException;
+import com.mapatiri.speaker.exception.SpeakerFileException;
 import com.mapatiri.speaker.model.SpeakerConfig;
 
 import java.io.IOException;
