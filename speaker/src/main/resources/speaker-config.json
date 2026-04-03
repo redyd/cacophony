@@ -10,6 +10,10 @@
     {
       "domain": "node2.swilabus.xyz",
       "base64AES": "x0o9NMfpjiRRrSWzwka+g8vc1zO1BJXcdo3jHCZD+6Y="
+    },
+    {
+      "domain": "node3.swilabus.xyz",
+      "base64AES": "x0o9NPdpjiRRrSLzwka+g8vc1zO1BJfPdo3jHCZD+6Y="
     }
   ]
 }

@@ -28,7 +28,7 @@ public class ConnectionCatcher {
      *
      * @throws IOException
      */
-    public void listenUdp() throws IOException {
+    public void listenUdp() {
         var config = speakerConfig.getConfig();
 
         try(MulticastSocket multicastSocket = new MulticastSocket(config.getMulticastPort())) {
@@ -37,7 +37,7 @@ public class ConnectionCatcher {
             NetworkInterface networkInterface = NetworkInterface.getByName(config.getNetworkInterface());
             multicastSocket.joinGroup(new InetSocketAddress(group, config.getMulticastPort()), networkInterface);
 
-            logger.info("Listening for UDP packets on port 11003");
+            logger.info("Listening for UDP packets on port {}",  config.getMulticastPort());
 
             byte[] buffer = new byte[256];
 
@@ -66,6 +66,8 @@ public class ConnectionCatcher {
                 // Déléguer au speakerServer pour établir la connexion TCP
                 speakerServer.startConnectionFor(nodeIP, domain, relayPort);
             }
+        }  catch (IOException e) {
+            logger.error("Erreur dans listenUdp : {}", e.getMessage());
         }
     }
 

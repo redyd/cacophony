@@ -24,7 +24,9 @@ public class App {
         repo.loadConfig(resolveResource("speaker-config.json"));
 
         var connectionCatcher = injector.getInstance(ConnectionCatcher.class);
-        connectionCatcher.listenUdp();
+        var catcher = new Thread(connectionCatcher::listenUdp, "thread-multicast");
+
+        catcher.start();
     }
 
     private static Path resolveResource(String name) {
