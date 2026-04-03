@@ -17,7 +17,7 @@ import java.nio.file.Path;
 
 public class App {
 
-    private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws NodeFileException, SocketCreation {
         if (args.length < 3) {
@@ -54,7 +54,7 @@ public class App {
         clockThread.start();
         serverThread.start();
 
-        logger.info("========== Node started ==========");
+        LOGGER.info("========== Node started ==========");
     }
 
     private static Path resolveResource(String name) {
