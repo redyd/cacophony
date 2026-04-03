@@ -54,21 +54,36 @@ public class TaskConverter {
         String sender = parts.get(1);
         String receiver = parts.get(2);
         String innerMessage = parts.get(3);
-        String userLogin = identityUtils.stripDomain(sender);
-        Optional<ClientConnection> maybeClient = connectionStore.get(userLogin);
 
-        maybeClient.ifPresent(client -> {
-            if (client.hasAlreadyReceived(idAtDomain)) {
-                LOGGER.info("A duplicate message was about to be sent to {}", client.getUser().getLogin());
-                return;
-            }
+        RegexGrammar innerGrammar = new RegexGrammar(innerMessage);
+        String innerType = innerGrammar.getTypeOfCommand();
 
-            client.markAsReceived(idAtDomain);
-        });
+        if (innerType.equals("MSG")) {
+            List<String> innerParts = innerGrammar.parseCommand();
+            String content = innerParts.get(1);
+            String receiverLogin = identityUtils.stripDomain(receiver);
 
-        ActionTask task = getActionTask(innerMessage, sender, receiver);
+            connectionStore.get(receiverLogin).ifPresent(client -> {
+                try {
+                    if (!client.hasAlreadyReceived(idAtDomain)) {
+                        client.markAsReceived(idAtDomain);
+                        String msg = new RegexGrammar().buildCommand("MSG", sender, content);
+                        client.send(msg);
+                        LOGGER.info("Message de {} livré à {}", sender, receiverLogin);
+                    } else {
+                        LOGGER.info("Message dupliqué ignoré pour {}", receiverLogin);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Erreur livraison à {}", receiverLogin, e);
+                }
+            });
 
-        requestTaskManager.submit(task);
+        } else if (innerType.equals("SUBSCRIBE")) {
+            ActionTask task = new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
+            requestTaskManager.submit(task);
+        } else {
+            LOGGER.warn("Type inconnu dans POST : {}", innerType);
+        }
     }
 
     private @NonNull ActionTask getActionTask(String innerMessage, String sender, String receiver) {
