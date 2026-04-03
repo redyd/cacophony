@@ -1,0 +1,15 @@
+{
+  "users": [
+    {
+      "login": "louisss",
+      "bcryptHash": "xKAwnth8s54SC08SA1lggJYjj6wu7OG",
+      "bcryptRound": 14,
+      "bcryptSalt": "TUrc9INQX.KWWV3zXHIXN.",
+      "subscribers": [
+        "swawa@node1.swilabus.xyz",
+        "louis@node1.swilabus.xyz",
+        "lewis@node3.swilabus.xyz"
+      ]
+    }
+  ]
+}

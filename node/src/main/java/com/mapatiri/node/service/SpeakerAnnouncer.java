@@ -22,12 +22,12 @@ public class SpeakerAnnouncer implements Clockable {
     private final Logger LOGGER = LoggerFactory.getLogger(SpeakerAnnouncer.class);
 
     private final ConfigRepository configRepository;
-    private final SpeakerBridge speakerBridge;
+    private final SpeakerBridgeService speakerBridge;
     private MulticastSocket multicastSocket;
     private boolean isRunning = false;
 
     @Inject
-    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridge speakerBridge) {
+    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridgeService speakerBridge) {
         this.configRepository = jsonConfigRepository;
         this.speakerBridge = speakerBridge;
     }

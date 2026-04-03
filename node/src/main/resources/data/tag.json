@@ -1,10 +1,28 @@
 {
   "tags": [
     {
-      "tag": "#monTag26",
+      "tag": "#tagSurprise",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagEntreNous",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": []
+    },
+    {
+      "tag": "#tagMignon",
       "domain": "node1.swilabus.xyz",
       "subscribers": [
+        "louisss@node2.swilabus.xyz",
         "louis@node1.swilabus.xyz",
+        "swawa@node1.swilabus.xyz"
+      ]
+    },
+    {
+      "tag": "#pepechicken",
+      "domain": "node2.swilabus.xyz",
+      "subscribers": [
         "swawa@node1.swilabus.xyz"
       ]
     }

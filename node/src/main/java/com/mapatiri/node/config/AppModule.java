@@ -27,7 +27,7 @@ public class AppModule extends AbstractModule {
     protected void configure() {
         // Bind interface to implementation
         bind(Dispatcher.class).to(TaskDispatcher.class).in(Singleton.class);
-        bind(SpeakerBridgeService.class).to(SpeakerBridge.class);
+        bind(SpeakerBridgeService.class).to(SpeakerBridge.class).in(Singleton.class);
 
         // Json repo
         bind(ConfigRepository.class).to(JsonConfigRepository.class).in(Singleton.class);

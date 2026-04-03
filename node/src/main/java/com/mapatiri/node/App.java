@@ -20,6 +20,14 @@ public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws NodeFileException, SocketCreation {
+        if (args.length < 3) {
+            throw new IllegalArgumentException("Config file argument required");
+        }
+
+        Path configPath = Path.of(args[0]);
+        Path usersPath = Path.of(args[1]);
+        Path tagsPath = Path.of(args[2]);
+
         Thread.currentThread().setName("Cacophony node");
         Injector injector = Guice.createInjector(new AppModule());
 
@@ -28,9 +36,9 @@ public class App {
         var tagRepo = (JsonTagRepository) injector.getInstance(TagRepo.class);
         var userRepo = injector.getInstance(UserRepo.class);
 
-        configRepo.loadConfig(resolveResource("node-config.json"));
-        userRepo.loadUsers(resolveResource("data/user.json"));
-        tagRepo.loadTags(resolveResource("data/tag.json"));
+        configRepo.loadConfig(configPath);
+        userRepo.loadUsers(usersPath);
+        tagRepo.loadTags(tagsPath);
 
         var announcer = injector.getInstance(SpeakerAnnouncer.class);
         announcer.init(injector.getInstance(UDPFactory.class));

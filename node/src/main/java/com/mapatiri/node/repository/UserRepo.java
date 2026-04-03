@@ -7,6 +7,7 @@ import com.mapatiri.node.model.Users;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
 
 public interface UserRepo {
 
@@ -40,5 +41,7 @@ public interface UserRepo {
      * @param subscriberId
      */
     void addSubscriberToUser(String login, String subscriberId) throws IOException;
+
+    Set<String> getLocalSubscribersOf(String senderAtDomain);
 
 }
