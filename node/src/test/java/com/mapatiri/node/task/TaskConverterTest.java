@@ -1,6 +1,7 @@
 package com.mapatiri.node.task;
 
 import com.mapatiri.node.model.NodeConfig;
+import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
@@ -50,16 +51,19 @@ class TaskConverterTest {
 
     @Test
     void should_create_send_task_from_post_msg() {
+        ClientConnection connection = mock(ClientConnection.class);
+        when(identityUtils.stripDomain("bob12@domainB")).thenReturn("bob12");
+        when(connectionStore.get("bob12")).thenReturn(java.util.Optional.of(connection));
+        when(connection.hasAlreadyReceived("123@domainA")).thenReturn(false);
 
         String message =
                 "POST 123@domainA alice1@domainA bob12@domainB MSG bob12@domainB hello_world\r\n";
 
         taskConverter.convertAndSend(message);
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertTrue(captor.getValue() instanceof SendTask);
+        verify(connection).markAsReceived("123@domainA");
+        verify(connection).send(contains("MSG alice1@domainA hello_world"));
+        verifyNoInteractions(requestTaskManager);
     }
 
     @Test
@@ -82,17 +86,15 @@ class TaskConverterTest {
         String message =
                 "POST 789@domainA alice1@domainA bob12@domainB UNKNOWN something\r\n";
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> taskConverter.convertAndSend(message)
-        );
+        assertDoesNotThrow(() -> taskConverter.convertAndSend(message));
+        verifyNoInteractions(requestTaskManager);
     }
 
     @Test
     void should_submit_only_one_task() {
 
         String message =
-                "POST 111@domainA alice1@domainA bob12@domainB MSG bob12@domainB hello\r\n";
+                "POST 111@domainA alice1@domainA bob12@domainB SUBSCRIBE bob12@domainB\r\n";
 
         taskConverter.convertAndSend(message);
 
