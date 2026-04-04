@@ -2,6 +2,8 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.ErrorProtocole;
+import com.mapatiri.grammar.parse.Ok;
 import com.mapatiri.grammar.parse.Onboarding;
 import com.mapatiri.grammar.parse.ParsedCommand;
 import com.mapatiri.node.exception.AuthentificationFailed;
@@ -43,7 +45,7 @@ public class RegisterTask implements AuthTask {
 
             // check for response validity
             if (!(parsed instanceof Onboarding onboarding)) {
-                String err = new RegexGrammar().buildCommand("ERROR", "Invalid response to welcome");
+                String err = new RegexGrammar().build(new ErrorProtocole("Invalid response to welcome"));
                 out.println(err);
                 throw new AuthentificationFailed("Invalid response to welcome");
             }
@@ -58,8 +60,9 @@ public class RegisterTask implements AuthTask {
             ClientConnection connection = new ClientConnection(client, user, in, out);
 
             // create response
+
             String ok = new RegexGrammar()
-                    .buildCommand("OK", "Welcome to Cacophony %s".formatted(connection.getUser().getLogin()));
+                    .build(new Ok( "Welcome to Cacophony %s".formatted(connection.getUser().getLogin())));
             connection.send(ok);
 
             return connection;
@@ -73,7 +76,7 @@ public class RegisterTask implements AuthTask {
         try {
             userRepo.addUser(user);
         } catch (UserConflictException e) {
-            String err = new RegexGrammar().buildCommand("ERROR", "This login already exists");
+            String err = new RegexGrammar().build(new ErrorProtocole("This login already exists"));
             out.println(err);
             throw new AuthentificationFailed("Could not create user with same login as another");
         }

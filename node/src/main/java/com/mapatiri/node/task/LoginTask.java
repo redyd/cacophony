@@ -31,7 +31,7 @@ public class LoginTask implements AuthTask {
     }
 
     @Override
-    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, RegexGrammar response, String randomString) throws AuthentificationFailed {
+    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, ParsedCommand response, String randomString) throws AuthentificationFailed {
         try {
             User target = tryGettingUser(out, response);
 
@@ -44,7 +44,8 @@ public class LoginTask implements AuthTask {
             String expectedHash = hash(randomString + target.getHashedPassword());
 
             if (!expectedHash.equals(hashResponse)) {
-                String invalidCredentials = new RegexGrammar().buildCommand("ERROR", "Invalid credentials");
+
+                String invalidCredentials = new RegexGrammar().build(new ErrorProtocole("Invalid credentials"));
                 out.println(invalidCredentials);
                 throw new AuthentificationFailed("Invalid credentials");
             }
@@ -52,12 +53,12 @@ public class LoginTask implements AuthTask {
             ClientConnection connection = new ClientConnection(client, target, in, out);
 
             String ok = new RegexGrammar()
-                    .buildCommand("OK", "Welcome back to Cacophony %s".formatted(connection.getUser().getLogin()));
+                    .build(new Ok("Welcome back to Cacophony %s".formatted(connection.getUser().getLogin())));
             connection.send(ok);
 
             return connection;
         } catch (IOException | NoSuchAlgorithmException e) {
-            String unexpectedError = new RegexGrammar().buildCommand("ERROR", "Unexpected error");
+            String unexpectedError = new RegexGrammar().build(new ErrorProtocole("Unexpected error"));
             out.println(unexpectedError);
             throw new AuthentificationFailed("Something went wrong");
         }

@@ -84,104 +84,17 @@ public class RegexGrammar {
         regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
         regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
-
-    public List<String> parseCommand() {
-        String type = getTypeOfCommand();
-        if (type.isBlank()) {
-            throw new IllegalArgumentException("The command doesn't match any regex");
-        }
-        Matcher matcher = regex.get(type).matcher(command);
-        int groupCount = matcher.groupCount();
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Command does not match");
-        }
-        List<String> elements = new ArrayList<>();
-        for (int i = 1; i <= groupCount; i++) {
-            elements.add(matcher.group(i));
-        }
-        return elements;
-    }
-
     public ParsedCommand parse(String command) {
         String trimmed = command.trim();
         if (trimmed.isBlank()) {
             throw new IllegalArgumentException("The command doesn't match any regex");
         }
-
-        Matcher subMatcher = regex.get("SUBSCRIBE").matcher(trimmed);
-        if (subMatcher.matches()) {
-            return new Subscribe(subMatcher.group(1));
+        for (Parser<? extends ParsedCommand> parser : PARSERS) {
+            Matcher m = regex.get(parser.key()).matcher(trimmed);
+            if (m.matches()) {
+                return parser.factory().apply(m);
+            }
         }
-
-        Matcher sendMatcher = regex.get("SEND").matcher(trimmed);
-        if (sendMatcher.matches()) {
-            return new Send(sendMatcher.group(1));
-        }
-
-        Matcher msgMatcher = regex.get("MSG").matcher(trimmed);
-        if (msgMatcher.matches()) {
-            return new Msg(msgMatcher.group(1), msgMatcher.group(2));
-        }
-
-        Matcher postMatcher = regex.get("POST").matcher(trimmed);
-        if (postMatcher.matches()) {
-            return new Post(
-                    postMatcher.group(1),
-                    postMatcher.group(2),
-                    postMatcher.group(3),
-                    postMatcher.group(4)
-            );
-        }
-
-        Matcher challengeMatcher = regex.get("CHALLENGE").matcher(trimmed);
-        if (challengeMatcher.matches()) {
-            return new Challenge(challengeMatcher.group(1), challengeMatcher.group(2));
-        }
-
-        Matcher leaveMatcher = regex.get("LEAVE").matcher(trimmed);
-        if (leaveMatcher.matches()) {
-            return new Leave();
-        }
-
-        Matcher errorMatcher = regex.get("ERROR").matcher(trimmed);
-        if (errorMatcher.matches()) {
-            return new ErrorProtocole(errorMatcher.group(1));
-        }
-
-        Matcher responseMatcher = regex.get("RESPONSE").matcher(trimmed);
-        if (responseMatcher.matches()) {
-            return new Response(responseMatcher.group(1));
-        }
-
-        Matcher userActionMatcher = regex.get("USER_ACTION").matcher(trimmed);
-        if (userActionMatcher.matches()) {
-            return new UserAction(userActionMatcher.group(1));
-        }
-
-        Matcher welcomeMatcher = regex.get("WELCOME").matcher(trimmed);
-        if (welcomeMatcher.matches()) {
-            return new Welcome(welcomeMatcher.group(1), welcomeMatcher.group(2));
-        }
-
-        Matcher onboardingMatcher = regex.get("ONBOARDING").matcher(trimmed);
-        if (onboardingMatcher.matches()) {
-            return new Onboarding(
-                    onboardingMatcher.group(1),
-                    onboardingMatcher.group(2),
-                    onboardingMatcher.group(3)
-            );
-        }
-
-        Matcher okMatcher = regex.get("OK").matcher(trimmed);
-        if (okMatcher.matches()) {
-            return new Ok(okMatcher.group(1));
-        }
-
-        Matcher advertMatcher = regex.get("ADVERT").matcher(trimmed);
-        if (advertMatcher.matches()) {
-            return new Advert(advertMatcher.group(1), advertMatcher.group(2));
-        }
-
         throw new IllegalArgumentException("Unknown command: " + trimmed);
     }
 
@@ -215,6 +128,9 @@ public class RegexGrammar {
                     validate("WELCOME", "WELCOME " + w.domain() + " " + w.randomString() + "\r\n");
         };
     }
+    public String buildContent(ParsedCommand command) {
+        return build(command).replace("\r\n", "");
+    }
 
     private String validate(String type, String message) {
         Matcher m = regex.get(type).matcher(message);
@@ -222,32 +138,6 @@ public class RegexGrammar {
         return message;
     }
 
-
-    public String getTypeOfCommand() {
-        Set<String> keys = regex.keySet();
-        for (String key : keys) {
-            Pattern pattern = regex.get(key);
-            Matcher matcher = pattern.matcher(command);
-            if (matcher.matches()) {
-                return key;
-            }
-        }
-        return "";
-    }
-
-    public String buildCommand(String typeOfCommand, String... parts) {
-        Pattern pattern = regex.get(typeOfCommand);
-        List<String> tabMessage = new ArrayList<>(List.of(typeOfCommand));
-        tabMessage.addAll(List.of(parts));
-        String message = String.join(" ", tabMessage);
-        message = message.trim();
-        message += "\r\n";
-        Matcher matcher = pattern.matcher(message);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Arguments don't match the command pattern");
-        }
-        return message;
-    }
 
     public List<String> extractTagsFromMessage(String text) {
         Pattern tagPattern = Pattern.compile(TAG);

@@ -2,6 +2,7 @@ package com.mapatiri.node.server;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.ErrorProtocole;
 import com.mapatiri.node.controller.ClientSessionEventNotifier;
 import com.mapatiri.node.controller.ClientSessionReacter;
 import com.mapatiri.node.exception.AuthentificationFailed;
@@ -89,7 +90,7 @@ public class ClientNodeServer implements Runnable {
                     break;
                 } catch (BadRequestException e) {
                     LOGGER.info("User made a bad request: {}", e.getMessage());
-                    String badRequest = new RegexGrammar().buildCommand("ERROR", "Bad Request");
+                    String badRequest = new RegexGrammar().build(new ErrorProtocole("Bad Request"));
                     client.send(badRequest);
                 }
             }

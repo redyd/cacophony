@@ -35,7 +35,7 @@ public class TaskRepeater {
 
         if (task instanceof SendTask sendTask) {
             String id = regexGrammar.generateIdAtDomain(sendTask.getSender());
-            String message = regexGrammar.build(new Msg(sendTask.getSender(), sendTask.getContent()));
+            String message = regexGrammar.buildContent(new Msg(sendTask.getSender(), sendTask.getContent()));
 
             Set<String> distantFollowers = sendTask.getFollowersFromOtherDomain();
             LOGGER.info("Forwarding a message from {} to {} distant followers", sendTask.getSender(), distantFollowers.size());
@@ -53,7 +53,7 @@ public class TaskRepeater {
 
         } else if (task instanceof SubscribeTask subscribeTask) {
             LOGGER.info("Forwarding a subscribe command from {} to {}", subscribeTask.getSender(), subscribeTask.getToSubscribe());
-            String message = regexGrammar.build(new Subscribe(subscribeTask.getToSubscribe()));
+            String message = regexGrammar.buildContent(new Subscribe(subscribeTask.getToSubscribe()));
             String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
             post = regexGrammar.build(new Post(id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), message));
             speakerBridge.forward(post);

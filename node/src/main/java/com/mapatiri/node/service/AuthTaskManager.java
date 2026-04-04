@@ -2,6 +2,7 @@ package com.mapatiri.node.service;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.*;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.NodeConfig;
@@ -53,7 +54,7 @@ public class AuthTaskManager {
 
             // send welcome with rand char
             String randomString = randomString();
-            String welcome = new RegexGrammar().buildCommand("WELCOME", config.getCurrentDomain(), randomString);
+            String welcome = new RegexGrammar().build(new Welcome(config.getCurrentDomain(), randomString));
             out.println(welcome);
 
             // wait for response
@@ -63,21 +64,21 @@ public class AuthTaskManager {
                 throw new AuthentificationFailed("Response is empty");
             }
 
-            RegexGrammar response = new RegexGrammar(rawResponse);
-            String type = response.getTypeOfCommand();
+            RegexGrammar regexGrammar = new RegexGrammar();
+            ParsedCommand parsedCommand = regexGrammar.parse(rawResponse);
 
             // get correct task
-            AuthTask task = switch (type) {
-                case "USER_ACTION" -> loginTask;
-                case "ONBOARDING" -> registerTask;
+            AuthTask task = switch (parsedCommand) {
+                case UserAction userAction -> loginTask;
+                case Onboarding on -> registerTask;
                 default -> {
-                    String error = new RegexGrammar().buildCommand("ERROR", "Invalid authentication command");
+                    String error = new RegexGrammar().build(new ErrorProtocole("Invalid authentication command"));
                     out.println(error);
                     throw new AuthentificationFailed("Invalid response");
                 }
             };
 
-            return task.authenticate(client, in, out, response, randomString);
+            return task.authenticate(client, in, out, parsedCommand, randomString);
         } catch (IOException e) {
             throw new AuthentificationFailed("ErrorProtocole getting connection to client");
         }

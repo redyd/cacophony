@@ -2,6 +2,7 @@ package com.mapatiri.node.service;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Advert;
 import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.repository.ConfigRepository;
@@ -47,7 +48,7 @@ public class SpeakerAnnouncer implements Clockable {
 
             // Construire le message ADVERT
             String advert = new RegexGrammar()
-                    .buildCommand("ADVERT", String.valueOf(config.getRelayPort()), config.getCurrentDomain());
+                    .build(new Advert(String.valueOf(config.getRelayPort()), config.getCurrentDomain()));
 
             byte[] data = advert.getBytes(StandardCharsets.UTF_8);
 

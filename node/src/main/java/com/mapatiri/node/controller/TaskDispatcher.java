@@ -39,8 +39,7 @@ public class TaskDispatcher implements Dispatcher {
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
     private final ClientSessionEventNotifier notifier;
-
-    private RegexGrammar regexGrammar;
+    private final RegexGrammar regexGrammar;
 
     @Inject
     public TaskDispatcher(
@@ -60,6 +59,7 @@ public class TaskDispatcher implements Dispatcher {
         this.configRepository = configRepository;
         this.identityUtils = identityUtils;
         this.notifier = notifier;
+        this.regexGrammar = new RegexGrammar();
     }
 
     @Override
@@ -113,7 +113,7 @@ public class TaskDispatcher implements Dispatcher {
 
         requestTaskManager.submit(task);
         connectionStore.get(login).ifPresent(connection -> {
-            String ok = new RegexGrammar().buildCommand("OK", finalSuccessMessage);
+            String ok = grammar.build(new Ok(finalSuccessMessage));
             connection.send(ok);
         });
     }

@@ -2,6 +2,8 @@ package com.mapatiri.node.service;
 
 import com.google.inject.Provider;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.ParsedCommand;
+import com.mapatiri.grammar.parse.Post;
 import com.mapatiri.node.task.TaskConverter;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -81,13 +83,18 @@ public class SpeakerBridge implements SpeakerBridgeService {
                 LOGGER.info("A message has been received and decrypt from speaker");
 
                 // Identifier et valider le message
-                RegexGrammar grammar = new RegexGrammar(decrypted);
-                String type = grammar.getTypeOfCommand();
-
-                if (type.equals("POST")) {
+                RegexGrammar grammar = new RegexGrammar();
+                ParsedCommand parsedCommand ;
+                try {
+                    parsedCommand = grammar.parse(decrypted);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Received an unrecognized or malformed command from speaker, ignoring");
+                    continue;
+                }
+                if (parsedCommand instanceof Post) {
                     taskConverterProvider.get().convertAndSend(decrypted);
                 } else {
-                    LOGGER.warn("An unknown message type has been received from speaker: '{}'", type.isBlank() ? "inconnu" : type);
+                    LOGGER.warn("An unknown message type has been received from speaker: '{}'", parsedCommand != null ? parsedCommand.getClass().getSimpleName() : "inconnu");
                 }
             }
             LOGGER.warn("Connection has been lost with speaker '{}'", speakerSocket.getRemoteSocketAddress());
