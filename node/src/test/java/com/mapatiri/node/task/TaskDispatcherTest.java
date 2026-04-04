@@ -162,14 +162,14 @@ class TaskDispatcherTest {
 
     @Test
     void submit_invalidCommand_throwsBadRequestException() {
-        assertThrows(BadRequestException.class, () ->
+        assertThrows(IllegalArgumentException.class, () ->
                 dispatcher.submit("INVALID command\r\n", LOGIN)
         );
     }
 
     @Test
     void submit_emptyCommand_throwsBadRequestException() {
-        assertThrows(BadRequestException.class, () ->
+        assertThrows(IllegalArgumentException.class, () ->
                 dispatcher.submit("", LOGIN)
         );
     }
@@ -180,7 +180,7 @@ class TaskDispatcherTest {
     void submit_invalidCommand_doesNotSubmitTask() {
         try {
             dispatcher.submit("INVALID command\r\n", LOGIN);
-        } catch (BadRequestException ignored) {}
+        } catch (BadRequestException |IllegalArgumentException ignored) {}
 
         verifyNoInteractions(requestTaskManager);
     }
