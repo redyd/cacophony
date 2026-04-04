@@ -43,23 +43,23 @@ public class RegexGrammar {
     private final String ADVERT = "ADVERT" + SP + "(" + PORT + ")" + SP + "(" + DOMAIN + ")" + NEWLINE;
     private final String POST = "POST" + SP + "(" + ID_AT_DOMAIN + ")" + SP + "(" + USER_AT_DOMAIN + ")" + SP + "(" + USER_AT_DOMAIN + "|" + TAG_AT_DOMAIN + ")" + SP + "(" + INNER_MESSAGE + ")" + NEWLINE;
 
-    private final String command;
     private final Map<String, Pattern> regex = new HashMap<>();
     private final List<Parser<? extends ParsedCommand>> PARSERS = List.of(
-            new Parser<>("SUBSCRIBE",   m -> new Subscribe(m.group(1))),
-            new Parser<>("SEND",        m -> new Send(m.group(1))),
-            new Parser<>("MSG",         m -> new Msg(m.group(1), m.group(2))),
-            new Parser<>("POST",        m -> new Post(m.group(1), m.group(2), m.group(3), m.group(4))),
-            new Parser<>("CHALLENGE",   m -> new Challenge(m.group(1), m.group(2))),
-            new Parser<>("LEAVE",       m -> new Leave()),
-            new Parser<>("ERROR",       m -> new ErrorProtocole(m.group(1))),
-            new Parser<>("RESPONSE",    m -> new Response(m.group(1))),
+            new Parser<>("SUBSCRIBE", m -> new Subscribe(m.group(1))),
+            new Parser<>("SEND", m -> new Send(m.group(1))),
+            new Parser<>("MSG", m -> new Msg(m.group(1), m.group(2))),
+            new Parser<>("POST", m -> new Post(m.group(1), m.group(2), m.group(3), m.group(4))),
+            new Parser<>("CHALLENGE", m -> new Challenge(m.group(1), m.group(2))),
+            new Parser<>("LEAVE", m -> new Leave()),
+            new Parser<>("ERROR", m -> new ErrorProtocole(m.group(1))),
+            new Parser<>("RESPONSE", m -> new Response(m.group(1))),
             new Parser<>("USER_ACTION", m -> new UserAction(m.group(1))),
-            new Parser<>("WELCOME",     m -> new Welcome(m.group(1), m.group(2))),
-            new Parser<>("ONBOARDING",  m -> new Onboarding(m.group(1), m.group(2), m.group(3))),
-            new Parser<>("OK",          m -> new Ok(m.group(1))),
-            new Parser<>("ADVERT",      m -> new Advert(m.group(1), m.group(2)))
+            new Parser<>("WELCOME", m -> new Welcome(m.group(1), m.group(2))),
+            new Parser<>("ONBOARDING", m -> new Onboarding(m.group(1), m.group(2), m.group(3))),
+            new Parser<>("OK", m -> new Ok(m.group(1))),
+            new Parser<>("ADVERT", m -> new Advert(m.group(1), m.group(2)))
     );
+    private final String command;
 
     public RegexGrammar() {
         this("");
@@ -84,6 +84,7 @@ public class RegexGrammar {
         regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
         regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
+
     public ParsedCommand parse(String command) {
         String trimmed = command.trim();
         if (trimmed.isBlank()) {
@@ -98,36 +99,31 @@ public class RegexGrammar {
         throw new IllegalArgumentException("Unknown command: " + trimmed);
     }
 
+    private String assemble(String type, String keyword, String... parts) {
+        String message = parts.length == 0
+                ? keyword + "\r\n"
+                : keyword + " " + String.join(" ", parts) + "\r\n";
+        return validate(type, message);
+    }
+
     public String build(ParsedCommand command) {
         return switch (command) {
-            case Send s ->
-                    validate("SEND", "SEND " + s.content() + "\r\n");
-            case Subscribe s ->
-                    validate("SUBSCRIBE", "SUBSCRIBE " + s.target() + "\r\n");
-            case Post p ->
-                    validate("POST", "POST " + p.id() + " " + p.sender() + " " + p.receiver() + " " + p.content() + "\r\n");
-            case Msg m ->
-                    validate("MSG", "MSG " + m.sender() + " " + m.content() + "\r\n");
-            case Leave l ->
-                    "LEAVE\r\n";
-            case Challenge c ->
-                    validate("CHALLENGE", "CHALLENGE " + c.counter() + " " + c.randomString() + "\r\n");
-            case Response r ->
-                    validate("RESPONSE", "RESPONSE " + r.sha3hex() + "\r\n");
-            case Onboarding o ->
-                    validate("ONBOARDING", "ONBOARDING " + o.user() + " " + o.saltLength() + " " + o.bcryptHash() + "\r\n");
-            case UserAction u ->
-                    validate("USER_ACTION", "USER " + u.login() + "\r\n");
-            case Ok o ->
-                    validate("OK", "OK " + o.message() + "\r\n");
-            case ErrorProtocole e ->
-                    validate("ERROR", "ERROR " + e.message() + "\r\n");
-            case Advert a ->
-                    validate("ADVERT", "ADVERT " + a.port() + " " + a.domain() + "\r\n");
-            case Welcome w ->
-                    validate("WELCOME", "WELCOME " + w.domain() + " " + w.randomString() + "\r\n");
+            case Send s        -> assemble("SEND",       "SEND",      s.content());
+            case Subscribe s   -> assemble("SUBSCRIBE",  "SUBSCRIBE", s.target());
+            case Msg m         -> assemble("MSG",        "MSG",       m.sender(), m.content());
+            case Post p        -> assemble("POST",       "POST",      p.id(), p.sender(), p.receiver(), p.content());
+            case Challenge c   -> assemble("CHALLENGE",  "CHALLENGE", c.counter(), c.randomString());
+            case Response r    -> assemble("RESPONSE",   "RESPONSE",  r.sha3hex());
+            case Onboarding o  -> assemble("ONBOARDING", "ONBOARDING",o.user(), o.saltLength(), o.bcryptHash());
+            case UserAction u  -> assemble("USER_ACTION","USER",      u.login());
+            case Ok o          -> assemble("OK",         "OK",        o.message());
+            case ErrorProtocole e -> assemble("ERROR",   "ERROR",     e.message());
+            case Advert a      -> assemble("ADVERT",     "ADVERT",    a.port(), a.domain());
+            case Welcome w     -> assemble("WELCOME",    "WELCOME",   w.domain(), w.randomString());
+            case Leave l       -> "LEAVE\r\n";
         };
     }
+
     public String buildContent(ParsedCommand command) {
         return build(command).replace("\r\n", "");
     }
