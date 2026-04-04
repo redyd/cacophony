@@ -6,18 +6,13 @@ import com.mapatiri.grammar.parse.Msg;
 import com.mapatiri.grammar.parse.ParsedCommand;
 import com.mapatiri.grammar.parse.Post;
 import com.mapatiri.grammar.parse.Subscribe;
-import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.IdentityUtils;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Convertit un message POST pour la mettre sur la pile des tâches.
@@ -32,16 +27,14 @@ public class TaskConverter {
     private final UserRepo userRepo;
     private final TagRepo tagRepo;
     private final ConnectionStore connectionStore;
-    private final ConfigRepository configRepository;
     private final IdentityUtils identityUtils;
 
     @Inject
-    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, ConfigRepository configRepository, IdentityUtils identityUtils) {
+    public TaskConverter(RequestTaskManager requestTaskManager, UserRepo userRepo, TagRepo tagRepo, ConnectionStore connectionStore, IdentityUtils identityUtils) {
         this.requestTaskManager = requestTaskManager;
         this.userRepo = userRepo;
         this.tagRepo = tagRepo;
         this.connectionStore = connectionStore;
-        this.configRepository = configRepository;
         this.identityUtils = identityUtils;
     }
 
@@ -61,41 +54,37 @@ public class TaskConverter {
         String sender = post.sender();
         String receiver = post.receiver();
         String innerMessage = post.content();
-        String userLogin = identityUtils.stripDomain(sender);
-        Optional<ClientConnection> maybeClient = connectionStore.get(userLogin);
-
+        ParsedCommand innerCommand;
         try {
-            ActionTask task = getActionTask(innerMessage, sender, receiver);
-
-            maybeClient.ifPresent(client -> {
-                if (client.hasAlreadyReceived(idAtDomain)) {
-                    LOGGER.info("A duplicate message was about to be sent to {}", client.getUser().getLogin());
-                    return;
-                }
-
-                client.markAsReceived(idAtDomain);
-            });
-
-            requestTaskManager.submit(task);
+            innerCommand = grammar.parse(innerMessage + "\r\n");
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Unknown message type received. It will be ignored.");
+            LOGGER.warn("Unknown or malformed inner command in POST, ignoring: '{}'", innerMessage);
+            return;
         }
-    }
 
-    private @NonNull ActionTask getActionTask(String innerMessage, String sender, String receiver) {
-        RegexGrammar grammar = new RegexGrammar();
-
-
-        return switch (grammar.parse(innerMessage)) {
-            case Msg msg -> {
-
-                List<String> tags = grammar.extractTagsFromMessage(innerMessage);
-
-                yield new SendTask(sender, tags, msg.content(), false,
-                        connectionStore, userRepo, tagRepo, configRepository, identityUtils);
+        switch (innerCommand) {
+            case Msg m -> {
+                String receiverLogin = identityUtils.stripDomain(receiver);
+                connectionStore.get(receiverLogin).ifPresent(client -> {
+                    try {
+                        if (!client.hasAlreadyReceived(idAtDomain)) {
+                            client.markAsReceived(idAtDomain);
+                            String msg = grammar.build(new Msg(sender, m.content()));
+                            client.send(msg);
+                            LOGGER.info("Message of {} delivered to {}", sender, receiverLogin);
+                        } else {
+                            LOGGER.info("Duplicated ignored for {}", receiverLogin);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Delivery error to {}", receiverLogin, e);
+                    }
+                });
             }
-            case Subscribe ignored -> new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
-            default -> throw new IllegalArgumentException("Unknown type");
-        };
+            case Subscribe ignored -> {
+                ActionTask task = new SubscribeTask(userRepo, tagRepo, identityUtils, sender, receiver, false);
+                requestTaskManager.submit(task);
+            }
+            default -> LOGGER.warn("Unknown type in POST: {}", innerMessage);
+        }
     }
 }

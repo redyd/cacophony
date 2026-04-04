@@ -1,6 +1,8 @@
 package com.mapatiri.node.task;
 
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Subscribe;
+import com.mapatiri.grammar.parse.UserAction;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.repository.UserRepo;
 import org.junit.jupiter.api.Test;
@@ -26,20 +28,30 @@ class LoginTaskTest {
         LoginTask loginTask = new LoginTask(userRepo);
         Socket socket = mock(Socket.class);
         BufferedReader in = new BufferedReader(new StringReader(""));
-        StringWriter writer = new StringWriter();
-        PrintWriter out = new PrintWriter(writer, true);
-        RegexGrammar response = new RegexGrammar("USER alice11\r\n");
+        PrintWriter out = new PrintWriter(new StringWriter(), true);
 
         assertThrows(AuthentificationFailed.class, () ->
-                loginTask.authenticate(socket, in, out, response, "randomchars"));
+                loginTask.authenticate(socket, in, out, new UserAction("alice11"), "randomchars"));
+    }
+
+    @Test
+    void authenticateThrowsWhenParsedCommandIsNotUserAction() throws Exception {
+        UserRepo userRepo = mock(UserRepo.class);
+        LoginTask loginTask = new LoginTask(userRepo);
+        Socket socket = mock(Socket.class);
+        BufferedReader in = new BufferedReader(new StringReader(""));
+        PrintWriter out = new PrintWriter(new StringWriter(), true);
+
+        assertThrows(AuthentificationFailed.class, () ->
+                loginTask.authenticate(socket, in, out, new Subscribe("user1@example.com"), "randomchars"));
     }
 
     @Test
     void bytesToHexConvertsByteArrayToLowercaseHex() {
         LoginTask loginTask = new LoginTask(mock(UserRepo.class));
 
-        String value = loginTask.bytesToHex(new byte[]{0x0A, 0x1F});
+        String result = loginTask.bytesToHex(new byte[]{0x0A, 0x1F});
 
-        assertEquals("0a1f", value);
+        assertEquals("0a1f", result);
     }
 }

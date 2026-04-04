@@ -82,8 +82,13 @@ public class TaskDispatcher implements Dispatcher {
         String sender = configRepository.buildAtDomain(login);
         LOGGER.info("Processing request from '{}', of type '{}'", login, getRequestPreview(request));
 
-        RegexGrammar grammar = new RegexGrammar();
-        ParsedCommand command = grammar.parse(request);
+        ParsedCommand command;
+        try {
+            command = regexGrammar.parse(request);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("User {} made a bad request'", login);
+            throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
+        }
         String successMessage;
 
         ActionTask task = switch (command) {
@@ -105,7 +110,7 @@ public class TaskDispatcher implements Dispatcher {
             }
             default -> {
                 LOGGER.warn("User {} made a bad request: '{}'", command.getClass(), login);
-                throw new BadRequestException("The request should only be SEND, MSG or SUBSCRIBE");
+                throw new BadRequestException("The request should only be SEND, MSG ,  SUBSCRIBE or LEAVE");
             }
         };
 
@@ -113,18 +118,18 @@ public class TaskDispatcher implements Dispatcher {
 
         requestTaskManager.submit(task);
         connectionStore.get(login).ifPresent(connection -> {
-            String ok = grammar.build(new Ok(finalSuccessMessage));
+            String ok = regexGrammar.build(new Ok(finalSuccessMessage));
             connection.send(ok);
         });
-    }
-
-    private LeaveTask buildLeaveTask(String sender) {
-        return new LeaveTask(notifier, connectionStore, sender);
     }
 
     private SubscribeTask buildSubscribeTask(String sender, Subscribe sub) {
         boolean shouldForward = identityUtils.isDistantDomain(sub.target(), sender);
         return new SubscribeTask(userRepo, tagRepo, identityUtils, sender, sub.target(), shouldForward);
+    }
+
+    private LeaveTask buildLeaveTask(String sender) {
+        return new LeaveTask(notifier, connectionStore, sender);
     }
 
     private SendTask buildSendTask(String sender, Send send) {

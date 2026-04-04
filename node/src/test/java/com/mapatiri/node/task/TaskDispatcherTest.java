@@ -11,6 +11,7 @@ import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.IdentityUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -29,12 +30,12 @@ class TaskDispatcherTest {
     @Mock private ConfigRepository configRepository;
     @Mock private ClientSessionEventNotifier notifier;
 
-    private IdentityUtils identityUtils; // ← vraie instance, pas un mock
+    private IdentityUtils identityUtils;
     private TaskDispatcher dispatcher;
 
     private static final String LOCAL_DOMAIN = "node1.swilabus.xyz";
-    private static final String LOGIN = "louis";
-    private static final String SENDER = LOGIN + "@" + LOCAL_DOMAIN;
+    private static final String LOGIN        = "louis";
+    private static final String SENDER       = LOGIN + "@" + LOCAL_DOMAIN;
 
     @BeforeEach
     void setUp() {
@@ -52,136 +53,143 @@ class TaskDispatcherTest {
         );
     }
 
-    // ===== SEND =====
+    // ─────────────────────────────────────────────
+    // SEND
+    // ─────────────────────────────────────────────
 
-    @Test
-    void submit_sendCommand_createsSendTask() throws BadRequestException {
-        dispatcher.submit("SEND Hey les amis!\r\n", LOGIN);
+    @Nested
+    class SendCommand {
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
+        @Test
+        void createsSendTask() throws BadRequestException {
+            dispatcher.submit("SEND Hey les amis!\r\n", LOGIN);
 
-        assertInstanceOf(SendTask.class, captor.getValue());
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SendTask.class, captor.getValue());
+        }
+
+        @Test
+        void shouldForwardIsTrue() throws BadRequestException {
+            dispatcher.submit("SEND Hey les amis!\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertTrue(captor.getValue().shouldForward());
+        }
+
+        @Test
+        void createsSendTaskWithTag() throws BadRequestException {
+            dispatcher.submit("SEND Hey #metal11111 fans!\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SendTask.class, captor.getValue());
+        }
     }
 
-    @Test
-    void submit_sendCommand_shouldForwardIsTrue() throws BadRequestException {
-        dispatcher.submit("SEND Hey les amis!\r\n", LOGIN);
+    // ─────────────────────────────────────────────
+    // MSG
+    // ─────────────────────────────────────────────
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
+    @Nested
+    class MsgCommand {
 
-        assertTrue(captor.getValue().shouldForward());
+        @Test
+        void createsSendTask() throws BadRequestException {
+            dispatcher.submit("MSG louis@node1.swilabus.xyz Hey!\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SendTask.class, captor.getValue());
+        }
+
+        @Test
+        void shouldForwardIsFalse() throws BadRequestException {
+            dispatcher.submit("MSG louis@node1.swilabus.xyz Hey!\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertFalse(captor.getValue().shouldForward());
+        }
     }
 
-    @Test
-    void submit_sendCommandWithTag_createsSendTask() throws BadRequestException {
-        dispatcher.submit("SEND Hey #metal11111 fans!\r\n", LOGIN);
+    // ─────────────────────────────────────────────
+    // SUBSCRIBE
+    // ─────────────────────────────────────────────
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
+    @Nested
+    class SubscribeCommand {
 
-        assertInstanceOf(SendTask.class, captor.getValue());
+        @Test
+        void localUser_createsSubscribeTaskNotForwarded() throws BadRequestException {
+            dispatcher.submit("SUBSCRIBE alice11111@node1.swilabus.xyz\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SubscribeTask.class, captor.getValue());
+            assertFalse(captor.getValue().shouldForward());
+        }
+
+        @Test
+        void distantUser_createsSubscribeTaskForwarded() throws BadRequestException {
+            dispatcher.submit("SUBSCRIBE alice11111@node2.swilabus.xyz\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SubscribeTask.class, captor.getValue());
+            assertTrue(captor.getValue().shouldForward());
+        }
+
+        @Test
+        void localTag_createsSubscribeTaskNotForwarded() throws BadRequestException {
+            dispatcher.submit("SUBSCRIBE #metal11111@node1.swilabus.xyz\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SubscribeTask.class, captor.getValue());
+            assertFalse(captor.getValue().shouldForward());
+        }
+
+        @Test
+        void distantTag_createsSubscribeTaskForwarded() throws BadRequestException {
+            dispatcher.submit("SUBSCRIBE #metal11111@node2.swilabus.xyz\r\n", LOGIN);
+
+            ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
+            verify(requestTaskManager).submit(captor.capture());
+            assertInstanceOf(SubscribeTask.class, captor.getValue());
+            assertTrue(captor.getValue().shouldForward());
+        }
     }
 
-    // ===== MSG =====
+    // ─────────────────────────────────────────────
+    // Invalid commands
+    // ─────────────────────────────────────────────
 
-    @Test
-    void submit_msgCommand_createsSendTask() throws BadRequestException {
-        dispatcher.submit("MSG louis@node1.swilabus.xyz Hey!\r\n", LOGIN);
+    @Nested
+    class InvalidCommands {
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
+        @Test
+        void invalidCommand_throwsBadRequestException() {
+            assertThrows(BadRequestException.class, () ->
+                    dispatcher.submit("INVALID command\r\n", LOGIN)
+            );
+        }
 
-        assertInstanceOf(SendTask.class, captor.getValue());
-    }
+        @Test
+        void emptyCommand_throwsBadRequestException() {
+            assertThrows(BadRequestException.class, () ->
+                    dispatcher.submit("", LOGIN)
+            );
+        }
 
-    @Test
-    void submit_msgCommand_shouldForwardIsFalse() throws BadRequestException {
-        dispatcher.submit("MSG louis@node1.swilabus.xyz Hey!\r\n", LOGIN);
+        @Test
+        void invalidCommand_doesNotSubmitTask() {
+            try {
+                dispatcher.submit("INVALID command\r\n", LOGIN);
+            } catch (BadRequestException | IllegalArgumentException ignored) {}
 
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertFalse(captor.getValue().shouldForward());
-    }
-
-    // ===== SUBSCRIBE local user =====
-
-    @Test
-    void submit_subscribeLocalUser_createsSubscribeTaskNotForwarded() throws BadRequestException {
-        dispatcher.submit("SUBSCRIBE alice11111@node1.swilabus.xyz\r\n", LOGIN);
-
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertInstanceOf(SubscribeTask.class, captor.getValue());
-        assertFalse(captor.getValue().shouldForward());
-    }
-
-    // ===== SUBSCRIBE distant user =====
-
-    @Test
-    void submit_subscribeDistantUser_createsSubscribeTaskForwarded() throws BadRequestException {
-        dispatcher.submit("SUBSCRIBE alice11111@node2.swilabus.xyz\r\n", LOGIN);
-
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertInstanceOf(SubscribeTask.class, captor.getValue());
-        assertTrue(captor.getValue().shouldForward());
-    }
-
-    // ===== SUBSCRIBE local tag =====
-
-    @Test
-    void submit_subscribeLocalTag_createsSubscribeTaskNotForwarded() throws BadRequestException {
-        dispatcher.submit("SUBSCRIBE #metal11111@node1.swilabus.xyz\r\n", LOGIN);
-
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertInstanceOf(SubscribeTask.class, captor.getValue());
-        assertFalse(captor.getValue().shouldForward());
-    }
-
-    // ===== SUBSCRIBE distant tag =====
-
-    @Test
-    void submit_subscribeDistantTag_createsSubscribeTaskForwarded() throws BadRequestException {
-        dispatcher.submit("SUBSCRIBE #metal11111@node2.swilabus.xyz\r\n", LOGIN);
-
-        ArgumentCaptor<ActionTask> captor = ArgumentCaptor.forClass(ActionTask.class);
-        verify(requestTaskManager).submit(captor.capture());
-
-        assertInstanceOf(SubscribeTask.class, captor.getValue());
-        assertTrue(captor.getValue().shouldForward());
-    }
-
-    // ===== Invalid commands =====
-
-    @Test
-    void submit_invalidCommand_throwsBadRequestException() {
-        assertThrows(IllegalArgumentException.class, () ->
-                dispatcher.submit("INVALID command\r\n", LOGIN)
-        );
-    }
-
-    @Test
-    void submit_emptyCommand_throwsBadRequestException() {
-        assertThrows(IllegalArgumentException.class, () ->
-                dispatcher.submit("", LOGIN)
-        );
-    }
-
-    // ===== task non soumise si exception =====
-
-    @Test
-    void submit_invalidCommand_doesNotSubmitTask() {
-        try {
-            dispatcher.submit("INVALID command\r\n", LOGIN);
-        } catch (BadRequestException |IllegalArgumentException ignored) {}
-
-        verifyNoInteractions(requestTaskManager);
+            verifyNoInteractions(requestTaskManager);
+        }
     }
 }

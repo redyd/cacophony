@@ -2,6 +2,7 @@ package com.mapatiri.speaker.service;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Advert;
 import com.mapatiri.speaker.model.SpeakerConfig;
 import com.mapatiri.speaker.repository.SpeakerConfigRepository;
 import org.slf4j.Logger;
@@ -31,15 +32,16 @@ public class ConnectionCatcher {
     public void listenUdp() {
         var config = speakerConfig.getConfig();
 
-        try(MulticastSocket multicastSocket = new MulticastSocket(config.getMulticastPort())) {
+        try (MulticastSocket multicastSocket = new MulticastSocket(config.getMulticastPort())) {
 
             InetAddress group = InetAddress.getByName(config.getMulticastAddress());
             NetworkInterface networkInterface = NetworkInterface.getByName(config.getNetworkInterface());
             multicastSocket.joinGroup(new InetSocketAddress(group, config.getMulticastPort()), networkInterface);
 
-            LOGGER.info("Listening for UDP packets on port {}",  config.getMulticastPort());
+            LOGGER.info("Listening for UDP packets on port {}", config.getMulticastPort());
 
             byte[] buffer = new byte[256];
+            RegexGrammar grammar = new RegexGrammar();
 
             while (!Thread.currentThread().isInterrupted()) {
                 // Attendre un paquet UDP
@@ -52,21 +54,22 @@ public class ConnectionCatcher {
 
                 LOGGER.info("ADVERT received from {} : {}", nodeIP, message.trim());
 
-                // Parser le message ADVERT
-                RegexGrammar regexGrammar = new RegexGrammar(message);
-                if (!regexGrammar.getTypeOfCommand().equals("ADVERT")) {
-                    LOGGER.warn("ADVERT message non received : {}, ignore", message);
-                    continue;
+                try {
+                    // Parser le message ADVERT
+                    switch (grammar.parse(message)) {
+                        // Déléguer au speakerServer pour établir la connexion TCP
+                        case Advert a -> speakerServer.startConnectionFor(
+                                nodeIP,
+                                a.domain(),
+                                Integer.parseInt(a.port())
+                        );
+                        default -> LOGGER.warn("Expected ADVERT command, got something else: {}", message.trim());
+                    }
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Unrecognized or malformed UDP message, ignoring: {}", message.trim());
                 }
-
-                List<String> parts = regexGrammar.parseCommand();
-                int relayPort = Integer.parseInt(parts.get(0));
-                String domain = parts.get(1);
-
-                // Déléguer au speakerServer pour établir la connexion TCP
-                speakerServer.startConnectionFor(nodeIP, domain, relayPort);
             }
-        }  catch (IOException e) {
+        } catch (IOException e) {
             LOGGER.error("Error in listenUdp : {}", e.getMessage());
         }
     }
