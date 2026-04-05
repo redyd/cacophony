@@ -151,14 +151,10 @@ Prérequis pour les scénarios TLS :
 - Java / Gradle doivent être disponibles pour construire `speaker` et `node`.
 - Les données `user*.json` et `tag*.json` sont générées par le runner selon le scénario ; elles ne sont pas relues telles quelles depuis le repo.
 
-Commandes principales :
+Commande principale :
 
 ```bash
-python3 runner/run.py
-python3 runner/run.py --scenario runner/scenarios/tag_edge_cases.json
-python3 runner/run.py --skip-build
-python3 runner/run.py --keep-runtime
-python3 runner/run.py --mode gui-demo --action-delay 1.5 --scenario runner/scenarios/gui_demo.json
+python3 runner/run.py --mode gui-demo --action-delay 3 --scenario runner/scenarios/tag_edge_cases.json
 ```
 
 Notes :
