@@ -4,7 +4,7 @@ import com.google.inject.Provider;
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.grammar.parse.ParsedCommand;
 import com.mapatiri.grammar.parse.Post;
-import com.mapatiri.node.task.TaskConverter;
+import com.mapatiri.node.controller.TaskConverter;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

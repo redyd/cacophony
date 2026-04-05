@@ -1,4 +1,4 @@
-package com.mapatiri.node.task;
+package com.mapatiri.node.controller;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
@@ -7,6 +7,9 @@ import com.mapatiri.grammar.parse.Post;
 import com.mapatiri.grammar.parse.Subscribe;
 import com.mapatiri.node.service.SpeakerBridge;
 import com.mapatiri.node.service.SpeakerBridgeService;
+import com.mapatiri.node.task.ActionTask;
+import com.mapatiri.node.task.SendTask;
+import com.mapatiri.node.task.SubscribeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -155,19 +155,11 @@ Commandes principales :
 
 ```bash
 python3 runner/run.py
-python3 runner/run.py --scenario runner/scenarios/setup_demo.json
 python3 runner/run.py --scenario runner/scenarios/tag_edge_cases.json
 python3 runner/run.py --skip-build
 python3 runner/run.py --keep-runtime
 python3 runner/run.py --mode gui-demo --action-delay 1.5 --scenario runner/scenarios/gui_demo.json
 ```
-
-Effet des commandes :
-
-- `prepared_demo.json` : vérifie le scénario Bobby/Louis/Louise en mode headless.
-- `setup_demo.json` : rejoue les `SUBSCRIBE` avant l'envoi du message.
-- `tag_edge_cases.json` : vérifie les cas limites liés aux tags, dont la non-duplication quand un même destinataire suit à la fois l'utilisateur et le tag.
-- `gui_demo.json` : ouvre les clients Python en TLS, les pilote automatiquement, puis laisse les fenêtres ouvertes pour inspection.
 
 Notes :
 

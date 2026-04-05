@@ -1,6 +1,9 @@
-package com.mapatiri.node.task;
+package com.mapatiri.node.controller;
 
 import com.mapatiri.node.service.SpeakerBridge;
+import com.mapatiri.node.task.ActionTask;
+import com.mapatiri.node.task.SendTask;
+import com.mapatiri.node.task.SubscribeTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,7 +22,7 @@ class TaskRepeaterTest {
     private static final String CONTENT = "hello world";
 
     @Mock private SpeakerBridge speakerBridge;
-    @Mock private SendTask      sendTask;
+    @Mock private SendTask sendTask;
     @Mock private SubscribeTask subscribeTask;
 
     private TaskRepeater taskRepeater;

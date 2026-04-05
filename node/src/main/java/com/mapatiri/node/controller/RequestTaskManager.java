@@ -1,6 +1,7 @@
-package com.mapatiri.node.task;
+package com.mapatiri.node.controller;
 
 import com.google.inject.Inject;
+import com.mapatiri.node.task.ActionTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * File de tâche qui va exécuter les différentes requêtes d'envois de messages et d'abonnements (tâches {@link ActionTask)}.
+ * File de tâche qui va exécuter les différentes requêtes d'envois de messages et d'abonnements (tâches {@link ActionTask )}.
  *
  * @author Riham
  */

@@ -1,7 +1,8 @@
 package com.mapatiri.node.service;
 
 import com.google.inject.Provider;
-import com.mapatiri.node.task.TaskConverter;
+import com.mapatiri.node.controller.TaskConverter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,8 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -23,9 +22,16 @@ class SpeakerBridgeTest {
     @Mock private AESEncrypter aes;
     @Mock private TaskConverter taskConverter;
     @Mock private Provider<TaskConverter> taskConverterProvider;
+    @Mock private SpeakerAnnouncer speakerAnnouncer;
+    @Mock private Provider<SpeakerAnnouncer> announcerProvider;
 
-    @InjectMocks
     private SpeakerBridge speakerBridge;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(announcerProvider.get()).thenReturn(speakerAnnouncer);
+        speakerBridge = new SpeakerBridge(aes, taskConverterProvider, announcerProvider);
+    }
 
     // ===== forward() =====
 

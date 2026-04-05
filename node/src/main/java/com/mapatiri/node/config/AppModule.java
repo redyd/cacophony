@@ -13,7 +13,7 @@ import com.mapatiri.node.server.ClientNodeServer;
 import com.mapatiri.node.service.*;
 import com.mapatiri.node.task.LoginTask;
 import com.mapatiri.node.task.RegisterTask;
-import com.mapatiri.node.task.TaskConverter;
+import com.mapatiri.node.controller.TaskConverter;
 
 /**
  * Module de configuration pour le gestionnaire d'injection de dépendances.
