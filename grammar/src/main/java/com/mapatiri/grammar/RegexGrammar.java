@@ -65,7 +65,14 @@ public class RegexGrammar {
     );
 
 
+    private final String command;
+
     public RegexGrammar() {
+        this("");
+    }
+
+    public RegexGrammar(String command) {
+        this.command = command.trim();
         regex.put("WELCOME", Pattern.compile(WELCOME));
         regex.put("USER_ACTION", Pattern.compile(USER_ACTION));
         regex.put("CHALLENGE", Pattern.compile(CHALLENGE));
@@ -79,7 +86,10 @@ public class RegexGrammar {
         regex.put("LEAVE", Pattern.compile(LEAVE));
         regex.put("ADVERT", Pattern.compile(ADVERT));
         regex.put("POST", Pattern.compile(POST));
+        regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
+        regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
+
 
     public ParsedCommand parse(String command) {
         String trimmed = command.trim();
