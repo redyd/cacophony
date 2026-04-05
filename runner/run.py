@@ -320,15 +320,123 @@ class RuntimeEnvironment:
         self.demo_dir.mkdir(parents=True, exist_ok=True)
         (self.speaker_home / "src" / "main" / "resources").mkdir(parents=True, exist_ok=True)
 
-    def prepare(self, interface: str) -> None:
-        self._copy_data_files()
+    def prepare(self, interface: str, scenario_name: str) -> None:
+        self._write_data_files(scenario_name)
         self._write_node_configs(interface)
         self._write_speaker_config(interface)
 
-    def _copy_data_files(self) -> None:
-        resource_data = NODE_DIR / "src" / "main" / "resources" / "data"
-        for name in ("user.json", "user2.json", "user3.json", "tag.json", "tag2.json", "tag3.json"):
-            shutil.copy2(resource_data / name, self.data_dir / name)
+    def _write_data_files(self, scenario_name: str) -> None:
+        datasets = self._build_dataset(scenario_name)
+        for file_name, payload in datasets.items():
+            (self.data_dir / file_name).write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+    def _build_dataset(self, scenario_name: str) -> dict[str, dict[str, Any]]:
+        users = {
+            "user.json": {
+                "users": [
+                    {
+                        "login": "bobby",
+                        "bcryptHash": "dXqQgfuhGCvhq4PBJwp/c18Qh.rLnmO",
+                        "bcryptRound": 14,
+                        "bcryptSalt": "G6mDHT73UQG2lRiCew3hqe",
+                        "subscribers": []
+                    }
+                ]
+            },
+            "user2.json": {
+                "users": [
+                    {
+                        "login": "louis",
+                        "bcryptHash": "WQRGW9GuAk0.Dil3.plVKh3WekVRD1u",
+                        "bcryptRound": 14,
+                        "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
+                        "subscribers": []
+                    }
+                ]
+            },
+            "user3.json": {
+                "users": [
+                    {
+                        "login": "louise",
+                        "bcryptHash": "Y9LSb/yPEGquXDu5S3y47B53xFHCKye",
+                        "bcryptRound": 14,
+                        "bcryptSalt": "4M31aNmyo6Xt0re8E73m0u",
+                        "subscribers": []
+                    }
+                ]
+            },
+        }
+
+        clean_tags = {
+            "tag.json": {"tags": []},
+            "tag2.json": {"tags": []},
+            "tag3.json": {"tags": []},
+        }
+
+        prepared_tags = {
+            "tag.json": {
+                "tags": [
+                    {
+                        "tag": "#cacophony",
+                        "domain": "node1.swilabus.xyz",
+                        "subscribers": [
+                            "bobby@node1.swilabus.xyz",
+                            "louise@node3.swilabus.xyz"
+                        ]
+                    }
+                ]
+            },
+            "tag2.json": {"tags": []},
+            "tag3.json": {
+                "tags": [
+                    {
+                        "tag": "#cacophony",
+                        "domain": "node1.swilabus.xyz",
+                        "subscribers": [
+                            "louise@node3.swilabus.xyz"
+                        ]
+                    }
+                ]
+            },
+        }
+
+        prepared_users = {
+            "user.json": {
+                "users": [
+                    {
+                        "login": "bobby",
+                        "bcryptHash": "dXqQgfuhGCvhq4PBJwp/c18Qh.rLnmO",
+                        "bcryptRound": 14,
+                        "bcryptSalt": "G6mDHT73UQG2lRiCew3hqe",
+                        "subscribers": [
+                            "louis@node2.swilabus.xyz"
+                        ]
+                    }
+                ]
+            },
+            "user2.json": users["user2.json"],
+            "user3.json": users["user3.json"],
+        }
+
+        if scenario_name in {"prepared_demo", "gui_demo"}:
+            return {
+                **prepared_users,
+                **prepared_tags,
+            }
+
+        if scenario_name in {"setup_demo", "tag_edge_cases"}:
+            return {
+                **users,
+                **clean_tags,
+            }
+
+        return {
+            **users,
+            **clean_tags,
+        }
 
     def _write_node_configs(self, interface: str) -> None:
         source_dir = NODE_DIR / "src" / "main" / "resources"
@@ -651,19 +759,16 @@ def main() -> int:
     args = parse_args()
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     runtime_dir = RUNNER_DIR / ".runtime" / timestamp
+    scenario_path = Path(args.scenario).resolve()
     interface = choose_network_interface()
 
     print(f"[runner] runtime directory: {runtime_dir}")
     print(f"[runner] network interface: {interface}")
 
     runtime = RuntimeEnvironment(runtime_dir)
-    runtime.prepare(interface)
+    runtime.prepare(interface, scenario_path.stem)
 
-    runner = ScenarioRunner(
-        runtime=runtime,
-        scenario_path=Path(args.scenario).resolve(),
-        action_delay=max(0.0, args.action_delay),
-    )
+    runner = ScenarioRunner(runtime=runtime, scenario_path=scenario_path, action_delay=max(0.0, args.action_delay))
     try:
         runner.build(skip_build=args.skip_build)
         runner.start_infra()
