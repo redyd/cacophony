@@ -2,7 +2,6 @@ package com.mapatiri.node.task;
 
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.ClientConnection;
-import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
@@ -19,7 +18,6 @@ class TaskConverterTest {
     private UserRepo userRepo;
     private TagRepo tagRepo;
     private ConnectionStore connectionStore;
-    private ConfigRepository configRepository;
     private IdentityUtils identityUtils;
 
     private TaskConverter taskConverter;
@@ -31,20 +29,17 @@ class TaskConverterTest {
         userRepo = mock(UserRepo.class);
         tagRepo = mock(TagRepo.class);
         connectionStore = mock(ConnectionStore.class);
-        configRepository = mock(ConfigRepository.class);
         identityUtils = mock(IdentityUtils.class);
 
 
         NodeConfig config = mock(NodeConfig.class);
         when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
-        when(configRepository.getConfig()).thenReturn(config);
 
         taskConverter = new TaskConverter(
                 requestTaskManager,
                 userRepo,
                 tagRepo,
                 connectionStore,
-                configRepository,
                 identityUtils
         );
     }
