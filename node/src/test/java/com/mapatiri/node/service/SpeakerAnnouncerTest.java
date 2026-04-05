@@ -2,12 +2,12 @@ package com.mapatiri.node.service;
 
 import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
+import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.*;
 class SpeakerAnnouncerTest {
 
     @Mock private ConfigRepository configRepository;
-    @Mock private SpeakerBridge speakerBridge;
+    @Mock private SpeakerBridgeService speakerBridge;
+    @Mock private HeartbeatClock clock;
     @Mock private UDPFactory udpFactory;
     @Mock private MulticastSocket multicastSocket;
     @Mock private NodeConfig nodeConfig;
     private int freePort;
 
-    @InjectMocks
     private SpeakerAnnouncer speakerAnnouncer;
 
     @BeforeEach
@@ -49,7 +49,7 @@ class SpeakerAnnouncerTest {
         when(nodeConfig.getMulticastAddress()).thenReturn("224.224.200.200");
         when(nodeConfig.getMulticastPort()).thenReturn(11003);
 
-        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge);
+        speakerAnnouncer = new SpeakerAnnouncer(configRepository, speakerBridge, clock);
         speakerAnnouncer.init(udpFactory);
     }
 

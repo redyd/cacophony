@@ -42,11 +42,8 @@ public class App {
         var announcer = injector.getInstance(SpeakerAnnouncer.class);
         announcer.init(injector.getInstance(UDPFactory.class));
 
-        var clock = injector.getInstance(HeartbeatClock.class);
-        clock.add(injector.getInstance(SpeakerAnnouncer.class));
-
         // == INIT OBJECTS ==
-        var clockThread = new Thread(clock, "Clock");
+        var clockThread = new Thread(injector.getInstance(HeartbeatClock.class), "Clock");
         var serverThread = new Thread(injector.getInstance(ClientNodeServer.class), "Client server");
 
         // == START ==

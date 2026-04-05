@@ -5,6 +5,7 @@ import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.grammar.parse.Advert;
 import com.mapatiri.node.exception.SocketCreation;
 import com.mapatiri.node.factory.UDPFactory;
+import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.repository.ConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,17 +25,26 @@ public class SpeakerAnnouncer implements Clockable {
 
     private final ConfigRepository configRepository;
     private final SpeakerBridgeService speakerBridge;
+    private final HeartbeatClock clock;
     private MulticastSocket multicastSocket;
     private boolean isRunning = false;
 
     @Inject
-    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridgeService speakerBridge) {
+    public SpeakerAnnouncer(ConfigRepository jsonConfigRepository, SpeakerBridgeService speakerBridge, HeartbeatClock clock) {
         this.configRepository = jsonConfigRepository;
         this.speakerBridge = speakerBridge;
+        this.clock = clock;
+
+        this.clock.add(this);
     }
 
     public void init(UDPFactory factory) throws SocketCreation {
         this.multicastSocket = factory.create();
+    }
+
+    public void listenAgain() {
+        this.clock.add(this);
+        this.isRunning = false;
     }
 
     @Override
@@ -60,9 +70,9 @@ public class SpeakerAnnouncer implements Clockable {
             LOGGER.info("Advert has been sent.");
 
             // Attendre la connexion TCP du speaker
-            if (!isRunning) {
+            if (!this.isRunning) {
                 new Thread(this::waitForResponse).start();
-                isRunning = true;
+                this.isRunning = true;
             }
 
         } catch (IOException e) {
@@ -78,6 +88,8 @@ public class SpeakerAnnouncer implements Clockable {
 
             Socket speakerSocket = serverSocket.accept();
             LOGGER.info("Speaker connected from: '{}'", speakerSocket.getRemoteSocketAddress());
+            this.clock.unsubscribe(this);
+            LOGGER.info("Advert won't be sent anymore");
             speakerBridge.startListening(speakerSocket);
         } catch (IOException e) {
             LOGGER.error("ErrorProtocole while waiting for speaker connection: {}", e.getMessage());

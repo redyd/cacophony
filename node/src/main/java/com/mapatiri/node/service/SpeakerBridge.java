@@ -27,14 +27,16 @@ public class SpeakerBridge implements SpeakerBridgeService {
     private final Logger LOGGER = LoggerFactory.getLogger(SpeakerBridge.class);
 
     private final AESEncrypter aes;
+    private final Provider<SpeakerAnnouncer> announcer;
     private final Provider<TaskConverter> taskConverterProvider;
 
     private volatile PrintWriter out;
 
     @Inject
-    public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider) {
+    public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider, Provider<SpeakerAnnouncer> announcer) {
         this.aes = aes;
         this.taskConverterProvider = taskConverterProvider;
+        this.announcer = announcer;
     }
 
     /**
@@ -100,6 +102,8 @@ public class SpeakerBridge implements SpeakerBridgeService {
             LOGGER.warn("Connection has been lost with speaker '{}'", speakerSocket.getRemoteSocketAddress());
         } catch (IOException e) {
             LOGGER.error("ErrorProtocole while listening speaker messages: {}", e.getMessage());
+        } finally {
+            this.announcer.get().listenAgain();
         }
     }
 }

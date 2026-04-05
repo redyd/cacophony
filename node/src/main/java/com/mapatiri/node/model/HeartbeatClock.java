@@ -24,6 +24,10 @@ public class HeartbeatClock implements Runnable {
         clockables.add(clockable);
     }
 
+    public void unsubscribe(Clockable clockable) {
+        this.clockables.remove(clockable);
+    }
+
     @Override
     public void run() {
         LOGGER.info("Clock set to {} seconds and started", TICK_INTERVAL_MS / 1000);
