@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -40,18 +41,7 @@ public class UDPFactory {
                 socket.setNetworkInterface(networkInterface);
             } else {
                 LOGGER.warn("Network interface '{}' not found. Please edit your config.", config.getNetworkInterface());
-                Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-
-                List<String> listed = new ArrayList<>();
-                while (interfaces.hasMoreElements()) {
-                    NetworkInterface ni = interfaces.nextElement();
-
-                    if (!ni.isLoopback() && ni.isUp() && !ni.isVirtual()) {
-                        listed.add(ni.getDisplayName());
-                    }
-                }
-
-                LOGGER.info("Here are the available network interface: {}", listed);
+                LOGGER.info("Here are the available network interface: {}", getAvailableInterfaces());
             }
 
             return socket;
@@ -59,5 +49,34 @@ public class UDPFactory {
             LOGGER.error("Could not create MulticastSocket: {}", e.getMessage());
             throw new SocketCreation("Could not create MulticastSocket: " + e.getMessage());
         }
+    }
+
+    public String getAvailableInterfaces() throws SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        List<String> results = new ArrayList<>();
+
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface ni = interfaces.nextElement();
+
+            // Filtres principaux
+            if (!ni.isUp()) continue;
+            if (ni.isLoopback()) continue;
+            if (!ni.getInetAddresses().hasMoreElements()) continue;
+
+            String name = ni.getName();
+            String display = ni.getDisplayName();
+
+            // Exclusion des interfaces "polluantes"
+            if (display.contains("WAN Miniport")) continue;
+            if (display.contains("Npcap")) continue;
+            if (display.contains("QoS")) continue;
+            if (display.contains("Filter")) continue;
+
+            if (ni.isVirtual()) continue;
+
+            results.add(name);
+        }
+
+        return results.toString();
     }
 }
