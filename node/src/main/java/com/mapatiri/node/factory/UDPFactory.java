@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Factory pour le socket UDP.
@@ -37,6 +40,18 @@ public class UDPFactory {
                 socket.setNetworkInterface(networkInterface);
             } else {
                 LOGGER.warn("Network interface '{}' not found. Please edit your config.", config.getNetworkInterface());
+                Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+                List<String> listed = new ArrayList<>();
+                while (interfaces.hasMoreElements()) {
+                    NetworkInterface ni = interfaces.nextElement();
+
+                    if (!ni.isLoopback() && ni.isUp() && !ni.isVirtual()) {
+                        listed.add(ni.getDisplayName());
+                    }
+                }
+
+                LOGGER.info("Here are the available network interface: {}", listed);
             }
 
             return socket;
