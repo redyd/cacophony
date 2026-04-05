@@ -57,7 +57,7 @@ public class TaskConverter {
      * @param message le message a convertir et a envoyer
      */
     public void convertAndSend(String message) {
-        RegexGrammar grammar = new RegexGrammar(message);
+        RegexGrammar grammar = new RegexGrammar();
         Post post = switch (grammar.parse(message)) {
             case Post p -> p;
             default -> throw new IllegalArgumentException("Expected POST command: " + message);
