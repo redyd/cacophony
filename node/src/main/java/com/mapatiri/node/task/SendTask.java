@@ -2,7 +2,6 @@ package com.mapatiri.node.task;
 
 import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.grammar.parse.Msg;
-import com.mapatiri.grammar.parse.Subscribe;
 import com.mapatiri.node.model.*;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
@@ -17,6 +16,8 @@ import java.util.stream.Collectors;
 
 /**
  * Tâche d'envoi de message.
+ *
+ *  Fait à l'aide de l'IA
  *
  * @author Riham
  */
@@ -86,6 +87,10 @@ public class SendTask implements ActionTask {
         return shouldForward;
     }
 
+    /**
+     *
+     * @return les follower locaux tag et user
+     */
     private Set<String> getLocalFollowers() {
         User user = userRepo.getUserFromLogin(login);
         if (user == null) {
@@ -108,12 +113,27 @@ public class SendTask implements ActionTask {
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, false);
     }
 
-    private Set<String> getDistantFollowers() {
+    /**
+     *Utilisé par le TaskRepeter
+     * @return les users d'autre domain abonné au user et au tag
+     */
+    public Set<String> getFollowersFromOtherDomain() {
+        Set<String> followers = getDistantUserFollowers();
+        followers.addAll(getDistantTagsFollowers());
+        return followers;
+    }
+    /**
+     * Utilisé par le TaskRepeter
+     * @return les users d'autre domain abonné au user
+     */
+    private Set<String> getDistantUserFollowers() {
         return identityUtils.filterSubscribers(userRepo.getUserFromLogin(login).getSubscribers(), sender, login, true);
     }
 
+
     /**
-     * ça retourne les followers externe des tags local qui sont utilisé dans le message
+     * Utilisé par le TaskRepeter
+     * @return les users d'autre domains abonné aux tags utilisé dans le message auquel les user et aussi abonné
      */
     private Set<String> getDistantTagsFollowers() {
         Set<String> senderSubscribedTags = getSenderSubscribedTags();
@@ -126,11 +146,7 @@ public class SendTask implements ActionTask {
                 tagRepo.getAllTags().tags(), allowedTags, sender, login, true);
     }
 
-    public Set<String> getFollowersFromOtherDomain() {
-        Set<String> followers = getDistantFollowers();
-        followers.addAll(getDistantTagsFollowers());
-        return followers;
-    }
+
 
     /**
      * Retourne les tags utilisé dans le message mais qui provienent d'un autre domaine
@@ -146,6 +162,11 @@ public class SendTask implements ActionTask {
                 .map(tag -> tag.getTag() + "@" + tag.getDomain())
                 .collect(Collectors.toSet());
     }
+
+    /**
+     *
+     * @return Tout les tags auquel le user est abboné
+     */
     private Set<String> getSenderSubscribedTags() {
         return tagRepo.getAllTags().tags().stream()
                 .filter(tag -> tag.getSubscribers().contains(sender))
