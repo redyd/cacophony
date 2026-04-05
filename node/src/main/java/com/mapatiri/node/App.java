@@ -20,21 +20,20 @@ public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws NodeFileException, SocketCreation {
-        if (args.length < 3) {
-            throw new IllegalArgumentException("Config file argument required");
-        }
-
-        Path configPath = Path.of(args[0]);
-        Path usersPath = Path.of(args[1]);
-        Path tagsPath = Path.of(args[2]);
-
         Thread.currentThread().setName("Cacophony node");
         Injector injector = Guice.createInjector(new AppModule());
 
         // == CONFIG FILE ==
         var configRepo = (JsonConfigRepository) injector.getInstance(ConfigRepository.class);
         var tagRepo = (JsonTagRepository) injector.getInstance(TagRepo.class);
-        var userRepo = injector.getInstance(UserRepo.class);
+        var userRepo = (JsonUserRepository) injector.getInstance(UserRepo.class);
+        var fileConfig = new FileConfiguration();
+
+        Path configPath = fileConfig.resolveConfigPath(args);
+        Path usersPath = fileConfig.resolveUserPath(args);
+        Path tagsPath = fileConfig.resolveTagPath(args);
+
+        LOGGER.info("Using files: config={}, users={}, tags={}", configPath, usersPath, tagsPath);
 
         configRepo.loadConfig(configPath);
         userRepo.loadUsers(usersPath);
@@ -55,10 +54,6 @@ public class App {
         serverThread.start();
 
         LOGGER.info("========== Node started ==========");
-    }
-
-    private static Path resolveResource(String name) {
-        return Path.of("src", "main", "resources", name);
     }
 
 }

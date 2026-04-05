@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,11 +28,11 @@ public class JsonUserRepository implements UserRepo {
                 .create();
     }
 
-    @Override
     public void loadUsers(Path path) throws UserConfigException {
         this.path = path;
 
         try {
+            initializeIfEmpty(path);
             Users config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), Users.class);
             if (config == null) {
                 throw new UserConfigException("Config vide pour: " + path);
@@ -40,6 +41,12 @@ public class JsonUserRepository implements UserRepo {
             this.usersConfig = config;
         } catch (IOException e) {
             throw new UserConfigException(e.getMessage());
+        }
+    }
+
+    private void initializeIfEmpty(Path path) throws IOException {
+        if (Files.size(path) == 0) {
+            Files.writeString(path, gson.toJson(new Users(new ArrayList<>())), StandardCharsets.UTF_8);
         }
     }
 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 /**
  * Repository de tags json.
@@ -35,6 +36,7 @@ public class JsonTagRepository implements TagRepo {
         this.path = path;
 
         try {
+            initializeIfEmpty(path);
             Tags config = gson.fromJson(Files.newBufferedReader(path, StandardCharsets.UTF_8), Tags.class);
             if (config == null) {
                 throw new TagConfigException("Empty config for: " + path);
@@ -43,6 +45,12 @@ public class JsonTagRepository implements TagRepo {
             this.tagsConfig = config;
         } catch (IOException e) {
             throw new TagConfigException(e.getMessage());
+        }
+    }
+
+    private void initializeIfEmpty(Path path) throws IOException {
+        if (Files.size(path) == 0) {
+            Files.writeString(path, gson.toJson(new Tags(new ArrayList<>())), StandardCharsets.UTF_8);
         }
     }
 
