@@ -61,8 +61,6 @@ public class SubscribeTask implements ActionTask {
 
         tagRepo.addSubscriberToTag(tagName, sender);
 
-//        String senderLogin = identityUtils.stripDomain(sender);
-//        userRepo.addUserTag(senderLogin, toSubscribe);
     }
 
     private void subscribeToUser() throws IOException {
