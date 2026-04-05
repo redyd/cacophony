@@ -5,8 +5,7 @@
       "bcryptHash": "WQRGW9GuAk0.Dil3.plVKh3WekVRD1u",
       "bcryptRound": 14,
       "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
-      "subscribers": [
-      ]
+      "subscribers": []
     },
     {
       "login": "godswila",
@@ -22,6 +21,16 @@
       "bcryptSalt": "28JcaULITGzmyLbtIsnEW.",
       "subscribers": [
         "louisss@node2.swilabus.xyz"
+      ]
+    },
+    {
+      "login": "bobby",
+      "bcryptHash": "dXqQgfuhGCvhq4PBJwp/c18Qh.rLnmO",
+      "bcryptRound": 14,
+      "bcryptSalt": "G6mDHT73UQG2lRiCew3hqe",
+      "subscribers": [
+        "louisss@node2.swilabus.xyz",
+        "louis@node1.swilabus.xyz"
       ]
     }
   ]

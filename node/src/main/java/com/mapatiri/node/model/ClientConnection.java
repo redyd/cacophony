@@ -2,8 +2,8 @@ package com.mapatiri.node.model;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Représente une connexion client ouverte et permet d'interagir facilement avec.
@@ -17,7 +17,8 @@ public class ClientConnection {
     private final Socket socket;
     private final BufferedReader in;
     private final PrintWriter out;
-    private final Set<String> processedMessageIds = new HashSet<>();
+    private final Map<String, Long> processedMessageIds = new HashMap<>();
+    private static final long PROCESSED_ID_TTL_MS = 5_000L;
 
     public ClientConnection(Socket socket, User user, BufferedReader in, PrintWriter out) throws IOException {
         this.socket = socket;
@@ -42,12 +43,22 @@ public class ClientConnection {
         socket.close();
     }
 
-    public boolean hasAlreadyReceived(String idAtDomain) {
-        return processedMessageIds.contains(idAtDomain);
+    public synchronized boolean hasAlreadyReceived(String idAtDomain) {
+        return processedMessageIds.containsKey(idAtDomain);
     }
 
-    public void markAsReceived(String idAtDomain) {
-        processedMessageIds.add(idAtDomain);
+    public synchronized void markAsReceived(String idAtDomain) {
+        processedMessageIds.put(idAtDomain, System.currentTimeMillis());
+    }
+
+    public synchronized void purgeExpiredProcessedMessageIds() {
+        purgeExpiredProcessedMessageIds(System.currentTimeMillis());
+    }
+
+    synchronized void purgeExpiredProcessedMessageIds(long now) {
+        processedMessageIds
+                .entrySet()
+                .removeIf(entry -> now - entry.getValue() > PROCESSED_ID_TTL_MS);
     }
 
     public User getUser() {

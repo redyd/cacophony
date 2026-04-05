@@ -57,6 +57,7 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
         for (Map.Entry<String, ClientConnection> entry : connections.entrySet()) {
             ClientConnection client = entry.getValue();
             try {
+                client.purgeExpiredProcessedMessageIds();
                 if (client.isDisconnected()) {
                     client.close();
                     toRemove.add(entry.getKey());
@@ -68,6 +69,7 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
         }
 
         toRemove.forEach(connections::remove);
+        LOGGER.info("Connections have been cleared.");
     }
 
     @Override

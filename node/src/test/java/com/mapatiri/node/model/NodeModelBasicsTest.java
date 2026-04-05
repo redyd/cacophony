@@ -100,6 +100,8 @@ class NodeModelBasicsTest {
         connection.markAsReceived("1@domain");
 
         assertTrue(connection.hasAlreadyReceived("1@domain"));
+        connection.purgeExpiredProcessedMessageIds(System.currentTimeMillis() + 5_001L);
+        assertFalse(connection.hasAlreadyReceived("1@domain"));
         assertTrue(outBuffer.toString().contains("PING"));
         connection.close();
         assertTrue(connection.isDisconnected());

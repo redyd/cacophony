@@ -25,6 +25,15 @@
       "subscribers": [
         "swawa@node1.swilabus.xyz"
       ]
+    },
+    {
+      "tag": "#classico",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": [
+        "louisss@node2.swilabus.xyz",
+        "bobby@node1.swilabus.xyz",
+        "louis@node1.swilabus.xyz"
+      ]
     }
   ]
 }

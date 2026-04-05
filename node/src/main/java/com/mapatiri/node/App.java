@@ -9,6 +9,7 @@ import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.repository.*;
 import com.mapatiri.node.server.ClientNodeServer;
+import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.SpeakerAnnouncer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ public class App {
 
         var announcer = injector.getInstance(SpeakerAnnouncer.class);
         announcer.init(injector.getInstance(UDPFactory.class));
+        injector.getInstance(HeartbeatClock.class).add(injector.getInstance(ConnectionStore.class));
 
         // == INIT OBJECTS ==
         var clockThread = new Thread(injector.getInstance(HeartbeatClock.class), "Clock");

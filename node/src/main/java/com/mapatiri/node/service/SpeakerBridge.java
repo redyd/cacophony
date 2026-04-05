@@ -101,7 +101,7 @@ public class SpeakerBridge implements SpeakerBridgeService {
             }
             LOGGER.warn("Connection has been lost with speaker '{}'", speakerSocket.getRemoteSocketAddress());
         } catch (IOException e) {
-            LOGGER.error("ErrorProtocole while listening speaker messages: {}", e.getMessage());
+            LOGGER.error("Speaker is disconnected: {}", e.getMessage());
         } finally {
             this.announcer.get().listenAgain();
         }

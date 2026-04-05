@@ -65,6 +65,7 @@ class ConnectionStoreTest {
         store.put(connection);
         store.onClockSignal();
 
+        verify(connection).purgeExpiredProcessedMessageIds();
         verify(connection).close();
         assertFalse(store.get("alice").isPresent());
     }
@@ -81,6 +82,7 @@ class ConnectionStoreTest {
         store.put(connection);
         store.onClockSignal();
 
+        verify(connection).purgeExpiredProcessedMessageIds();
         assertFalse(store.get("alice").isPresent());
     }
 
