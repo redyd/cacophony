@@ -1,24 +1,3 @@
 {
-  "tags": [
-    {
-      "tag": "#tagSurprise",
-      "domain": "node1.swilabus.xyz",
-      "subscribers": []
-    },
-    {
-      "tag": "#tagMignon",
-      "domain": "node1.swilabus.xyz",
-      "subscribers": [
-        "louisss@node2.swilabus.xyz"
-      ]
-    },
-    {
-      "tag": "#pepechicken",
-      "domain": "node2.swilabus.xyz",
-      "subscribers": [
-        "louisss@node2.swilabus.xyz",
-        "swawa@node1.swilabus.xyz"
-      ]
-    }
-  ]
+  "tags": []
 }

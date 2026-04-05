@@ -37,7 +37,8 @@ Le projet est organisé en trois sous-modules Gradle :
 ./gradlew :node:run --args="<config> <users> <tags>"
 ```
 
-Sans argument, le node utilise les fichiers par défaut :
+Sans argument, le node utilise les fichiers par défaut (dans /node/src/main/resources/: node-config.json,
+/data/user.json & /data/tag.json)
 
 ```bash
 ./gradlew :node:run
@@ -67,16 +68,6 @@ Exemple avec des arguments nommés, dans n'importe quel ordre :
 ./gradlew :node:run --args="users=user2 tags=tag2 config=node-config2"
 ```
 
-Règles de résolution actuelles pour le node :
-
-- soit aucun argument n'est fourni, et le node utilise `node-config.json`, `data/user.json` et `data/tag.json`.
-- soit les trois arguments `config`, `users` et `tags` sont fournis ensemble.
-- les arguments peuvent être positionnels, dans l'ordre `<config> <users> <tags>`, ou nommés avec `config=...`, `users=...`, `tags=...` dans n'importe quel ordre.
-- `config` : accepte un chemin existant, un nom de fichier présent dans `node/src/main/resources`, ou ce même nom sans suffixe `.json`.
-- `users` et `tags` : acceptent un chemin existant, un nom de fichier présent dans `node/src/main/resources/data`, ou ce même nom sans suffixe `.json`.
-- si un seul argument ou un sous-ensemble des trois est fourni, le lancement est rejeté.
-- il ne faut pas mélanger arguments positionnels et arguments nommés.
-
 ### Speaker
 
 ```bash
@@ -102,3 +93,48 @@ sous projets.
 ## Gestion des dépendances
 
 Les versions des dépendances sont centralisées dans `gradle/libs.versions.toml` à la racine du projet.
+
+## Données existantes
+
+Les fichiers JSON sous `node/src/main/resources/data` ont été réduits à un exemple minimal, cohérent sur les 3 nœuds :
+
+- `user.json` / `tag.json` pour `node1.swilabus.xyz`
+- `user2.json` / `tag2.json` pour `node2.swilabus.xyz`
+- `user3.json` / `tag3.json` pour `node3.swilabus.xyz`
+
+Les mots de passes des users sont tous `labo2026`
+
+L'état d'exemple fourni est le suivant :
+
+- `bobby@node1.swilabus.xyz` existe sur le node 1.
+- `louis@node2.swilabus.xyz` existe sur le node 2 et suit `bobby@node1.swilabus.xyz`.
+- `louise@node3.swilabus.xyz` existe sur le node 3 et est abonnée au tag `#cacophony@node1.swilabus.xyz`.
+- `bobby@node1.swilabus.xyz` est lui aussi abonné à `#cacophony@node1.swilabus.xyz`, ce qui permet à ses messages contenant ce tag d'être relayés.
+
+## Exemple d'utilisation
+
+Lancer d'abord le speaker :
+
+```bash
+./gradlew :speaker:run
+```
+
+Puis lancer les trois nœuds dans trois terminaux :
+
+```bash
+./gradlew :node:run
+./gradlew :node:run --args="node-config2 user2 tag2"
+./gradlew :node:run --args="node-config3 user3 tag3"
+```
+
+Avec les données d'exemple :
+
+1. `bobby` se connecte au node 1.
+2. `louis` se connecte au node 2.
+3. `louise` se connecte au node 3.
+4. `bobby` envoie `SEND Salut tout le monde #cacophony`
+
+Résultat attendu :
+
+- `louis` reçoit le message sur le node 2 grâce à son abonnement utilisateur à `bobby@node1.swilabus.xyz`.
+- `louise` reçoit le message sur le node 3 grâce à son abonnement au tag `#cacophony@node1.swilabus.xyz`.

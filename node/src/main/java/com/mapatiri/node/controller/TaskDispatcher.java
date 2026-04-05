@@ -71,7 +71,7 @@ public class TaskDispatcher implements Dispatcher {
             LOGGER.info("Auth completed successfully for socket '{}'", socket.getRemoteSocketAddress());
             return connection;
         } catch (AuthentificationFailed e) {
-            LOGGER.error("Auth failed for socket '{}'", socket.getRemoteSocketAddress(), e);
+            LOGGER.warn("Auth failed for socket '{}'", socket.getRemoteSocketAddress());
             throw e;
         }
     }

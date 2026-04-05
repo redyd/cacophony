@@ -1,5 +1,11 @@
 {
   "tags": [
-
+    {
+      "tag": "#cacophony",
+      "domain": "node1.swilabus.xyz",
+      "subscribers": [
+        "louise@node3.swilabus.xyz"
+      ]
+    }
   ]
 }

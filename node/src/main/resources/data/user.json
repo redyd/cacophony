@@ -1,39 +1,12 @@
 {
   "users": [
     {
-      "login": "louis",
-      "bcryptHash": "WQRGW9GuAk0.Dil3.plVKh3WekVRD1u",
-      "bcryptRound": 14,
-      "bcryptSalt": "lv84Vvaa/Bnl3zfvMJy99e",
-      "subscribers": [
-        "swawa@node1.swilabus.xyz"
-      ]
-    },
-    {
-      "login": "godswila",
-      "bcryptHash": "NX7MS..gSteCaVCJN2V2JW7zh1DOmli",
-      "bcryptRound": 14,
-      "bcryptSalt": "dAsyGqfuXdaJLJ9UfW9A4e",
-      "subscribers": []
-    },
-    {
-      "login": "swawa",
-      "bcryptHash": "uzndiiVF.wcyg0w2FPfbEQ5n5WTxK8i",
-      "bcryptRound": 14,
-      "bcryptSalt": "28JcaULITGzmyLbtIsnEW.",
-      "subscribers": [
-        "louisss@node2.swilabus.xyz",
-        "louis@node1.swilabus.xyz"
-      ]
-    },
-    {
       "login": "bobby",
       "bcryptHash": "dXqQgfuhGCvhq4PBJwp/c18Qh.rLnmO",
       "bcryptRound": 14,
       "bcryptSalt": "G6mDHT73UQG2lRiCew3hqe",
       "subscribers": [
-        "louisss@node2.swilabus.xyz",
-        "louis@node1.swilabus.xyz"
+        "louis@node2.swilabus.xyz"
       ]
     }
   ]
