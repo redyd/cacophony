@@ -138,3 +138,29 @@ Résultat attendu :
 
 - `louis` reçoit le message sur le node 2 grâce à son abonnement utilisateur à `bobby@node1.swilabus.xyz`.
 - `louise` reçoit le message sur le node 3 grâce à son abonnement au tag `#cacophony@node1.swilabus.xyz`.
+
+## Automatisation
+
+Le dossier `runner/` contient un orchestrateur Python qui démarre automatiquement le speaker, les 3 nodes et des clients de test.
+
+Prérequis pour les scénarios TLS :
+
+- Python 3.10+
+- `node1.swilabus.xyz`, `node2.swilabus.xyz` et `node3.swilabus.xyz` doivent résoudre localement, par exemple vers `127.0.0.1`.
+- le module Python `bcrypt` doit être installé.
+- Java / Gradle doivent être disponibles pour construire `speaker` et `node`.
+- Les données `user*.json` et `tag*.json` sont générées par le runner selon le scénario ; elles ne sont pas relues telles quelles depuis le repo.
+
+Commande principale :
+
+```bash
+python3 runner/run.py --mode gui-demo --action-delay 3 --scenario runner/scenarios/tag_edge_cases.json
+```
+
+Notes :
+
+- Le démarrage n'est pas instantané : les nodes annoncent leur présence au speaker via une horloge interne de 30 secondes.
+- Les logs d'exécution sont conservés sous `runner/.runtime/<timestamp>/logs/`.
+- En mode `gui-demo`, les fenêtres clientes restent ouvertes après la séquence automatisée ; utiliser `Ctrl+C` dans le terminal pour arrêter toute la démo.
+- `--action-delay <secondes>` ajoute une pause après chaque action non `sleep`, utile pour suivre visuellement le flux.
+- Si le TLS ne peut pas être établi à cause d'une mauvaise résolution DNS/hosts ou d'un problème de certificat, une erreur explicite est affichée.

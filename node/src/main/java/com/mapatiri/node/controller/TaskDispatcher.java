@@ -15,7 +15,6 @@ import com.mapatiri.node.service.IdentityUtils;
 import com.mapatiri.node.task.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mapatiri.node.task.RequestTaskManager;
 import com.mapatiri.node.task.SendTask;
 import com.mapatiri.node.task.SubscribeTask;
 

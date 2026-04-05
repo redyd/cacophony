@@ -1,7 +1,5 @@
-package com.mapatiri.node.task;
+package com.mapatiri.node.controller;
 
-import com.mapatiri.node.controller.ClientSessionEventNotifier;
-import com.mapatiri.node.controller.TaskDispatcher;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.repository.ConfigRepository;
@@ -10,6 +8,9 @@ import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.AuthTaskManager;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.IdentityUtils;
+import com.mapatiri.node.task.ActionTask;
+import com.mapatiri.node.task.SendTask;
+import com.mapatiri.node.task.SubscribeTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

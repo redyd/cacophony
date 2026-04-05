@@ -1,0 +1,185 @@
+{
+  "name": "tag-edge-cases",
+  "clients": [
+    {
+      "name": "bobby",
+      "host": "node1.swilabus.xyz",
+      "port": 5002,
+      "login": "bobby",
+      "password": "labo2026",
+      "tls": true
+    },
+    {
+      "name": "louis",
+      "host": "node2.swilabus.xyz",
+      "port": 5004,
+      "login": "louis",
+      "password": "labo2026",
+      "tls": true
+    },
+    {
+      "name": "louise",
+      "host": "node3.swilabus.xyz",
+      "port": 5006,
+      "login": "louise",
+      "password": "labo2026",
+      "tls": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "connect",
+      "client": "bobby"
+    },
+    {
+      "type": "connect",
+      "client": "louise"
+    },
+    {
+      "type": "subscribe",
+      "client": "louise",
+      "target": "bobby@node1.swilabus.xyz"
+    },
+    {
+      "type": "note",
+      "message": "Cas 1: Bobby envoie sans tag. Seule Louise suit Bobby, donc elle seule doit recevoir."
+    },
+    {
+      "type": "sleep",
+      "seconds": 1
+    },
+    {
+      "type": "send",
+      "client": "bobby",
+      "message": "Cas 1 - sans tag."
+    },
+    {
+      "type": "expect_msg",
+      "client": "louise",
+      "from": "bobby@node1.swilabus.xyz",
+      "contains": "Cas 1 - sans tag.",
+      "timeout": 8
+    },
+    {
+      "type": "expect_no_msg",
+      "client": "bobby",
+      "from": "bobby@node1.swilabus.xyz",
+      "contains": "Cas 1 - sans tag.",
+      "timeout": 2
+    },
+    {
+      "type": "connect",
+      "client": "louis"
+    },
+    {
+      "type": "subscribe",
+      "client": "louise",
+      "target": "#cacophony@node1.swilabus.xyz"
+    },
+    {
+      "type": "subscribe",
+      "client": "louis",
+      "target": "#cacophony@node1.swilabus.xyz"
+    },
+    {
+      "type": "note",
+      "message": "Cas 2: Louis envoie avec le tag. Louise suit le tag, mais pas Louis. Elle doit donc recevoir via le tag uniquement."
+    },
+    {
+      "type": "sleep",
+      "seconds": 1
+    },
+    {
+      "type": "send",
+      "client": "louis",
+      "message": "Cas 2 - via tag. #cacophony"
+    },
+    {
+      "type": "expect_msg",
+      "client": "louise",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 2 - via tag.",
+      "timeout": 8
+    },
+    {
+      "type": "expect_no_msg",
+      "client": "bobby",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 2 - via tag.",
+      "timeout": 3
+    },
+    {
+      "type": "subscribe",
+      "client": "bobby",
+      "target": "#cacophony@node1.swilabus.xyz"
+    },
+    {
+      "type": "note",
+      "message": "Cas 3: Bobby suit maintenant aussi le tag. Quand il envoie avec le tag, Louise ne doit voir qu'un seul message, pas un doublon."
+    },
+    {
+      "type": "sleep",
+      "seconds": 1
+    },
+    {
+      "type": "send",
+      "client": "bobby",
+      "message": "Cas 3 - user + tag, un seul message. #cacophony"
+    },
+    {
+      "type": "expect_msg",
+      "client": "louise",
+      "from": "bobby@node1.swilabus.xyz",
+      "contains": "Cas 3 - user + tag, un seul message.",
+      "timeout": 8
+    },
+    {
+      "type": "expect_no_msg",
+      "client": "louise",
+      "from": "bobby@node1.swilabus.xyz",
+      "contains": "Cas 3 - user + tag, un seul message.",
+      "timeout": 2
+    },
+    {
+      "type": "note",
+      "message": "Cas 4: Louis renvoie avec le tag. Bobby et Louise suivent le tag, donc ils doivent tous les deux recevoir."
+    },
+    {
+      "type": "sleep",
+      "seconds": 1
+    },
+    {
+      "type": "send",
+      "client": "louis",
+      "message": "Cas 4 - pour Bobby et Louise. #cacophony"
+    },
+    {
+      "type": "expect_msg",
+      "client": "bobby",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 4 - pour Bobby et Louise.",
+      "timeout": 8
+    },
+    {
+      "type": "expect_msg",
+      "client": "louise",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 4 - pour Bobby et Louise.",
+      "timeout": 8
+    },
+    {
+      "type": "expect_no_msg",
+      "client": "bobby",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 4 - pour Bobby et Louise.",
+      "timeout": 2
+    },
+    {
+      "type": "expect_no_msg",
+      "client": "louise",
+      "from": "louis@node2.swilabus.xyz",
+      "contains": "Cas 4 - pour Bobby et Louise.",
+      "timeout": 2
+    }
+  ]
+}

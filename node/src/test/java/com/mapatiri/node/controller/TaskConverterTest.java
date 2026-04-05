@@ -1,11 +1,13 @@
-package com.mapatiri.node.task;
+package com.mapatiri.node.controller;
 
-import com.mapatiri.node.model.NodeConfig;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.repository.TagRepo;
 import com.mapatiri.node.repository.UserRepo;
 import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.IdentityUtils;
+import com.mapatiri.node.service.SpeakerBridgeService;
+import com.mapatiri.node.task.ActionTask;
+import com.mapatiri.node.task.SubscribeTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +21,7 @@ class TaskConverterTest {
     private TagRepo tagRepo;
     private ConnectionStore connectionStore;
     private IdentityUtils identityUtils;
+    private SpeakerBridgeService speakerBridgeService;
 
     private TaskConverter taskConverter;
 
@@ -30,17 +33,15 @@ class TaskConverterTest {
         tagRepo = mock(TagRepo.class);
         connectionStore = mock(ConnectionStore.class);
         identityUtils = mock(IdentityUtils.class);
-
-
-        NodeConfig config = mock(NodeConfig.class);
-        when(config.getCurrentDomain()).thenReturn("node1.swilabus.xyz");
+        speakerBridgeService = mock(SpeakerBridgeService.class);
 
         taskConverter = new TaskConverter(
                 requestTaskManager,
                 userRepo,
                 tagRepo,
                 connectionStore,
-                identityUtils
+                identityUtils,
+                speakerBridgeService
         );
     }
 
