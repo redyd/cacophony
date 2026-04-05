@@ -8,11 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * Enregistre toutes les connexions actives et authentifiées dans le node.
@@ -27,7 +23,7 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
 
     @Inject
     public ConnectionStore(ClientSessionEventNotifier notifier) {
-        connections = new ConcurrentHashMap<>();
+        connections = new HashMap<>();
         notifier.subscribe(this);
     }
 
@@ -61,7 +57,6 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
         for (Map.Entry<String, ClientConnection> entry : connections.entrySet()) {
             ClientConnection client = entry.getValue();
             try {
-                client.purgeExpiredProcessedMessageIds();
                 if (client.isDisconnected()) {
                     client.close();
                     toRemove.add(entry.getKey());
@@ -73,7 +68,6 @@ public class ConnectionStore implements Clockable, ClientSessionReacter {
         }
 
         toRemove.forEach(connections::remove);
-        LOGGER.info("Connections have been cleared.");
     }
 
     @Override
