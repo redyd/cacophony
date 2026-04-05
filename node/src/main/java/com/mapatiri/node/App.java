@@ -9,6 +9,7 @@ import com.mapatiri.node.factory.UDPFactory;
 import com.mapatiri.node.model.HeartbeatClock;
 import com.mapatiri.node.repository.*;
 import com.mapatiri.node.server.ClientNodeServer;
+import com.mapatiri.node.service.ConnectionStore;
 import com.mapatiri.node.service.SpeakerAnnouncer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,21 +21,20 @@ public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws NodeFileException, SocketCreation {
-        if (args.length < 3) {
-            throw new IllegalArgumentException("Config file argument required");
-        }
-
-        Path configPath = Path.of(args[0]);
-        Path usersPath = Path.of(args[1]);
-        Path tagsPath = Path.of(args[2]);
-
         Thread.currentThread().setName("Cacophony node");
         Injector injector = Guice.createInjector(new AppModule());
 
         // == CONFIG FILE ==
         var configRepo = (JsonConfigRepository) injector.getInstance(ConfigRepository.class);
         var tagRepo = (JsonTagRepository) injector.getInstance(TagRepo.class);
-        var userRepo = injector.getInstance(UserRepo.class);
+        var userRepo = (JsonUserRepository) injector.getInstance(UserRepo.class);
+        var fileConfig = new FileConfiguration();
+
+        Path configPath = fileConfig.resolveConfigPath(args);
+        Path usersPath = fileConfig.resolveUserPath(args);
+        Path tagsPath = fileConfig.resolveTagPath(args);
+
+        LOGGER.info("Using files: config={}, users={}, tags={}", configPath, usersPath, tagsPath);
 
         configRepo.loadConfig(configPath);
         userRepo.loadUsers(usersPath);
@@ -42,12 +42,10 @@ public class App {
 
         var announcer = injector.getInstance(SpeakerAnnouncer.class);
         announcer.init(injector.getInstance(UDPFactory.class));
-
-        var clock = injector.getInstance(HeartbeatClock.class);
-        clock.add(injector.getInstance(SpeakerAnnouncer.class));
+        injector.getInstance(HeartbeatClock.class).add(injector.getInstance(ConnectionStore.class));
 
         // == INIT OBJECTS ==
-        var clockThread = new Thread(clock, "Clock");
+        var clockThread = new Thread(injector.getInstance(HeartbeatClock.class), "Clock");
         var serverThread = new Thread(injector.getInstance(ClientNodeServer.class), "Client server");
 
         // == START ==
@@ -55,10 +53,6 @@ public class App {
         serverThread.start();
 
         LOGGER.info("========== Node started ==========");
-    }
-
-    private static Path resolveResource(String name) {
-        return Path.of("src", "main", "resources", name);
     }
 
 }

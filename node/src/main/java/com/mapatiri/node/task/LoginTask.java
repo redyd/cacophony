@@ -2,6 +2,7 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.*;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;
 import com.mapatiri.node.model.User;
@@ -13,7 +14,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 /**
  * Permet d'authentifier un utilisateur déjà enregistré.
@@ -30,7 +30,7 @@ public class LoginTask implements AuthTask {
     }
 
     @Override
-    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, RegexGrammar response, String randomString) throws AuthentificationFailed {
+    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, ParsedCommand response, String randomString) throws AuthentificationFailed {
         try {
             User target = tryGettingUser(out, response);
 
@@ -43,7 +43,7 @@ public class LoginTask implements AuthTask {
             String expectedHash = hash(randomString + target.getHashedPassword());
 
             if (!expectedHash.equals(hashResponse)) {
-                String invalidCredentials = new RegexGrammar().buildCommand("ERROR", "Invalid credentials");
+                String invalidCredentials = new RegexGrammar().build(new ErrorProtocole("Invalid credentials"));
                 out.println(invalidCredentials);
                 throw new AuthentificationFailed("Invalid credentials");
             }
@@ -51,12 +51,12 @@ public class LoginTask implements AuthTask {
             ClientConnection connection = new ClientConnection(client, target, in, out);
 
             String ok = new RegexGrammar()
-                    .buildCommand("OK", "Welcome back to Cacophony %s".formatted(connection.getUser().getLogin()));
+                    .build(new Ok("Welcome back to Cacophony %s".formatted(connection.getUser().getLogin())));
             connection.send(ok);
 
             return connection;
         } catch (IOException | NoSuchAlgorithmException e) {
-            String unexpectedError = new RegexGrammar().buildCommand("ERROR", "Unexpected error");
+            String unexpectedError = new RegexGrammar().build(new ErrorProtocole("Unexpected error"));
             out.println(unexpectedError);
             throw new AuthentificationFailed("Something went wrong");
         }
@@ -67,9 +67,12 @@ public class LoginTask implements AuthTask {
      * En cas d'erreur, lance un {@link AuthentificationFailed}.
      */
     private String tryGettingHashResponse(BufferedReader in, PrintWriter out, User target) throws IOException, AuthentificationFailed {
+        RegexGrammar grammar = new RegexGrammar();
         // send challenge
-        String challenge = new RegexGrammar()
-                .buildCommand("CHALLENGE", String.valueOf(target.getBcryptRound()), target.getBcryptSalt());
+        String challenge = grammar.build(new Challenge(
+                String.valueOf(target.getBcryptRound()),
+                target.getBcryptSalt()
+        ));
         out.println(challenge);
 
         // wait for challenge response
@@ -78,35 +81,31 @@ public class LoginTask implements AuthTask {
             throw new AuthentificationFailed("Response is empty");
         }
 
-        RegexGrammar challengeResponse = new RegexGrammar(resp);
-        List<String> challengeResponseValues = challengeResponse.parseCommand();
+        ParsedCommand response = grammar.parse(resp);
 
         // check challenge response validity
-        if (challengeResponseValues.size() != 1
-                || !"RESPONSE".equals(challengeResponse.getTypeOfCommand())
-                || challengeResponseValues.getFirst().isBlank()) {
-            String responseError = new RegexGrammar().buildCommand("ERROR", "Invalid response from challenge");
-            out.println(responseError);
+        if (!(response instanceof Response(String sha3hex)) || sha3hex.isBlank()) {
+            String error = grammar.build(new ErrorProtocole("Invalid response from challenge"));
+            out.println(error);
             throw new AuthentificationFailed("Invalid response from challenge");
         }
 
-        return challengeResponseValues.getFirst();
+        return sha3hex;
     }
 
     /**
      * Tente de récupérer depuis le JSON l'utilisateur mentionné dans la réponse Regex
      */
-    private User tryGettingUser(PrintWriter out, RegexGrammar response) throws AuthentificationFailed {
-        List<String> userLoginResponse = response.parseCommand();
+    private User tryGettingUser(PrintWriter out, ParsedCommand command) throws AuthentificationFailed {
+        RegexGrammar grammar = new RegexGrammar();
 
         // check welcome validity
-        if (userLoginResponse.size() != 1 || userLoginResponse.getFirst().isBlank()) {
-            String responseError = new RegexGrammar().buildCommand("ERROR", "Invalid response to welcome");
-            out.println(responseError);
+        if (!(command instanceof UserAction(String login)) || login.isBlank()) {
+            String error = grammar.build(new ErrorProtocole("Invalid response to welcome"));
+            out.println(error);
             throw new AuthentificationFailed("Invalid response to welcome");
         }
 
-        String login = userLoginResponse.getFirst();
         return this.userRepository.getUserFromLogin(login);
     }
 

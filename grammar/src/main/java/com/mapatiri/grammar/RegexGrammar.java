@@ -1,6 +1,9 @@
 package com.mapatiri.grammar;
 
+import com.mapatiri.grammar.parse.*;
+
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,10 +43,25 @@ public class RegexGrammar {
     private final String ADVERT = "ADVERT" + SP + "(" + PORT + ")" + SP + "(" + DOMAIN + ")" + NEWLINE;
     private final String POST = "POST" + SP + "(" + ID_AT_DOMAIN + ")" + SP + "(" + USER_AT_DOMAIN + ")" + SP + "(" + USER_AT_DOMAIN + "|" + TAG_AT_DOMAIN + ")" + SP + "(" + INNER_MESSAGE + ")" + NEWLINE;
 
-    private final String command;
     private final Map<String, Pattern> regex = new HashMap<>();
+    private final List<Parser<? extends ParsedCommand>> PARSERS = List.of(
+            new Parser<>("SUBSCRIBE", m -> new Subscribe(m.group(1))),
+            new Parser<>("SEND", m -> new Send(m.group(1))),
+            new Parser<>("MSG", m -> new Msg(m.group(1), m.group(2))),
+            new Parser<>("POST", m -> new Post(m.group(1), m.group(2), m.group(3), m.group(4))),
+            new Parser<>("CHALLENGE", m -> new Challenge(m.group(1), m.group(2))),
+            new Parser<>("LEAVE", m -> new Leave()),
+            new Parser<>("ERROR", m -> new ErrorProtocole(m.group(1))),
+            new Parser<>("RESPONSE", m -> new Response(m.group(1))),
+            new Parser<>("USER_ACTION", m -> new UserAction(m.group(1))),
+            new Parser<>("WELCOME", m -> new Welcome(m.group(1), m.group(2))),
+            new Parser<>("ONBOARDING", m -> new Onboarding(m.group(1), m.group(2), m.group(3))),
+            new Parser<>("OK", m -> new Ok(m.group(1))),
+            new Parser<>("ADVERT", m -> new Advert(m.group(1), m.group(2)))
+    );
+    private final String command;
 
-    public RegexGrammar(){
+    public RegexGrammar() {
         this("");
     }
 
@@ -62,71 +80,62 @@ public class RegexGrammar {
         regex.put("LEAVE", Pattern.compile(LEAVE));
         regex.put("ADVERT", Pattern.compile(ADVERT));
         regex.put("POST", Pattern.compile(POST));
+        //TODO A suprimer
         regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
         regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
 
-    public List<String> parseCommand() {
-        String type = getTypeOfCommand();
-        if (type.isBlank()) {
+    public ParsedCommand parse(String command) {
+        String trimmed = command.trim();
+        if (trimmed.isBlank()) {
             throw new IllegalArgumentException("The command doesn't match any regex");
         }
-        Matcher matcher = regex.get(type).matcher(command);
-        int groupCount = matcher.groupCount();
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Command does not match");
-        }
-        List<String> elements = new ArrayList<>();
-        for (int i = 1; i <= groupCount; i++) {
-            elements.add(matcher.group(i));
-        }
-        return elements;
-    }
-
-    public String getTypeOfCommand() {
-        Set<String> keys = regex.keySet();
-        for (String key : keys) {
-            Pattern pattern = regex.get(key);
-            Matcher matcher = pattern.matcher(command);
-            if (matcher.matches()) {
-                return key;
+        for (Parser<? extends ParsedCommand> parser : PARSERS) {
+            Matcher m = regex.get(parser.key()).matcher(trimmed);
+            if (m.matches()) {
+                return parser.factory().apply(m);
             }
         }
-        return "";
+        throw new IllegalArgumentException("Unknown command: " + trimmed);
     }
 
-    public String buildCommand(String typeOfCommand, String... parts) {
-        Pattern pattern = regex.get(typeOfCommand);
-        List<String> tabMessage = new ArrayList<>(List.of(typeOfCommand));
-        tabMessage.addAll(List.of(parts));
-        String message = String.join(" ", tabMessage);
-        message = message.trim();
-        message += "\r\n";
-        Matcher matcher = pattern.matcher(message);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Arguments don't match the command pattern");
-        }
+    private String assemble(String type, String keyword, String... parts) {
+        String message = parts.length == 0
+                ? keyword + "\r\n"
+                : keyword + " " + String.join(" ", parts) + "\r\n";
+        return validate(type, message);
+    }
+
+    public String build(ParsedCommand command) {
+        return switch (command) {
+            case Send s        -> assemble("SEND",       "SEND",      s.content());
+            case Subscribe s   -> assemble("SUBSCRIBE",  "SUBSCRIBE", s.target());
+            case Msg m         -> assemble("MSG",        "MSG",       m.sender(), m.content());
+            case Post p        -> assemble("POST",       "POST",      p.id(), p.sender(), p.receiver(), p.content());
+            case Challenge c   -> assemble("CHALLENGE",  "CHALLENGE", c.counter(), c.randomString());
+            case Response r    -> assemble("RESPONSE",   "RESPONSE",  r.sha3hex());
+            case Onboarding o  -> assemble("ONBOARDING", "ONBOARDING",o.user(), o.saltLength(), o.bcryptHash());
+            case UserAction u  -> assemble("USER_ACTION","USER",      u.login());
+            case Ok o          -> assemble("OK",         "OK",        o.message());
+            case ErrorProtocole e -> assemble("ERROR",   "ERROR",     e.message());
+            case Advert a      -> assemble("ADVERT",     "ADVERT",    a.port(), a.domain());
+            case Welcome w     -> assemble("WELCOME",    "WELCOME",   w.domain(), w.randomString());
+            case Leave l       -> "LEAVE\r\n";
+        };
+    }
+
+    public String buildContent(ParsedCommand command) {
+        return build(command).replace("\r\n", "");
+    }
+
+    private String validate(String type, String message) {
+        Matcher m = regex.get(type).matcher(message);
+        if (!m.matches()) throw new IllegalArgumentException("Invalid: " + message);
         return message;
     }
 
-    public List<String> extractTagsFromMessage() {
-        String type = getTypeOfCommand();
-        if (!"MSG".equals(type) && !"POST".equals(type) && !"SEND".equals(type) ) {
-            throw new IllegalArgumentException("Only the MSG, SEND and the POST type is accepted");
-        }
-        List<String> parts = parseCommand();
 
-        String text;
-
-        if ("MSG".equals(type)) {
-            text = parts.get(1);
-        } else if ("POST".equals(type)){ // POST
-            text = parts.get(3);
-        }else{
-             text = parts.getFirst();
-
-        }
-
+    public List<String> extractTagsFromMessage(String text) {
         Pattern tagPattern = Pattern.compile(TAG);
         Matcher m = tagPattern.matcher(text);
 
@@ -141,7 +150,7 @@ public class RegexGrammar {
         String domain = userAtDomain.substring(userAtDomain.indexOf('@') + 1);
 
         // je peux pas utiliser UUUID car il faut que je precise le mas de nbr que je souhaite
-        String id = String.valueOf((int)(Math.random() * 99999) + 1);
+        String id = String.valueOf((int) (Math.random() * 99999) + 1);
 
         String result = id + "@" + domain;
 
@@ -151,12 +160,6 @@ public class RegexGrammar {
         }
 
         return result;
-    }
-    private boolean isDistantDomain(String target, String localDomain) {
-        String domain = target.contains("@")
-                ? target.substring(target.indexOf('@') + 1)
-                : localDomain;
-        return !domain.equals(localDomain);
     }
 
 }

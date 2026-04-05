@@ -81,6 +81,6 @@ class AuthTaskManagerTest {
 
         AuthTaskManager manager = new AuthTaskManager(loginTask, registerTask, configRepository);
 
-        assertThrows(AuthentificationFailed.class, () -> manager.startHandshake(socket));
+        assertThrows(IllegalArgumentException.class, () -> manager.startHandshake(socket));
     }
 }

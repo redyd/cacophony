@@ -2,6 +2,8 @@ package com.mapatiri.node.service;
 
 import com.google.inject.Provider;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.ParsedCommand;
+import com.mapatiri.grammar.parse.Post;
 import com.mapatiri.node.task.TaskConverter;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -25,14 +27,16 @@ public class SpeakerBridge implements SpeakerBridgeService {
     private final Logger LOGGER = LoggerFactory.getLogger(SpeakerBridge.class);
 
     private final AESEncrypter aes;
+    private final Provider<SpeakerAnnouncer> announcer;
     private final Provider<TaskConverter> taskConverterProvider;
 
     private volatile PrintWriter out;
 
     @Inject
-    public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider) {
+    public SpeakerBridge(AESEncrypter aes, Provider<TaskConverter> taskConverterProvider, Provider<SpeakerAnnouncer> announcer) {
         this.aes = aes;
         this.taskConverterProvider = taskConverterProvider;
+        this.announcer = announcer;
     }
 
     /**
@@ -81,18 +85,25 @@ public class SpeakerBridge implements SpeakerBridgeService {
                 LOGGER.info("A message has been received and decrypt from speaker");
 
                 // Identifier et valider le message
-                RegexGrammar grammar = new RegexGrammar(decrypted);
-                String type = grammar.getTypeOfCommand();
-
-                if (type.equals("POST")) {
+                RegexGrammar grammar = new RegexGrammar();
+                ParsedCommand parsedCommand ;
+                try {
+                    parsedCommand = grammar.parse(decrypted);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Received an unrecognized or malformed command from speaker, ignoring");
+                    continue;
+                }
+                if (parsedCommand instanceof Post) {
                     taskConverterProvider.get().convertAndSend(decrypted);
                 } else {
-                    LOGGER.warn("An unknown message type has been received from speaker: '{}'", type.isBlank() ? "inconnu" : type);
+                    LOGGER.warn("An unknown message type has been received from speaker: '{}'", parsedCommand != null ? parsedCommand.getClass().getSimpleName() : "inconnu");
                 }
             }
             LOGGER.warn("Connection has been lost with speaker '{}'", speakerSocket.getRemoteSocketAddress());
         } catch (IOException e) {
-            LOGGER.error("Error while listening speaker messages: {}", e.getMessage());
+            LOGGER.error("Speaker is disconnected: {}", e.getMessage());
+        } finally {
+            this.announcer.get().listenAgain();
         }
     }
 }

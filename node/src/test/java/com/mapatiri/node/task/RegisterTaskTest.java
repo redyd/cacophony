@@ -1,6 +1,8 @@
 package com.mapatiri.node.task;
 
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Onboarding;
+import com.mapatiri.grammar.parse.UserAction;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.UserConflictException;
 import com.mapatiri.node.model.BcryptParams;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.when;
 class RegisterTaskTest {
 
     @Test
-    void authenticateThrowsForInvalidResponseType() {
+    void authenticateThrowsForInvalidResponseType() throws Exception {
         UserRepo userRepo = mock(UserRepo.class);
         SimpleBcryptService bcryptService = mock(SimpleBcryptService.class);
         RegisterTask registerTask = new RegisterTask(userRepo, bcryptService);
@@ -32,10 +34,9 @@ class RegisterTaskTest {
         Socket socket = mock(Socket.class);
         BufferedReader in = new BufferedReader(new StringReader(""));
         PrintWriter out = new PrintWriter(new StringWriter(), true);
-        RegexGrammar invalidResponse = new RegexGrammar("USER alice11\r\n");
 
         assertThrows(AuthentificationFailed.class, () ->
-                registerTask.authenticate(socket, in, out, invalidResponse, "random"));
+                registerTask.authenticate(socket, in, out, new UserAction("alice11"), "random"));
     }
 
     @Test
@@ -48,11 +49,13 @@ class RegisterTaskTest {
         doThrow(new UserConflictException("exists")).when(userRepo).addUser(any());
 
         Socket socket = mock(Socket.class);
+        when(socket.getOutputStream()).thenReturn(new java.io.ByteArrayOutputStream());
         BufferedReader in = new BufferedReader(new StringReader(""));
         PrintWriter out = new PrintWriter(new StringWriter(), true);
-        RegexGrammar response = new RegexGrammar("ONBOARDING alice11 10 $2b$10$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\r\n");
+
+        Onboarding onboarding = new Onboarding("alice11", "10", "$2b$10$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
         assertThrows(AuthentificationFailed.class, () ->
-                registerTask.authenticate(socket, in, out, response, "random"));
+                registerTask.authenticate(socket, in, out, onboarding, "random"));
     }
 }

@@ -1,6 +1,7 @@
 package com.mapatiri.speaker.service;
 
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Post;
 import com.mapatiri.speaker.model.NodeConnection;
 import com.mapatiri.speaker.repository.SpeakerConfigRepository;
 import jakarta.inject.Inject;
@@ -56,22 +57,26 @@ public class SpeakerServer {
 
             LOGGER.info("Connected to node {}", domain);
 
+            RegexGrammar grammar = new RegexGrammar();
             String encryptedLine;
             while ((encryptedLine = nodeConnection.waitForMessage()) != null) {
                 String decrypted = aesEncrypter.decrypt(domain, encryptedLine);
 
-                // Parser le POST pour trouver le domaine destinataire
-                RegexGrammar grammar = new RegexGrammar(decrypted);
-                List<String> parts = grammar.parseCommand();
-                String receiver = parts.get(2); // user@domain ou #tag@domain
-
-                // Extraire le domaine du destinataire
-                String destDomain = receiver.substring(receiver.indexOf('@') + 1);
-
-                // Rechiffrer avec la clé du node destinataire et envoyer
-                String reEncrypted = aesEncrypter.encrypt(destDomain, decrypted);
-
-                nodeStore.broadcast(destDomain, reEncrypted);
+                try {
+                    // Parser le POST pour trouver le domaine destinataire
+                    switch (grammar.parse(decrypted)) {
+                        case Post p -> {
+                            // Extraire le domaine du destinataire
+                            String destDomain = p.receiver().substring(p.receiver().indexOf('@') + 1);
+                            // Rechiffrer avec la clé du node destinataire et envoyer
+                            String reEncrypted = aesEncrypter.encrypt(destDomain, decrypted);
+                            nodeStore.broadcast(destDomain, reEncrypted);
+                        }
+                        default -> LOGGER.warn("Expected POST command from node {}, ignoring: {}", domain, decrypted.trim());
+                    }
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Unrecognized or malformed message from node {}, ignoring: {}", domain, decrypted.trim());
+                }
             }
 
             LOGGER.info("Node disconnected : {}", domain);

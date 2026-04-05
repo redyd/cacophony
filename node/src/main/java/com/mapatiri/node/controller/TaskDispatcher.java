@@ -2,6 +2,7 @@ package com.mapatiri.node.controller;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.*;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.BadRequestException;
 import com.mapatiri.node.model.ClientConnection;
@@ -14,6 +15,9 @@ import com.mapatiri.node.service.IdentityUtils;
 import com.mapatiri.node.task.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.mapatiri.node.task.RequestTaskManager;
+import com.mapatiri.node.task.SendTask;
+import com.mapatiri.node.task.SubscribeTask;
 
 import java.net.Socket;
 import java.util.List;
@@ -35,8 +39,7 @@ public class TaskDispatcher implements Dispatcher {
     private final ConnectionStore connectionStore;
     private final ConfigRepository configRepository;
     private final ClientSessionEventNotifier notifier;
-
-    private RegexGrammar regexGrammar;
+    private final RegexGrammar regexGrammar;
 
     @Inject
     public TaskDispatcher(
@@ -56,6 +59,7 @@ public class TaskDispatcher implements Dispatcher {
         this.configRepository = configRepository;
         this.identityUtils = identityUtils;
         this.notifier = notifier;
+        this.regexGrammar = new RegexGrammar();
     }
 
     @Override
@@ -78,30 +82,36 @@ public class TaskDispatcher implements Dispatcher {
         String sender = configRepository.buildAtDomain(login);
         LOGGER.info("Processing request from '{}', of type '{}'", login, getRequestPreview(request));
 
-        regexGrammar = new RegexGrammar(request);
-        String type = regexGrammar.getTypeOfCommand();
+        ParsedCommand command;
+        try {
+            command = regexGrammar.parse(request);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("User {} made a bad request'", login);
+            throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
+        }
+
         String successMessage;
 
-        ActionTask task = switch (type.toUpperCase()) {
-            case "SUBSCRIBE" -> {
+        ActionTask task = switch (command) {
+            case Subscribe sub -> {
                 successMessage = "Subscribed with success";
-                yield buildSubscribeTask(sender);
+                yield buildSubscribeTask(sender, sub);
             }
-            case "SEND" -> {
+            case Send send -> {
                 successMessage = "Sent with success";
-                yield buildSendTask(login, true);
+                yield buildSendTask(login, send);
             }
-            case "MSG" -> {
+            case Msg msg -> {
                 successMessage = "Received with success";
-                yield buildSendTask(regexGrammar.parseCommand().getFirst(), false);
+                yield buildSendTask(msg);
             }
-            case "LEAVE" -> {
+            case Leave ignored -> {
                 successMessage = "Leaving with success";
                 yield buildLeaveTask(login);
             }
             default -> {
-                LOGGER.warn("User {} made a bad request: '{}'", type, login);
-                throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
+                LOGGER.warn("User {} made a bad request: '{}'", command.getClass(), login);
+                throw new BadRequestException("The request should only be SEND, MSG ,  SUBSCRIBE or LEAVE");
             }
         };
 
@@ -109,29 +119,30 @@ public class TaskDispatcher implements Dispatcher {
 
         requestTaskManager.submit(task);
         connectionStore.get(login).ifPresent(connection -> {
-           String ok = new RegexGrammar().buildCommand("OK", finalSuccessMessage);
-           connection.send(ok);
+            String ok = regexGrammar.build(new Ok(finalSuccessMessage));
+            connection.send(ok);
         });
+    }
+
+    private SubscribeTask buildSubscribeTask(String sender, Subscribe sub) {
+        boolean shouldForward = identityUtils.isDistantDomain(sub.target(), sender);
+        return new SubscribeTask(userRepo, tagRepo, identityUtils, sender, sub.target(), shouldForward);
     }
 
     private LeaveTask buildLeaveTask(String sender) {
         return new LeaveTask(notifier, connectionStore, sender);
     }
 
-    private SubscribeTask buildSubscribeTask(String sender) {
-        List<String> components = regexGrammar.parseCommand();
-        String target = components.getFirst();
-        boolean shouldForward = identityUtils.isDistantDomain(target, sender);
-
-        return new SubscribeTask(userRepo, tagRepo, identityUtils, sender, target, shouldForward);
+    private SendTask buildSendTask(String sender, Send send) {
+        List<String> tags = regexGrammar.extractTagsFromMessage(send.content());
+        return new SendTask(sender, tags, send.content(), true,
+                connectionStore, userRepo, tagRepo, configRepository, identityUtils);
     }
 
-    private SendTask buildSendTask(String sender, boolean shouldForward) {
-        List<String> components = regexGrammar.parseCommand();
-        List<String> tags = regexGrammar.extractTagsFromMessage();
-        String content = shouldForward ? components.getFirst() : components.get(1);
-
-        return new SendTask(sender, tags, content, shouldForward, connectionStore, userRepo, tagRepo, configRepository, identityUtils);
+    private SendTask buildSendTask(Msg msg) {
+        List<String> tags = regexGrammar.extractTagsFromMessage(msg.content());
+        return new SendTask(msg.sender(), tags, msg.content(), false,
+                connectionStore, userRepo, tagRepo, configRepository, identityUtils);
     }
 
     private String getRequestPreview(String request) {

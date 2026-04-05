@@ -2,6 +2,10 @@ package com.mapatiri.node.task;
 
 import com.google.inject.Inject;
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.ErrorProtocole;
+import com.mapatiri.grammar.parse.Ok;
+import com.mapatiri.grammar.parse.Onboarding;
+import com.mapatiri.grammar.parse.ParsedCommand;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.exception.UserConflictException;
 import com.mapatiri.node.model.BcryptParams;
@@ -34,29 +38,31 @@ public class RegisterTask implements AuthTask {
     }
 
     @Override
-    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, RegexGrammar response, String randomChars) throws AuthentificationFailed {
+    public ClientConnection authenticate(Socket client, BufferedReader in, PrintWriter out, ParsedCommand parsed, String randomChars) throws AuthentificationFailed {
         try {
-            List<String> onboardingValues = response.parseCommand();
+            //List<String> onboardingValues = response.parseCommand();
+
 
             // check for response validity
-            if (onboardingValues.size() != 3 || !"ONBOARDING".equals(response.getTypeOfCommand())) {
-                String err = new RegexGrammar().buildCommand("ERROR", "Invalid response to welcome");
+            if (!(parsed instanceof Onboarding onboarding)) {
+                String err = new RegexGrammar().build(new ErrorProtocole("Invalid response to welcome"));
                 out.println(err);
                 throw new AuthentificationFailed("Invalid response to welcome");
             }
 
             // get ready to init user
-            String login = onboardingValues.getFirst();
-            int saltLength = Integer.parseInt(onboardingValues.get(1));
-            BcryptParams bcrypt = bcryptService.parseByCrypt(onboardingValues.get(2), saltLength);
+            String login = onboarding.user();
+            int saltLength = Integer.parseInt( onboarding.saltLength());
+            BcryptParams bcrypt = bcryptService.parseByCrypt(onboarding.bcryptHash(), saltLength);
 
             // create & add user to the repository
             User user = initUser(out, login, bcrypt);
             ClientConnection connection = new ClientConnection(client, user, in, out);
 
             // create response
+
             String ok = new RegexGrammar()
-                    .buildCommand("OK", "Welcome to Cacophony %s".formatted(connection.getUser().getLogin()));
+                    .build(new Ok( "Welcome to Cacophony %s".formatted(connection.getUser().getLogin())));
             connection.send(ok);
 
             return connection;
@@ -70,7 +76,7 @@ public class RegisterTask implements AuthTask {
         try {
             userRepo.addUser(user);
         } catch (UserConflictException e) {
-            String err = new RegexGrammar().buildCommand("ERROR", "This login already exists");
+            String err = new RegexGrammar().build(new ErrorProtocole("This login already exists"));
             out.println(err);
             throw new AuthentificationFailed("Could not create user with same login as another");
         }

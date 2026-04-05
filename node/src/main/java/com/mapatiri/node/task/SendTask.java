@@ -1,6 +1,8 @@
 package com.mapatiri.node.task;
 
 import com.mapatiri.grammar.RegexGrammar;
+import com.mapatiri.grammar.parse.Msg;
+import com.mapatiri.grammar.parse.Subscribe;
 import com.mapatiri.node.model.*;
 import com.mapatiri.node.repository.ConfigRepository;
 import com.mapatiri.node.repository.TagRepo;
@@ -62,7 +64,7 @@ public class SendTask implements ActionTask {
     @Override
     public void executeTask() {
         RegexGrammar regexGrammar = new RegexGrammar();
-        String mssg = regexGrammar.buildCommand("MSG", sender, getContent());
+        String mssg = regexGrammar.build(new Msg( sender, getContent()));
 
         Set<String> localFollowers = getLocalFollowers();
         localFollowers.addAll(getLocalTagsFollowers());

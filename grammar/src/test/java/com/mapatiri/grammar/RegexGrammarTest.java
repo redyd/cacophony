@@ -1,112 +1,274 @@
 package com.mapatiri.grammar;
 
+import com.mapatiri.grammar.parse.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RegexGrammarTest {
-    String w = "WELCOME exampledomain abcDEF1234567890!@#$%^\r\n";
-    String u = "USER user12345\r\n";
-    String c = "CHALLENGE 05 ZYXabc1234567890!@#$%^\r\n";
-    String r = "RESPONSE abcdef1234567890abcdef1234567890abcdef\r\n";
-    String o = "ONBOARDING user12345 12 $2b$05$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcd\r\n";
-    String s = "SUBSCRIBE user12345@exampledomain\r\n";
-    String se = "SEND Hello this is a test message\r\n";
-    String m = "MSG user12345@exampledomain Hello this is a received message\r\n";
-    String ok = "OK Command successful\r\n";
-    String e = "ERROR Something went wrong\r\n";
-    String l = "LEAVE\r\n";
-    String ad = "ADVERT 8080 exampledomain\r\n";
-    String p = "POST 123@exampledomain user12345@exampledomain user67890@exampledomain This is a longer inner message used for testing the post command\r\n";
+class RegexGrammarTest {
 
-    RegexGrammar ww = new RegexGrammar(w);
-    RegexGrammar uu = new RegexGrammar(u);
-    RegexGrammar cc = new RegexGrammar(c);
-    RegexGrammar rr = new RegexGrammar(r);
-    RegexGrammar oo = new RegexGrammar(o);
-    RegexGrammar ss = new RegexGrammar(s);
-    RegexGrammar see = new RegexGrammar(se);
-    RegexGrammar mm = new RegexGrammar(m);
-    RegexGrammar okk = new RegexGrammar(ok);
-    RegexGrammar ee = new RegexGrammar(e);
-    RegexGrammar ll = new RegexGrammar(l);
-    RegexGrammar add = new RegexGrammar(ad);
-    RegexGrammar pp = new RegexGrammar(p);
+    private RegexGrammar grammar;
 
-    @Test
-    public void should_return_the_right_type_of_command(){
-
-        assertEquals("WELCOME", ww.getTypeOfCommand());
-        assertEquals("USER_ACTION", uu.getTypeOfCommand());
-        assertEquals("CHALLENGE", cc.getTypeOfCommand());
-        assertEquals("RESPONSE", rr.getTypeOfCommand());
-        assertEquals("ONBOARDING", oo.getTypeOfCommand());
-        assertEquals("SUBSCRIBE", ss.getTypeOfCommand());
-        assertEquals("SEND", see.getTypeOfCommand());
-        assertEquals("MSG", mm.getTypeOfCommand());
-        assertEquals("OK", okk.getTypeOfCommand());
-        assertEquals("ERROR", ee.getTypeOfCommand());
-        assertEquals("LEAVE", ll.getTypeOfCommand());
-        assertEquals("ADVERT", add.getTypeOfCommand());
-        assertEquals("POST", pp.getTypeOfCommand());
+    @BeforeEach
+    void setUp() {
+        grammar = new RegexGrammar();
     }
 
-    @Test
-    public void should_parse_correctly(){
-        String[] welcome = {"exampledomain", "abcDEF1234567890!@#$%^"};
-        String[] user = {"user12345"};
-        String[] challenge = {"05", "ZYXabc1234567890!@#$%^"};
-        String[] response = {"abcdef1234567890abcdef1234567890abcdef"};
-        String[] onboarding = {
-                "user12345",
-                "12",
-                "$2b$05$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcd"
-        };
-        String[] subscribe = {"user12345@exampledomain"};
-        String[] send = {"Hello this is a test message"};
-        String[] msg = {"user12345@exampledomain", "Hello this is a received message"};
-        String[] ok = {"Command successful"};
-        String[] error = {"Something went wrong"};
-        String[] leave = {};
-        String[] advert = {"8080", "exampledomain"};
-        String[] post = {
-                "123@exampledomain",
-                "user12345@exampledomain",
-                "user67890@exampledomain",
-                "This is a longer inner message used for testing the post command"
-        };
-        assertArrayEquals(welcome, ww.parseCommand().toArray());
-        assertArrayEquals(user, uu.parseCommand().toArray());
-        assertArrayEquals(challenge, cc.parseCommand().toArray());
-        assertArrayEquals(response, rr.parseCommand().toArray());
-        assertArrayEquals(onboarding, oo.parseCommand().toArray());
-        assertArrayEquals(subscribe, ss.parseCommand().toArray());
-        assertArrayEquals(send, see.parseCommand().toArray());
-        assertArrayEquals(msg, mm.parseCommand().toArray());
-        assertArrayEquals(ok, okk.parseCommand().toArray());
-        assertArrayEquals(error, ee.parseCommand().toArray());
-        assertArrayEquals(leave, ll.parseCommand().toArray());
-        assertArrayEquals(advert, add.parseCommand().toArray());
-        assertArrayEquals(post, pp.parseCommand().toArray());
+    // ─────────────────────────────────────────────
+    // parse() — happy paths
+    // ─────────────────────────────────────────────
+
+    @Nested
+    class Parse {
+
+        @Test
+        void parsesSubscribeWithUser() {
+            ParsedCommand cmd = grammar.parse("SUBSCRIBE user1@example.com\r\n");
+            assertInstanceOf(Subscribe.class, cmd);
+            assertEquals("user1@example.com", ((Subscribe) cmd).target());
+        }
+
+        @Test
+        void parsesSubscribeWithTag() {
+            ParsedCommand cmd = grammar.parse("SUBSCRIBE #tag12@example.com\r\n");
+            assertInstanceOf(Subscribe.class, cmd);
+            assertEquals("#tag12@example.com", ((Subscribe) cmd).target());
+        }
+
+        @Test
+        void parsesSend() {
+            ParsedCommand cmd = grammar.parse("SEND Hello world\r\n");
+            assertInstanceOf(Send.class, cmd);
+            assertEquals("Hello world", ((Send) cmd).content());
+        }
+
+        @Test
+        void parsesMsg() {
+            ParsedCommand cmd = grammar.parse("MSG user1@example.com Hello!\r\n");
+            assertInstanceOf(Msg.class, cmd);
+            assertEquals("user1@example.com", ((Msg) cmd).sender());
+            assertEquals("Hello!", ((Msg) cmd).content());
+        }
+
+        @Test
+        void parsesLeave() {
+            ParsedCommand cmd = grammar.parse("LEAVE\r\n");
+            assertInstanceOf(Leave.class, cmd);
+        }
+
+        @Test
+        void parsesOk() {
+            ParsedCommand cmd = grammar.parse("OK Welcome to Cacophony\r\n");
+            assertInstanceOf(Ok.class, cmd);
+            assertEquals("Welcome to Cacophony", ((Ok) cmd).message());
+        }
+
+        @Test
+        void parsesError() {
+            ParsedCommand cmd = grammar.parse("ERROR Invalid credentials\r\n");
+            assertInstanceOf(ErrorProtocole.class, cmd);
+            assertEquals("Invalid credentials", ((ErrorProtocole) cmd).message());
+        }
+
+        @Test
+        void parsesWelcome() {
+            String random22 = "abcABC123!@#deGHI456$%"; // exactly 22 chars
+            ParsedCommand cmd = grammar.parse("WELCOME example.com " + random22 + "\r\n");
+            assertInstanceOf(Welcome.class, cmd);
+            assertEquals("example.com", ((Welcome) cmd).domain());
+            assertEquals(random22, ((Welcome) cmd).randomString());
+        }
+
+        @Test
+        void parsesChallenge() {
+            ParsedCommand cmd = grammar.parse("CHALLENGE 12 abcABC123!@#deGHI456$%\r\n");
+            assertInstanceOf(Challenge.class, cmd);
+            assertEquals("12", ((Challenge) cmd).counter());
+        }
+
+        @Test
+        void parsesResponse() {
+            String hex = "a".repeat(64);
+            ParsedCommand cmd = grammar.parse("RESPONSE " + hex + "\r\n");
+            assertInstanceOf(Response.class, cmd);
+            assertEquals(hex, ((Response) cmd).sha3hex());
+        }
+
+        @Test
+        void parsesUserAction() {
+            ParsedCommand cmd = grammar.parse("USER user1\r\n");
+            assertInstanceOf(UserAction.class, cmd);
+            assertEquals("user1", ((UserAction) cmd).login());
+        }
+
+        @Test
+        void parsesOnboarding() {
+            String bcrypt = "$2b$12$abcABC123defGHI456jklM";
+            ParsedCommand cmd = grammar.parse("ONBOARDING user1 12 " + bcrypt + "\r\n");
+            assertInstanceOf(Onboarding.class, cmd);
+            assertEquals("user1", ((Onboarding) cmd).user());
+            assertEquals("12", ((Onboarding) cmd).saltLength());
+            assertEquals(bcrypt, ((Onboarding) cmd).bcryptHash());
+        }
+
+        @Test
+        void parsesAdvert() {
+            ParsedCommand cmd = grammar.parse("ADVERT 8080 example.com\r\n");
+            assertInstanceOf(Advert.class, cmd);
+            assertEquals("8080", ((Advert) cmd).port());
+            assertEquals("example.com", ((Advert) cmd).domain());
+        }
+
+        @Test
+        void parsesPost() {
+            ParsedCommand cmd = grammar.parse("POST 42@example.com user1@example.com user2@example.com Hello!\r\n");
+            assertInstanceOf(Post.class, cmd);
+            assertEquals("42@example.com", ((Post) cmd).id());
+            assertEquals("user1@example.com", ((Post) cmd).sender());
+            assertEquals("user2@example.com", ((Post) cmd).receiver());
+            assertEquals("Hello!", ((Post) cmd).content());
+        }
+
+        @Test
+        void trimsCommandBeforeParsing() {
+            ParsedCommand cmd = grammar.parse("   LEAVE\r\n   ");
+            assertInstanceOf(Leave.class, cmd);
+        }
     }
 
-    @Test
-    public void should_build_the_command_correctly(){
-        RegexGrammar none = new RegexGrammar();
+    // ─────────────────────────────────────────────
+    // parse() — error paths
+    // ─────────────────────────────────────────────
 
-        String noneParse1 = none.buildCommand("WELCOME", "exampledomain", "abcDEF1234567890!@#$%^");
-        String noneParse2 = none.buildCommand("CHALLENGE", "05", "ZYXabc1234567890!@#$%^");
-        String noneParse3 = none.buildCommand("ONBOARDING", "user12345", "12", "$2b$05$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcd");
-        String noneParse4 = none.buildCommand("LEAVE", "");
+    @Nested
+    class ParseErrors {
 
-        assertEquals(w, noneParse1);
-        assertEquals(c, noneParse2);
-        assertEquals(o, noneParse3);
-        assertEquals(l, noneParse4);
+        @Test
+        void throwsOnBlankCommand() {
+            assertThrows(IllegalArgumentException.class, () -> grammar.parse("   "));
+        }
+
+        @Test
+        void throwsOnUnknownCommand() {
+            IllegalArgumentException ex = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> grammar.parse("UNKNOWN something\r\n")
+            );
+            assertTrue(ex.getMessage().contains("Unknown command"));
+        }
+
+        @Test
+        void throwsOnSendWithoutContent() {
+            assertThrows(IllegalArgumentException.class, () -> grammar.parse("SEND\r\n"));
+        }
+
+        @Test
+        void throwsOnMsgWithoutContent() {
+            assertThrows(IllegalArgumentException.class, () -> grammar.parse("MSG user1\r\n"));
+        }
+
+        @Test
+        void throwsOnSubscribeWithoutTarget() {
+            assertThrows(IllegalArgumentException.class, () -> grammar.parse("SUBSCRIBE \r\n"));
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // build()
+    // ─────────────────────────────────────────────
+
+    @Nested
+    class Build {
+
+        @Test
+        void buildsAndRoundtripsSubscribe() {
+            Subscribe sub = new Subscribe("user1@example.com");
+            assertEquals(sub, grammar.parse(grammar.build(sub)));
+        }
+
+        @Test
+        void buildsAndRoundtripsSend() {
+            Send send = new Send("Hello world");
+            assertEquals(send, grammar.parse(grammar.build(send)));
+        }
+
+        @Test
+        void buildsAndRoundtripsOk() {
+            Ok ok = new Ok("Welcome back");
+            assertEquals(ok, grammar.parse(grammar.build(ok)));
+        }
+
+        @Test
+        void buildsLeave() {
+            assertEquals("LEAVE\r\n", grammar.build(new Leave()));
+        }
+
+        @Test
+        void throwsOnContentTooLong() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> grammar.build(new Send("x".repeat(201))));
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // extractTagsFromMessage()
+    // ─────────────────────────────────────────────
+
+    @Nested
+    class ExtractTags {
+
+        @Test
+        void extractsSingleTag() {
+            List<String> tags = grammar.extractTagsFromMessage("Hello #tag12 how are you");
+            assertEquals(1, tags.size());
+            assertEquals("#tag12", tags.getFirst());
+        }
+
+        @Test
+        void extractsMultipleTags() {
+            List<String> tags = grammar.extractTagsFromMessage("#tag12 and #tag99 here");
+            assertEquals(2, tags.size());
+            assertEquals("#tag12", tags.get(0));
+            assertEquals("#tag99", tags.get(1));
+        }
+
+        @Test
+        void returnsEmptyWhenNoTags() {
+            assertTrue(grammar.extractTagsFromMessage("no tags here").isEmpty());
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // generateIdAtDomain()
+    // ─────────────────────────────────────────────
+
+    @Nested
+    class GenerateIdAtDomain {
+
+        @Test
+        void preservesDomain() {
+            String result = grammar.generateIdAtDomain("user1@example.com");
+            assertTrue(result.endsWith("@example.com"));
+        }
+
+        @Test
+        void generatesValidFormat() {
+            String result = grammar.generateIdAtDomain("user1@example.com");
+            assertTrue(result.matches("\\d{1,5}@(?:[0-9A-Za-z]|\\.){5,200}"));
+        }
+
+        @Test
+        void generatesDistinctIds() {
+            long distinct = java.util.stream.IntStream.range(0, 20)
+                    .mapToObj(i -> grammar.generateIdAtDomain("user1@example.com"))
+                    .map(s -> s.substring(0, s.indexOf('@')))
+                    .distinct()
+                    .count();
+            assertTrue(distinct > 1);
+        }
     }
 }
