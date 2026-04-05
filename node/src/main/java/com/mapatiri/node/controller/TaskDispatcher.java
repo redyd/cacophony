@@ -89,6 +89,7 @@ public class TaskDispatcher implements Dispatcher {
             LOGGER.warn("User {} made a bad request'", login);
             throw new BadRequestException("The request should only be SEND, MSG, SUBSCRIBE or LEAVE");
         }
+
         String successMessage;
 
         ActionTask task = switch (command) {
@@ -102,7 +103,7 @@ public class TaskDispatcher implements Dispatcher {
             }
             case Msg msg -> {
                 successMessage = "Received with success";
-                yield buildSendTask(sender, msg);
+                yield buildSendTask(msg);
             }
             case Leave ignored -> {
                 successMessage = "Leaving with success";
@@ -138,7 +139,7 @@ public class TaskDispatcher implements Dispatcher {
                 connectionStore, userRepo, tagRepo, configRepository, identityUtils);
     }
 
-    private SendTask buildSendTask(String sender, Msg msg) {
+    private SendTask buildSendTask(Msg msg) {
         List<String> tags = regexGrammar.extractTagsFromMessage(msg.content());
         return new SendTask(msg.sender(), tags, msg.content(), false,
                 connectionStore, userRepo, tagRepo, configRepository, identityUtils);

@@ -1,6 +1,5 @@
 package com.mapatiri.node.task;
 
-import com.mapatiri.grammar.RegexGrammar;
 import com.mapatiri.grammar.parse.ParsedCommand;
 import com.mapatiri.node.exception.AuthentificationFailed;
 import com.mapatiri.node.model.ClientConnection;

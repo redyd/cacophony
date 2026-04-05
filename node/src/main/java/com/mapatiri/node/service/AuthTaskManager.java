@@ -55,6 +55,7 @@ public class AuthTaskManager {
             // send welcome with rand char
             String randomString = randomString();
             String welcome = new RegexGrammar().build(new Welcome(config.getCurrentDomain(), randomString));
+
             out.println(welcome);
 
             // wait for response
@@ -69,8 +70,8 @@ public class AuthTaskManager {
 
             // get correct task
             AuthTask task = switch (parsedCommand) {
-                case UserAction userAction -> loginTask;
-                case Onboarding on -> registerTask;
+                case UserAction ignored -> loginTask;
+                case Onboarding ignored -> registerTask;
                 default -> {
                     String error = new RegexGrammar().build(new ErrorProtocole("Invalid authentication command"));
                     out.println(error);

@@ -14,7 +14,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 /**
  * Permet d'authentifier un utilisateur déjà enregistré.
@@ -44,7 +43,6 @@ public class LoginTask implements AuthTask {
             String expectedHash = hash(randomString + target.getHashedPassword());
 
             if (!expectedHash.equals(hashResponse)) {
-
                 String invalidCredentials = new RegexGrammar().build(new ErrorProtocole("Invalid credentials"));
                 out.println(invalidCredentials);
                 throw new AuthentificationFailed("Invalid credentials");
@@ -83,7 +81,7 @@ public class LoginTask implements AuthTask {
             throw new AuthentificationFailed("Response is empty");
         }
 
-        ParsedCommand response = grammar.parse(in.readLine());
+        ParsedCommand response = grammar.parse(resp);
 
         // check challenge response validity
         if (!(response instanceof Response(String sha3hex)) || sha3hex.isBlank()) {
