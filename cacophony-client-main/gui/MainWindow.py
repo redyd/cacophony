@@ -9,6 +9,7 @@ class MainWindow:
         self.root = tk.Tk()
         self.root.title("Cacophony™ Client - © Louis SWINNEN 2026")
         self.root.config(bd=5)
+        self.silent_dialogs = False
         self.host = tk.StringVar()
         self.passw = tk.StringVar()
         self.login = tk.StringVar()
@@ -26,6 +27,23 @@ class MainWindow:
         self.draw_center_pane()
         self.draw_footer_pane()
         self.not_connected_mode()
+
+    def set_window_title(self, suffix):
+        base_title = "Cacophony™ Client - © Louis SWINNEN 2026"
+        if suffix and suffix.strip():
+            self.root.title(f"{base_title} [{suffix}]")
+        else:
+            self.root.title(base_title)
+
+    def set_geometry(self, geometry):
+        if geometry and geometry.strip():
+            self.root.geometry(geometry)
+
+    def set_silent_dialogs(self, enabled):
+        self.silent_dialogs = enabled
+
+    def schedule(self, delay_ms, callback):
+        self.root.after(delay_ms, callback)
 
     def draw_top_pane(self):
         top_pane = ttk.LabelFrame(self.root, padding=(3, 3, 12, 12), text=" Connection to Cacophony™ Node ")
@@ -154,7 +172,9 @@ class MainWindow:
         self.text_box["state"] = "disabled"
     
     def show_message(self, message, is_error):
-        if is_error:
+        if self.silent_dialogs and not is_error:
+            self.add_message(f"[info] {message}", False)
+        elif is_error:
             messagebox.showerror("Error", message)
         else:
             messagebox.showinfo("Information", message)
