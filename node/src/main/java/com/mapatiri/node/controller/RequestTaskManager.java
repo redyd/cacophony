@@ -40,7 +40,11 @@ public class RequestTaskManager {
                     taskRepeater.convertAndSend(task);
                 }
 
-                LOGGER.info("Task '{}' has been submitted{}", task.getClass().getSimpleName(), task.shouldForward() ? " and forwarded" : "");
+                LOGGER.info("Task '{}' submitted{}", task.getClass().getSimpleName(),
+                        task.shouldForward() ? " and forwarded" : "");
+            } catch (IllegalArgumentException e) {
+                // Catches regex validation failures from build()/validate()
+                LOGGER.error("Invalid command built in task '{}'", task, e);
             } catch (Exception e) {
                 LOGGER.error("ErrorProtocole executing task: {}", task, e);
             } catch (Throwable t) {

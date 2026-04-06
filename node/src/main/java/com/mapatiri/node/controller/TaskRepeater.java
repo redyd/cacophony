@@ -43,26 +43,37 @@ public class TaskRepeater {
             Set<String> distantFollowers = sendTask.getFollowersFromOtherDomain();
             LOGGER.info("Forwarding a message from {} to {} distant followers", sendTask.getSender(), distantFollowers.size());
             for (String follower : distantFollowers) {
-                post = regexGrammar.build(new Post(id, sendTask.getSender(), follower, message));
-                speakerBridge.forward(post);
+                try {
+                    post = regexGrammar.build(new Post(id, sendTask.getSender(), follower, message));
+                    speakerBridge.forward(post);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("Could not build POST for follower : {}", e.getMessage());
+                }
             }
 
             Set<String> distantTags = sendTask.getDistantTags();
-            LOGGER.info("Forwarding a message from {} to {} distant tags", sendTask.getSender(), distantTags.size());
+            LOGGER.info("Forwarding message from {} to {} distant tags", sendTask.getSender(), distantTags.size());
             for (String distantTag : distantTags) {
-                post = regexGrammar.build(new Post(id, sendTask.getSender(), distantTag, message));
-                speakerBridge.forward(post);
+                try {
+                    post = regexGrammar.build(new Post(id, sendTask.getSender(), distantTag, message));
+                    speakerBridge.forward(post);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("Could not build POST for tag : {}", e.getMessage());
+                }
             }
 
         } else if (task instanceof SubscribeTask subscribeTask) {
-            LOGGER.info("Forwarding a subscribe command from {} to {}", subscribeTask.getSender(), subscribeTask.getToSubscribe());
-            String message = regexGrammar.buildContent(new Subscribe(subscribeTask.getToSubscribe()));
-            String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
-            post = regexGrammar.build(new Post(id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), message));
-            speakerBridge.forward(post);
+            LOGGER.info("Forwarding subscribe from {} to {}", subscribeTask.getSender(), subscribeTask.getToSubscribe());
+            try {
+                String message = regexGrammar.buildContent(new Subscribe(subscribeTask.getToSubscribe()));
+                String id = regexGrammar.generateIdAtDomain(subscribeTask.getSender());
+                post = regexGrammar.build(new Post(id, subscribeTask.getSender(), subscribeTask.getToSubscribe(), message));
+                speakerBridge.forward(post);
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("Could not build POST for subscribe: {}", e.getMessage());
+            }
         } else {
             LOGGER.warn("Unknown task type received: {}", task.getClass().getSimpleName());
         }
     }
-
 }

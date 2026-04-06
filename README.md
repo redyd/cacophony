@@ -164,3 +164,42 @@ Notes :
 - En mode `gui-demo`, les fenêtres clientes restent ouvertes après la séquence automatisée ; utiliser `Ctrl+C` dans le terminal pour arrêter toute la démo.
 - `--action-delay <secondes>` ajoute une pause après chaque action non `sleep`, utile pour suivre visuellement le flux.
 - Si le TLS ne peut pas être établi à cause d'une mauvaise résolution DNS/hosts ou d'un problème de certificat, une erreur explicite est affichée.
+
+## Prompt IA
+**Riham BERRIAH** 
+**Exemple 1 : (perplexity) - Explications de l’énoncé**
+
+**Moi :** Tu peux juste mexpliquer sans les coder ce que chaque methodes de chaque classe doit faire par rapport au shema et au document de mon labo et me donner les etapes de creation : + “le contenu du pdf”
+
+**perplexity :**Très bon — tu veux une explication complète du diagramme de classes que tu as partagé, en lien direct avec le document du labo “CacophonyTM: Make Noise Great Again”, mais sans code. Voici ce que je te propose : je peux te détailler **le rôle et le comportement attendu de chaque méthode et classe** du diagramme + “le reste”
+
+**Exemple 2 : (perplexity) - Améliorer une méthode**  
+
+**Moi :** can u ameliore this method :
+public ParsedCommand parse(String command) {
+
+“la méthode”
+
+}
+
+**perplexity :** Yes — the method works, but it is repetitive, hard to extend, and easy to break when you add new commands. A cleaner version is to centralize the “pattern + object builder” logic and loop over it in order. + “la fonction améliorer”
+
+**Exemple 3 : (claude) - générer des tests**
+
+**Moi :** can u generate test for this class : + “le contenu de la classe”
+
+**claude :** “les tests pour la classe”
+
+**Exemple 4 : (claude) - Questions sur l’utilisation des méthode java**
+
+**Moi :** how can i knwo wich type is a ParsedCommand i use getClass ?
+
+**claude :**  Since `ParsedCommand` is a sealed interface, the idiomatic way is **pattern matching** — not `getClass()`. You have two options:
+
+**`instanceof` (for a single check): + “le code”**
+
+**Exemple 5 : (claude) - Changer une méthode déjà faite**
+
+**Moi :** tu peux changer la methode pour que :  "un utilisateur doit être abonné à toutes les tendances qu'il utilise , donc on ne parcours que si il appartient a  public Set<String> getUserTags() {     return userTags; }
+
+**claude :** Voici la méthode modifiée : + “la methode”

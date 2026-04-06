@@ -3,9 +3,13 @@ package com.mapatiri.grammar;
 import com.mapatiri.grammar.parse.*;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+/**
+ * Fait à l'aide de l'IA
+ *
+ */
 
 public class RegexGrammar {
     private final String SP = " ";
@@ -59,6 +63,8 @@ public class RegexGrammar {
             new Parser<>("OK", m -> new Ok(m.group(1))),
             new Parser<>("ADVERT", m -> new Advert(m.group(1), m.group(2)))
     );
+
+
     private final String command;
 
     public RegexGrammar() {
@@ -80,10 +86,10 @@ public class RegexGrammar {
         regex.put("LEAVE", Pattern.compile(LEAVE));
         regex.put("ADVERT", Pattern.compile(ADVERT));
         regex.put("POST", Pattern.compile(POST));
-        //TODO A suprimer
         regex.put("ID_AT_DOMAIN", Pattern.compile(ID_AT_DOMAIN));
         regex.put("USER_AT_DOMAIN", Pattern.compile(USER_AT_DOMAIN));
     }
+
 
     public ParsedCommand parse(String command) {
         String trimmed = command.trim();
@@ -108,22 +114,27 @@ public class RegexGrammar {
 
     public String build(ParsedCommand command) {
         return switch (command) {
-            case Send s        -> assemble("SEND",       "SEND",      s.content());
-            case Subscribe s   -> assemble("SUBSCRIBE",  "SUBSCRIBE", s.target());
-            case Msg m         -> assemble("MSG",        "MSG",       m.sender(), m.content());
-            case Post p        -> assemble("POST",       "POST",      p.id(), p.sender(), p.receiver(), p.content());
-            case Challenge c   -> assemble("CHALLENGE",  "CHALLENGE", c.counter(), c.randomString());
-            case Response r    -> assemble("RESPONSE",   "RESPONSE",  r.sha3hex());
-            case Onboarding o  -> assemble("ONBOARDING", "ONBOARDING",o.user(), o.saltLength(), o.bcryptHash());
-            case UserAction u  -> assemble("USER_ACTION","USER",      u.login());
-            case Ok o          -> assemble("OK",         "OK",        o.message());
-            case ErrorProtocole e -> assemble("ERROR",   "ERROR",     e.message());
-            case Advert a      -> assemble("ADVERT",     "ADVERT",    a.port(), a.domain());
-            case Welcome w     -> assemble("WELCOME",    "WELCOME",   w.domain(), w.randomString());
-            case Leave l       -> "LEAVE\r\n";
+            case Send s -> assemble("SEND", "SEND", s.content());
+            case Subscribe s -> assemble("SUBSCRIBE", "SUBSCRIBE", s.target());
+            case Msg m -> assemble("MSG", "MSG", m.sender(), m.content());
+            case Post p -> assemble("POST", "POST", p.id(), p.sender(), p.receiver(), p.content());
+            case Challenge c -> assemble("CHALLENGE", "CHALLENGE", c.counter(), c.randomString());
+            case Response r -> assemble("RESPONSE", "RESPONSE", r.sha3hex());
+            case Onboarding o -> assemble("ONBOARDING", "ONBOARDING", o.user(), o.saltLength(), o.bcryptHash());
+            case UserAction u -> assemble("USER_ACTION", "USER", u.login());
+            case Ok o -> assemble("OK", "OK", o.message());
+            case ErrorProtocole e -> assemble("ERROR", "ERROR", e.message());
+            case Advert a -> assemble("ADVERT", "ADVERT", a.port(), a.domain());
+            case Welcome w -> assemble("WELCOME", "WELCOME", w.domain(), w.randomString());
+            case Leave l -> "LEAVE\r\n";
         };
     }
 
+    /**
+     * Permet de remplacer le retour a la ligne par une chaine vide quand on insert un MSG ou un SEND dans un POST
+     * @param command
+     * @return
+     */
     public String buildContent(ParsedCommand command) {
         return build(command).replace("\r\n", "");
     }
@@ -146,10 +157,16 @@ public class RegexGrammar {
         return tags;
     }
 
+    /**
+     * Permet de générer le id at domain pour l'envoie de POST dans le TaskRepeater
+     *
+     * @param userAtDomain
+     * @return
+     */
     public String generateIdAtDomain(String userAtDomain) {
         String domain = userAtDomain.substring(userAtDomain.indexOf('@') + 1);
 
-        // je peux pas utiliser UUUID car il faut que je precise le mas de nbr que je souhaite
+        // je peux pas utiliser UUUID car il faut que je precise le max de nbr que je souhaite
         String id = String.valueOf((int) (Math.random() * 99999) + 1);
 
         String result = id + "@" + domain;

@@ -67,9 +67,11 @@ public class TaskConverter {
         String sender = post.sender();
         String receiver = post.receiver();
         String innerMessage = post.content();
+        String parseableInner = innerMessage.endsWith("\r\n") ? innerMessage : innerMessage + "\r\n";
+
         ParsedCommand innerCommand;
         try {
-            innerCommand = grammar.parse(innerMessage + "\r\n");
+            innerCommand = grammar.parse(parseableInner);
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Unknown or malformed inner command in POST, ignoring: '{}'", innerMessage);
             return;
