@@ -13,7 +13,7 @@ import com.mapatiri.node.task.RegisterTask;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * Gestionnaire d'authentification du client.
@@ -91,7 +91,7 @@ public class AuthTaskManager {
         String specials = "!@#$%^";
         String all = digits + letters + letters.toUpperCase() + specials;
 
-        Random r = new Random();
+        SecureRandom r = new SecureRandom();
         char[] chars = new char[RANDOM_STRING_LENGTH];
         for (int i = 0; i < RANDOM_STRING_LENGTH; i++) {
             chars[i] = all.charAt(r.nextInt(all.length()));

@@ -79,7 +79,7 @@ public class TaskDispatcher implements Dispatcher {
     @Override
     public void submit(String request, String login) throws BadRequestException {
         String sender = configRepository.buildAtDomain(login);
-        LOGGER.info("Processing request from '{}', of type '{}'", login, getRequestPreview(request));
+        LOGGER.info("Processing request from '{}'", login);
 
         ParsedCommand command;
         try {
@@ -142,12 +142,5 @@ public class TaskDispatcher implements Dispatcher {
         List<String> tags = regexGrammar.extractTagsFromMessage(msg.content());
         return new SendTask(msg.sender(), tags, msg.content(), false,
                 connectionStore, userRepo, tagRepo, configRepository, identityUtils);
-    }
-
-    private String getRequestPreview(String request) {
-        if (request.length() > 50) {
-            return request.substring(0, 50) + "...";
-        }
-        return request;
     }
 }
